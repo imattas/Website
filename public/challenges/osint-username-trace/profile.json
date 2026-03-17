@@ -1,0 +1,93 @@
+{
+  "username": "z3mi_hacker",
+  "investigation_notes": "OSINT Username Trace Challenge",
+  "platforms_checked": [
+    {
+      "platform": "GitHub",
+      "url": "https://github.com/z3mi_hacker",
+      "status": "found",
+      "bio": "Security researcher | CTF player | Bug bounty hunter",
+      "repos": [
+        {
+          "name": "dotfiles",
+          "description": "My personal configuration files",
+          "note": "Nothing interesting, standard bashrc/vimrc"
+        },
+        {
+          "name": "ctf-tools",
+          "description": "Collection of CTF utilities",
+          "note": "Check commit history for breadcrumbs"
+        }
+      ],
+      "breadcrumb": "Bio mentions 'pastebin addict'"
+    },
+    {
+      "platform": "Twitter/X",
+      "url": "https://twitter.com/z3mi_hacker",
+      "status": "found",
+      "bio": "Hacking things legally. 🔓 Check my paste for secrets.",
+      "recent_tweets": [
+        "Just solved another forensics challenge! #CTF #infosec",
+        "New paste up with some notes from today's research session",
+        "My favorite paste site: pastebin.com - find me there as z3mi_hacker"
+      ],
+      "breadcrumb": "Tweets mention pastebin usage, same username"
+    },
+    {
+      "platform": "Pastebin",
+      "url": "https://pastebin.com/u/z3mi_hacker",
+      "status": "found",
+      "pastes": [
+        {
+          "title": "shopping list",
+          "content": "milk\neggs\nbread\nbutter",
+          "note": "Decoy paste"
+        },
+        {
+          "title": "ctf notes",
+          "content": "Remember to check metadata!\nTools: exiftool, strings, binwalk\nMy personal flag format: zemi{...}",
+          "note": "Hints at flag format"
+        },
+        {
+          "title": "secret notes - do not share",
+          "content": "My CTF flags collection:\n---\nzemi{us3rn4m3_tr4c3d}\n---\nDon't tell anyone!",
+          "note": "THE FLAG IS HERE"
+        }
+      ],
+      "breadcrumb": "Flag found in 'secret notes' paste"
+    },
+    {
+      "platform": "Reddit",
+      "url": "https://reddit.com/u/z3mi_hacker",
+      "status": "found",
+      "subreddits": ["r/netsec", "r/CTF", "r/hacking"],
+      "comment_excerpt": "I always use the same username everywhere. Bad OPSEC, I know!",
+      "breadcrumb": "Confirms same username across platforms"
+    },
+    {
+      "platform": "LinkedIn",
+      "url": "N/A",
+      "status": "not_found",
+      "note": "No LinkedIn profile (smart OPSEC here at least)"
+    },
+    {
+      "platform": "Instagram",
+      "url": "https://instagram.com/z3mi_hacker",
+      "status": "found",
+      "bio": "Hacker by day, gamer by night",
+      "note": "Profile photo shows a desk with monitors, no useful EXIF"
+    }
+  ],
+  "investigation_path": [
+    "1. Start with username 'z3mi_hacker'",
+    "2. Search across platforms (namechk.com, sherlock, whatsmyname.app)",
+    "3. Find GitHub profile -> bio mentions pastebins",
+    "4. Find Twitter -> tweets confirm pastebin usage",
+    "5. Check Pastebin for user z3mi_hacker",
+    "6. Find 'secret notes' paste containing the flag",
+    "7. Flag: zemi{us3rn4m3_tr4c3d}"
+  ],
+  "flag": "zemi{us3rn4m3_tr4c3d}",
+  "difficulty": "Easy",
+  "category": "OSINT"
+}

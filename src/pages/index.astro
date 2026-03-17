@@ -1,0 +1,166 @@
+---
+import Layout from '../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="Home | Zemi">
+    <main class="container">
+        <header>
+            <h1>
+                <img src={`${base}/logo.svg`} alt="Zemi logo" class="title-logo" />
+                Zemi
+            </h1>
+            <p class="tagline">i break stuff and sometimes write about it</p>
+        </header>
+
+        <section class="intro">
+            <p>Hey. I'm Zemi. I play CTFs, mess with binaries, and spend too much time staring at hex dumps at 3am. This site is where I dump my challenge write-ups, notes, and whatever tools I'm using at the moment.</p>
+            <p>If you're into pwn, crypto, or rev, you might find something useful here. Or not. Either way, welcome.</p>
+        </section>
+
+        <section class="quick-links">
+            <a href={`${base}/blog`} class="card">
+                <h2>Challenges</h2>
+                <p>Write-ups from CTFs and random challenges I've solved. Mostly pwn, crypto, and rev.</p>
+            </a>
+            <a href={`${base}/docs`} class="card">
+                <h2>Docs</h2>
+                <p>My personal cheatsheet. One-liners, tool configs, and references I got tired of googling every time.</p>
+            </a>
+            <a href={`${base}/about`} class="card">
+                <h2>About</h2>
+                <p>Who I am, what I'm into, how to find me.</p>
+            </a>
+        </section>
+
+        <section class="recent">
+            <h2>What I've been up to</h2>
+            <ul>
+                <li>Getting better at heap exploitation (slowly)</li>
+                <li>Learning kernel pwn, it's painful but worth it</li>
+                <li>Building out this site instead of actually solving challenges</li>
+            </ul>
+        </section>
+
+        <section class="terminal-box">
+            <p><span class="prompt">$</span> uptime</p>
+            <p>online. probably solving something rn.</p>
+        </section>
+    </main>
+</Layout>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    header {
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .title-logo {
+        height: 1.2em;
+        width: auto;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+        margin-bottom: 0.2rem;
+    }
+
+    h1 {
+        display: flex;
+        align-items: center;
+        margin-top: 0;
+    }
+
+    .tagline {
+        color: #8b949e;
+        font-size: 1.1em;
+        font-style: italic;
+    }
+
+    .intro {
+        margin-bottom: 2rem;
+    }
+
+    .intro p {
+        font-size: 1.05em;
+        margin-bottom: 1rem;
+    }
+
+    .quick-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .card {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        padding: 1.25rem;
+        transition: border-color 0.2s ease;
+        text-decoration: none;
+    }
+
+    .card:hover {
+        border-color: var(--accent);
+        text-decoration: none;
+    }
+
+    .card h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1em;
+        color: var(--accent);
+    }
+
+    .card p {
+        margin: 0;
+        font-size: 0.9em;
+        color: var(--text-main);
+    }
+
+    .recent {
+        margin-bottom: 2rem;
+    }
+
+    .recent h2 {
+        color: var(--text-heading);
+        font-size: 1.2em;
+        margin-bottom: 0.75rem;
+    }
+
+    .recent ul {
+        list-style-type: square;
+        padding-left: 1.5rem;
+    }
+
+    .recent li {
+        margin-bottom: 0.5rem;
+        font-size: 1.05em;
+    }
+
+    .terminal-box {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-left: 4px solid var(--accent);
+        padding: 1.5rem;
+        margin: 2rem 0;
+        font-family: "Courier New", monospace;
+        border-radius: 4px;
+    }
+
+    .terminal-box p {
+        margin: 0.5rem 0;
+        color: #e6edf3;
+    }
+
+    .prompt {
+        color: var(--accent);
+        font-weight: bold;
+    }
+</style>

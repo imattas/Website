@@ -1,0 +1,1 @@
+The oracle speaks in boolean: valid or invalid. That's all you need.

@@ -1,0 +1,14 @@
+# Diffie-Hellman Key Exchange (weak parameters)
+p = 47029945882972102594494928686583974281498795268670192704774818296792507195669669620001
+g = 101
+A = 25347380537834607464259768017554154015383374632343442497976394923876702608265015197238  # Alice's public key: g^a mod p
+B = 3141818079924577578088004844220482143580289466534224423447953177287406783424401993523  # Bob's public key:   g^b mod p
+
+# Encrypted flag (AES-128-CBC)
+# Key derivation: AES_key = SHA256(str(shared_secret))[:16]
+# shared_secret = B^a mod p = A^b mod p
+iv = "79ad2eb2d707f986eb99761e83e42d46"
+encrypted_flag = "9802a3273b866f58bf948a51c21056ec8bb53b61dd7e678b47f8ca5984febc9644bd412415b1a7e2ef68bf85abc332d9"
+
+# Hint: p-1 is 285-smooth (all prime factors <= 97)
+# Use Pohlig-Hellman to solve the discrete log!

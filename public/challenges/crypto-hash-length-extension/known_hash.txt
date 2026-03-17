@@ -1,0 +1,5 @@
+Known Message: user=guest&admin=false
+MAC (MD5):     9855c98f77cbb866415ea391ba7e89ba
+Secret Length: 16 bytes (the secret itself is unknown)
+
+Goal: Forge a valid MAC for a message containing "admin=true"

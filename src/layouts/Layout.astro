@@ -1,0 +1,80 @@
+---
+import Header from '../components/Header.astro';
+const { title = "Zemi" } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+        <link rel="preload" href={`${base}/fonts/atkinson-regular.woff`} as="font" type="font/woff" crossorigin />
+        <link rel="preload" href={`${base}/fonts/atkinson-bold.woff`} as="font" type="font/woff" crossorigin />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+        <style is:inline set:html={`
+            @font-face {
+                font-family: "Atkinson";
+                src: url("${base}/fonts/atkinson-regular.woff") format("woff");
+                font-weight: 400;
+                font-style: normal;
+                font-display: swap;
+            }
+            @font-face {
+                font-family: "Atkinson";
+                src: url("${base}/fonts/atkinson-bold.woff") format("woff");
+                font-weight: 700;
+                font-style: normal;
+                font-display: swap;
+            }
+        `} />
+	</head>
+	<body>
+    <Header />
+	<main class="content-wrapper">
+        <slot /> 
+    </main>
+</body>
+</html>
+
+<style is:global>
+    /* THE TRUE HACKER PALETTE - NO OVERRIDES ALLOWED */
+    :root {
+        --bg-color: #0d1117;
+        --text-main: #c9d1d9;
+        --text-heading: #ffffff;
+        --accent: #ff4b4b; /* MS Paint Red */
+        --accent-hover: #ff7676;
+    }
+
+    body {
+        font-family: "Atkinson", "Courier New", monospace;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-heading);
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+    }
+
+    a {
+        color: var(--accent);
+        text-decoration: none;
+    }
+    a:hover {
+        color: var(--accent-hover);
+        text-decoration: underline;
+    }
+
+    /* Universal MS Paint Rendering Class */
+    .pixelated {
+        image-rendering: pixelated;
+    }
+</style>
+

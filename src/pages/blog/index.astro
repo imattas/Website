@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const posts = await getCollection('blog');
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="Challenges | Zemi">
+    <main class="container">
+        <h1>Challenges</h1>
+        <p>CTF challenges and write-ups I've worked through.</p>
+        <ul class="post-list">
+            {posts.map((post) => (
+                <li>
+                    <a href={`${base}/blog/${post.id}/`}>
+                        <span class="title">{post.data.title}</span>
+                    </a>
+                </li>
+            ))}
+        </ul>
+   </main>
+</Layout>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .post-list {
+        list-style-type: none;
+        padding: 0;
+        margin-top: 2rem;
+    }
+
+    .post-list li {
+        margin-bottom: 0.8rem;
+    }
+
+    .post-list a {
+        display: flex;
+        font-family: monospace;
+        font-size: 1.1em;
+    }
+
+    .title {
+        color: var(--accent);
+    }
+
+    .post-list a:hover .title {
+        text-decoration: underline;
+        color: var(--accent-hover);
+    }
+</style>

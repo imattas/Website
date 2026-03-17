@@ -1,0 +1,83 @@
+---
+import Layout from '../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="About | Zemi">
+    <main class="container">
+        <h1>About me</h1>
+
+        <div class="terminal-box">
+            <p><span class="prompt">$</span> whoami</p>
+            <p><strong>[HANDLE]:</strong> Zemi</p>
+            <p><strong>[STATUS]:</strong> Active</p>
+            <p><strong>[SPECIALTY]:</strong> Pwn, Crypto, Rev</p>
+            <p><strong>[MOTTO]:</strong> "I don't know the flag, but I will find it."</p>
+        </div>
+
+        <section class="prose">
+            <p>
+                I go by <strong>Zemi</strong> online. I play CTFs whenever I can, mostly pwn, crypto, and rev. That's where I'm most comfortable, but I'll throw myself at other categories too if nothing else is clicking.
+            </p>
+            <p>
+                Most of my stuff is written in Python and C. I got into this through curiosity more than anything, wanted to understand how things actually worked under the hood. Breaking them turned out to be the fastest way to learn.
+            </p>
+            <p>
+                When I'm not staring at a disassembler I'm probably reading write-ups from people way better than me or messing with some new tool I found.
+            </p>
+
+            <h2>Find me</h2>
+            <p>
+                My <a href={`${base}/blog`}>challenge write-ups</a> are on here, and my scripts and random projects live on <a href="https://github.com/ian" target="_blank">GitHub</a>. Feel free to poke around.
+            </p>
+        </section>
+    </main>
+</Layout>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .terminal-box {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-left: 4px solid var(--accent);
+        padding: 1.5rem;
+        margin: 2rem 0;
+        font-family: "Courier New", monospace;
+        border-radius: 4px;
+    }
+
+    .terminal-box p {
+        margin: 0.5rem 0;
+        color: #e6edf3;
+    }
+
+    .prompt {
+        color: var(--accent);
+        font-weight: bold;
+    }
+
+    .prose p {
+        margin-bottom: 1.5rem;
+        font-size: 1.1em;
+    }
+
+    .prose h2 {
+        margin-top: 2rem;
+        color: var(--text-heading);
+    }
+
+    .roster-list {
+        list-style-type: square;
+        padding-left: 1.5rem;
+    }
+
+    .roster-list li {
+        margin-bottom: 0.8rem;
+        font-size: 1.1em;
+    }
+</style>

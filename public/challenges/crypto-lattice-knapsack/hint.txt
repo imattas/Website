@@ -1,0 +1,1 @@
+Merkle and Hellman thought this was secure. They were wrong.

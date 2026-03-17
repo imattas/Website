@@ -1,0 +1,83 @@
+Windows Registry Dump
+Export Date: 2025-03-15 00:00:00
+========================================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion]
+"ProgramFilesDir"="C:\\Program Files"
+"CommonFilesDir"="C:\\Program Files\\Common Files"
+"ProgramFilesPath"="%ProgramFiles%"
+"DevicePath"="%SystemRoot%\\inf"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{98592d6c-e4f3-ae1d-61b5-6ccad97fc5be}]
+"DisplayName"="Google Chrome"
+"DisplayVersion"="120.0.6099.130"
+"Publisher"="Google LLC"
+"InstallDate"="20240822"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{43189906-a9aa-347e-c5c9-6c8c8ad3f88c}]
+"DisplayName"="Mozilla Firefox"
+"DisplayVersion"="121.0"
+"Publisher"="Mozilla"
+"InstallDate"="20240126"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{b9f088ae-bca4-bfe5-1784-025be04f0763}]
+"DisplayName"="7-Zip"
+"DisplayVersion"="23.01"
+"Publisher"="Igor Pavlov"
+"InstallDate"="20241202"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{9b37982b-d63c-9627-b509-a4f8cd3476a2}]
+"DisplayName"="Notepad++"
+"DisplayVersion"="8.6.2"
+"Publisher"="Don HO"
+"InstallDate"="20240521"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{6b701e7d-ef0f-937a-47b5-54faa2ca0842}]
+"DisplayName"="Python 3.11.7"
+"DisplayVersion"="3.11.7"
+"Publisher"="Python Software Foundation"
+"InstallDate"="20240826"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip]
+"Type"=dword:00000001
+"Start"=dword:00000000
+"DisplayName"="TCP/IP Protocol Driver"
+"ImagePath"="\\SystemRoot\\System32\\drivers\\tcpip.sys"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Dhcp]
+"Type"=dword:00000020
+"Start"=dword:00000002
+"DisplayName"="DHCP Client"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList]
+"ProfilesDirectory"="%SystemDrive%\\Users"
+"Default"="%SystemDrive%\\Users\\Default"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run]
+"SecurityHealth"="\"C:\\Program Files\\Windows Defender\\MSASCuiL.exe\""
+"iTunesHelper"="\"C:\\Program Files\\iTunes\\iTunesHelper.exe\""
+"SystemUpdate"="cmd.exe /c echo zemi{r3g1stry_h1v3_s3cr3ts} > C:\\Users\\Public\\debug.log"
+"RealTimeProtection"="C:\\Program Files\\Defender\\rtprot.exe"
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run]
+"OneDrive"="\"C:\\Users\\admin\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe\" /background"
+"Discord"="\"C:\\Users\\admin\\AppData\\Local\\Discord\\Update.exe\" --processStart Discord.exe"
+"Steam"="\"C:\\Program Files (x86)\\Steam\\steam.exe\" -silent"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce]
+"WExtract"="C:\\Users\\admin\\AppData\\Local\\Temp\\extract.exe"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{b4c2e3f1-1234-5678-abcd-ef0123456789}]
+"EnableDHCP"=dword:00000001
+"DhcpIPAddress"="192.168.1.183"
+"DhcpSubnetMask"="255.255.255.0"
+"DhcpDefaultGateway"="192.168.1.1"
+"NameServer"="8.8.8.8,8.8.4.4"
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs]
+"MRUListEx"=hex:03,00,00,00,02,00,00,00,01,00,00,00,00,00,00,00
+
+========================================================================
+End of Registry Dump

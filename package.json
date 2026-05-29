@@ -1,0 +1,36 @@
+{
+  "name": "entropic",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A retro textmode blog theme for purists.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.4.0",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "pnpm assets:fonts && pnpm check && astro build",
+    "preview": "astro preview",
+    "check": "astro check && biome check .",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "assets:fonts": "pnpm fonts:subset && pnpm fonts:atlas",
+    "fonts:atlas": "node scripts/build-cjk-atlas.mjs",
+    "fonts:subset": "node scripts/subset-fonts.mjs"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@chenglou/pretext": "^0.0.7",
+    "astro": "^6.3.7",
+    "typescript": "^5.8.3",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/node": "^25.9.1",
+    "playwright": "^1.60.0"
+  }
+}

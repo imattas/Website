@@ -1,0 +1,131 @@
+---
+title: "ANSI Ink for Philes"
+date: 2026-05-29
+author: "CuB3y0nd"
+lang: en
+---
+
+──[ Summary ]───────────────────────────────────────────────────────────────────
+
+  This phile demonstrates the chromatic syntax supported by Entropic:
+
+    inline  : \#[role|text]
+    block   : ink header + | text + ~ mask lines
+    palette : ANSI 16-color foreground only
+
+  The syntax is intentionally small.  It colors characters; it does not invent
+  semantic roles, binary-specific aliases, or Markdown-like decoration.
+
+──[ 0 ]───────────────────────────────────────────────────────────────[ inline ]
+
+  Inline ink uses a single form:
+
+    \#[r|red] \#[g|green] \#[y|yellow] \#[b|blue] \#[m|magenta] \#[c|cyan]
+
+  Bright colors use uppercase short names or explicit bright-* names:
+
+    \#[R|bright red] \#[G|bright green] \#[Y|bright yellow] \#[B|bright blue]
+    \#[M|bright magenta] \#[C|bright cyan] \#[K|bright black] \#[W|bright white]
+
+  Long ANSI names are accepted too:
+
+    \#[red|red] \#[green|green] \#[yellow|yellow] \#[blue|blue]
+    \#[magenta|magenta] \#[cyan|cyan] \#[black|black] \#[white|white]
+
+  Literal syntax is escaped with a backslash:
+
+    \#[r|this is not colored]
+    #[c|escape the pipe like this: \|]
+    #[c|escape the close bracket like this: \]]
+
+──[ 1 ]──────────────────────────────────────────────────────────────[ palette ]
+
+  Short aliases:
+
+    k black        r red          g green        y yellow
+    b blue         m magenta      c cyan         w white
+
+  Bright aliases:
+
+    K bright-black R bright-red   G bright-green Y bright-yellow
+    B bright-blue  M bright-magenta C bright-cyan W bright-white
+
+  Rendered swatches:
+
+    #[k|BLACK] #[r|RED] #[g|GREEN] #[y|YELLOW] #[b|BLUE] #[m|MAGENTA] #[c|CYAN] #[w|WHITE]
+    #[K|BRIGHT-BLACK] #[R|BRIGHT-RED] #[G|BRIGHT-GREEN] #[Y|BRIGHT-YELLOW]
+    #[B|BRIGHT-BLUE] #[M|BRIGHT-MAGENTA] #[C|BRIGHT-CYAN] #[W|BRIGHT-WHITE]
+
+──[ 2 ]────────────────────────────────────────────────────────────[ ink block ]
+
+  Ink blocks are for byte maps, hexdumps, ASCII diagrams, and dense annotations
+  where inline syntax would make the source unreadable.
+
+--[ ink ]--
+| 00000000  7f 45 4c 46 02 01 01 00  00 00 00 00 00 00 00 00
+~ ........  RR RR RR RR CC GG GG KK  KK KK KK KK KK KK KK KK
+
+  #[R|R] = magic bytes, #[C|C] = class, #[G|G] = endian/version,
+  #[K|K] = padding.
+
+--[ ink ]--
+| p_flags: 00000005    PF_R | PF_X
+~          KKKKKKGG    ....   RRRR
+
+  #[G|green] bits are set.  #[R|red] marks the executable permission.
+
+--[ ink ]--
+| rsp -> 41 41 41 41 41 41 41 41  90 10 40 00 00 00 00 00
+~        YY YY YY YY YY YY YY YY  CC CC CC CC KK KK KK KK
+
+  #[Y|Y] = controlled padding, #[C|C] = return target, #[K|K] = zero bytes.
+
+──[ 3 ]───────────────────────────────────────────────────────────────[ source ]
+
+  The previous ELF example was written as:
+
+    --[ ink ]--
+    | 00000000  7f 45 4c 46 02 01 01 00  00 00 00 00 00 00 00 00
+    ~ ........  RR RR RR RR CC GG GG KK  KK KK KK KK KK KK KK KK
+
+  The renderer strips the | prefix, consumes the ~ mask line, and renders only
+  the text line.  A dot or space in the mask leaves that character uncolored.
+
+──[ 4 ]─────────────────────────────────────────────────────────────[ debugger ]
+
+  Inline ink is better when the interesting spans are sparse:
+
+    pwndbg> x/gx #[c|$rsp]
+    #[c|0x7fffffffe3d8]: #[y|0x4141414141414141]
+    #[c|0x7fffffffe3e0]: #[R|0x0000000000401090]  ; saved rip
+
+  Ink blocks are better when the interesting spans are dense:
+
+--[ ink ]--
+| 00400000-00401000 r--p 00000000 ./a.out
+~ CCCCCCCC.CCCCCCCC GGGG KKKKKKKK WWWWWWW
+| 00401000-00402000 r-xp 00001000 ./a.out
+~ CCCCCCCC.CCCCCCCC GGRR KKKKKKKK WWWWWWW
+| 7ffffffde000-7ffffffff000 rw-p 00000000 [stack]
+~ CCCCCCCCCCCC.CCCCCCCCCCCC GGRG KKKKKKKK MMMMMMM
+
+  #[C|C] address, #[G|G] readable/writable, #[R|R] executable,
+  #[M|M] mapped name.
+
+──[ 5 ]────────────────────────────────────────────────────────────────[ rules ]
+
+  Unknown roles are build errors.  This is deliberate: color should be a stable
+  part of the phile format, not a free-form style attribute.
+
+  Supported inline aliases:
+
+    k black        r red          g green        y yellow
+    b blue         m magenta      c cyan         w white
+    K bright-black R bright-red   G bright-green Y bright-yellow
+    B bright-blue  M bright-magenta C bright-cyan W bright-white
+
+  Supported ink mask characters are the same short aliases:
+
+    k r g y b m c w K R G Y B M C W
+
+  Dots and spaces in an ink mask leave characters unchanged.

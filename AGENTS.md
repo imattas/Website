@@ -1,12 +1,21 @@
 # AGENTS.md
 
-## Workflow
+## Git
 
-- Use `master` as the default branch.
-- Merge pull requests with squash merge only.
+- `master` is stable. Do not commit feature work directly on it.
+- `dev` is the integration branch for normal development.
+- Start new work from `dev`:
+  - `feat/<short-name>` for features
+  - `fix/<short-name>` for bug fixes
+  - `ci/<short-name>` for CI-only changes
+  - `docs/<short-name>` for docs-only changes
+- Merge feature and fix branches into `dev`.
+- Promote `dev` into `master` only when the site is ready to publish.
+- For urgent production fixes, branch `hotfix/<short-name>` from `master`, then merge it into both `master` and `dev`.
+- Use squash merge for pull requests.
 - Commit with `git commit -S`.
 - Use Conventional Commits: `<type>[optional scope]: <description>`.
-- Add a commit body when the subject cannot explain the why, tradeoff, or verification clearly.
+- Write a commit body when the subject alone does not explain the why, tradeoff, or verification.
 
 ## Commands
 
@@ -15,10 +24,3 @@
 - `pnpm lint`
 - `pnpm check`
 - `pnpm build`
-
-## Scope
-
-- Keep `.phile` content plain text; do not reintroduce Markdown rendering except supported images.
-- Keep theme behavior configurable under `src/config/`.
-- Keep textmode implementation grouped by feature under `src/modules/textmode/`.
-- Do not commit generated build output such as `dist/`, `.astro/`, or `node_modules/`.

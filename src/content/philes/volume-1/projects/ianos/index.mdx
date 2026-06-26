@@ -1,0 +1,184 @@
+---
+title: "IanOS"
+date: 2026-06-25
+author: "Ian Mattas"
+slug: "ianos"
+order: 3
+contentFormat: "markdown"
+---
+
+--[ repository ]------------------------------------------------------------
+
+    URL      : https://github.com/imattas/IanOS
+    Language : C
+    Status   : active
+    Stars    : 0
+    Updated  : 2026-06-25
+
+IanOS minimal kernel and userspace
+
+---
+
+# IanOS
+
+IanOS is an original x86_64 UEFI operating-system project. It contains a
+custom UEFI bootloader, an ELF64 freestanding kernel, a tar initramfs, a
+Mach-inspired core, BSD-style process and VFS scaffolding, an IOKit-style
+registry, security hook points, networking scaffolding, a tiny initramfs
+userland, and QEMU/OVMF build tooling.
+
+This repository does not use GRUB, Limine, Linux, BSD, xv6, XNU, Redox,
+SerenityOS, or another OS as a base. The bootloader and kernel code here are
+project-local source files.
+
+## Current boot flow
+
+1. OVMF starts `/EFI/BOOT/BOOTX64.EFI` from the generated FAT image.
+2. The IanOS bootloader reads `/ianos.cfg`.
+3. It loads `/kernel.elf`, validates ELF64 headers, allocates PT_LOAD segments,
+   copies data, and zeroes BSS.
+4. It loads `/initramfs.tar` if present.
+5. It records GOP framebuffer data when firmware provides it, records ACPI RSDP,
+   collects the UEFI memory map, exits boot services, and jumps to the kernel.
+6. The kernel initializes serial console, framebuffer state, GDT/TSS/IDT,
+   exception/IRQ stubs, PIT ticks, memory accounting, bitmap PMM, heap allocator,
+   saved-stack scheduler switching, Mach/BSD/IOKit layers, VFS/devfs/tarfs,
+   syscall table, security hooks, PCI enumeration, and block/network registries.
+7. The kernel creates PID 1 with a fresh address space, loads `/bin/init` from
+   initramfs, builds argc/argv/envp on its user stack, and enters ring 3.
+8. `/bin/init` starts `/bin/sh`; the userspace shell accepts commands at
+   `ianos$` and runs `/bin/*` programs as child userspace processes.
+
+The kernel-hosted shell remains available only as a fallback/debug path if
+`/bin/init` cannot launch or a userspace process exits without a waiter.
+
+## Dependencies
+
+Linux or WSL:
+
+- clang
+- lld / ld.lld / lld-link
+- nasm
+- make
+- qemu-system-x86_64
+- OVMF firmware
+- mtools
+- tar
+- xorriso, optional for future ISO targets
+
+Windows:
+
+- Use `scripts/windows/*.ps1`. The scripts prefer native tools if available and
+  otherwise call the configured WSL distro.
+- The scripts only operate inside this repository and generated image files.
+  They do not call `bcdedit`, do not mount or alter the host EFI System
+  Partition, and do not write to physical disks.
+
+## Build
+
+From Linux or WSL:
+
+```sh
+make clean
+make
+make image
+make run
+```
+
+From Windows PowerShell:
+
+```powershell
+.\scripts\windows\check-toolchain.ps1
+.\scripts\windows\build-image.ps1
+.\scripts\windows\run-qemu.ps1
+```
+
+## Debug
+
+```sh
+make debug
+```
+
+This starts QEMU paused with a GDB stub on TCP port 1234. Load symbols from
+`build/kernel.elf` in an x86_64-capable GDB and use `scripts/gdbinit`.
+
+## Userspace Shell
+
+The normal shell is `/bin/sh` running in ring 3. It supports `cd`, `pwd`, and
+`exit`/`ext`/`quit` as builtins and resolves other commands through `PATH`
+with the default `PATH=/bin`. The initramfs currently includes userspace
+`cat`, `ls`, `uname`, `ps`, `echo`, `mem`, `date`, `clear`, `pwd`, `whoami`,
+`hostname`, `about`, `devices`, `mounts`, `proc`, `mmap`, and `fastfetch`
+binaries.
+External commands are spawned as child userspace processes, waited on by the
+foreground shell, and reaped when they exit.
+
+`/bin/init` starts the shell service directly. QEMU uses serial stdio and no
+graphical display by default, matching the terminal-only operating model.
+
+## Minimal Kernel Profile
+
+IanOS now keeps the initramfs focused on boot, shell, VFS, process, device,
+and VM inspection. Encoding and challenge helper tools were removed from the
+default image. `/bin/mmap` exercises the anonymous private `mmap`/`munmap`
+path from ring 3 and verifies that mapped pages can be written, read, and
+released. `/bin/fastfetch` is a native system-info ELF that reports uname,
+memory, CPU, and mount data through IanOS syscalls and procfs.
+
+The fallback kernel debug shell still includes low-level commands such as
+`mounts`, `devices`, `pci`, `fds`, `vm`, `threads`, `ports`, `syscalls`,
+`reboot`, and `shutdown`.
+
+## Implemented syscalls
+
+The syscall table and ABI numbers are shared between kernel and userland.
+`int 0x80` is installed in the IDT and dispatches to the kernel syscall table.
+The kernel dispatcher backs `exit`, `write`, `read`, `open`, `close`, `lseek`,
+`getpid`, `getppid`, `yield`, `uname`, `getcwd`, `chdir`, `readdir`, `stat`,
+`uptime`, `spawn`, `execve`, `waitpid`, `ps`, `sleep`, `gettimeofday`,
+anonymous private `mmap`, and `munmap`.
+`ioctl` and `pipe` have ABI numbers and return `-ENOSYS` until real
+implementations land. User buffers are copied through
+range-checked copy-in/copy-out helpers. `spawn` validates initramfs ELF64
+images, creates process records, loads PT_LOAD segments into a per-process
+address space, and builds the initial user stack. `waitpid` saves/restores
+syscall trap frames so a child can run and exit back into its waiting parent.
+Open files are owned by the process that opened them, stdin/stdout/stderr are
+shared console handles, and process exit closes owned descriptors.
+
+## Implemented drivers
+
+The boot path initializes serial console, framebuffer text output, PIT/RTC, RAM
+disk/initramfs registration, devfs devices for null/zero/console/random/ram0/fb0,
+a heap-backed writable `/tmp` tmpfs, PS/2 IRQ acknowledgement, PCI config-space
+enumeration with BAR/IRQ metadata, ACPI root placeholder, IOKit-style service
+registration, a block request path, AHCI/NVMe controller discovery, loopback
+networking, and software TX/RX rings for network interfaces.
+
+## Known limitations
+
+- The kernel shell is still present as a fallback/debug console, not the normal
+  boot path.
+- IanOS is currently terminal-only. The compositor, desktop, WM launcher,
+  graphical demo, CTF/workbench helpers, and terminal app layer are not present
+  in the minimal initramfs.
+- Anonymous `mmap` is intentionally limited to private mappings in the current
+  user window; file-backed mappings, shared mappings, COW, and `brk` remain
+  future work.
+- IanOS has no telemetry, no persistent shell history, no persistent audit log,
+  a read-only initramfs root, and memory-backed `/tmp`.
+- AHCI/NVMe controllers are discovered and BAR/capability registers are read,
+  but hardware command submission, DMA completion, writes, and partitions are
+  not implemented.
+- PCI NICs are discovered and software rings exist, but hardware RX/TX
+  descriptor programming and IP networking are not implemented.
+- The scheduler has saved-stack context switching and an idle context; forced
+  timer preemption via interrupt-frame restoration is still future work.
+- Process handling supports spawn, exec replacement, exit, wait, reap, and
+  descriptor cleanup for this init/shell path; fork, orphan reparenting, wait
+  queues, and POSIX signals remain future work.
+- GDT/TSS/IDT are loaded and IRQ/syscall stubs dispatch into C. LAPIC/IOAPIC are
+  still scaffolds.
+- Security hooks enforce path, chdir, spawn/exec, and fd-write policy at
+  syscall/VFS boundaries; complete MAC labels and cryptographic signature
+  chains are not implemented.

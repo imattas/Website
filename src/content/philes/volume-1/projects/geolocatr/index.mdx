@@ -1,0 +1,107 @@
+---
+title: "GeoLocatr"
+date: 2026-06-19
+author: "Ian Mattas"
+slug: "geolocatr"
+order: 6
+contentFormat: "markdown"
+---
+
+--[ repository ]------------------------------------------------------------
+
+    URL      : https://github.com/imattas/GeoLocatr
+    Language : Batchfile
+    Status   : active
+    Stars    : 0
+    Updated  : 2026-06-19
+
+External GeoGuessr (Steam/Duels) location overlay for authorized private games — single self-contained .bat
+
+---
+
+# GeoLocatr — GeoGuessr (Steam / Duels) location overlay
+
+**For authorized PRIVATE games only.**
+
+An external overlay that reads the true coordinates of the current GeoGuessr
+round and shows them in-game — coordinates, country flag + place name, a marker
+on the in-game guess map, and more. It does **not** modify any game files; it
+attaches to the Steam app's Electron renderer over Chromium's debug protocol at
+runtime.
+
+> Use this only in private games you're authorized to use it in. Using it in
+> ranked/public matchmaking against non-consenting players is cheating.
+
+## Requirements
+
+- **Node.js** — https://nodejs.org (used to run the controller; no build needed).
+- **GeoGuessr Duels** on Steam.
+
+## Run it
+
+**Double-click `GeoLocatr.bat`** (or run it from a terminal).
+
+It will: close any running GeoGuessr, relaunch it through Steam with the debug
+flag, wait for it, unpack the controller, and attach. Start a private round —
+the overlay appears in-game. **Keep the console window open**; closing it stops
+the overlay.
+
+If GeoGuessr is already running with the debug flag, the bat just attaches.
+
+## What it shows
+
+- **Coordinates**, auto-updating each round
+- **Country flag (image) + place name** (city / region / country)
+- **Distance moved**, **compass heading** (optional), and a **round counter**
+- **Marker on the in-game guess map** at the real location
+- **🎯 Guess here** button, plus **Maps ↗** and **Street View ↗** links
+
+## Mod menu — ⚙ gear (or Ctrl+Shift+M)
+
+Toggle any feature on/off (coordinates, place name, country flag, distance,
+map marker, "Guess here" button, compass heading, private-games-only), adjust
+**opacity**, or **Reset position**. All settings persist across sessions.
+
+## Hotkeys / controls
+
+- **Ctrl+Shift+L** — hide / show the overlay
+- **Ctrl+Shift+M** — open the menu
+- **Ctrl+Shift+G** — place your guess at the real location
+- **–** minimizes to the title bar (which then shows the coordinates)
+- Drag the purple bar to move it (position remembered, kept on-screen)
+- Click the coordinates to copy them
+
+## Fallback: Steam Launch Options
+
+If the bat reports it couldn't open the debug port (Steam relaunched the game
+without the flags), set them in Steam instead:
+
+1. Steam → Library → **GeoGuessr Duels** → Properties → General → **Launch Options**
+2. Paste:
+   ```
+   --remote-debugging-port=9222 --remote-allow-origins=* --disable-features=IsolateOrigins,site-per-process
+   ```
+3. Launch from Steam, then run `GeoLocatr.bat` again — it will just attach.
+
+## How it works
+
+GeoGuessr Duels is an Electron app; the game runs in a `www.geoguessr.com`
+iframe that loads the Google Maps SDK. Street View renders the real location, so
+the overlay hooks `google.maps.StreetViewPanorama` and reads `getPosition()` —
+which is the answer — and hooks `google.maps.Map` to drop the guess-map marker.
+Country/place lookups run in the controller (Node) and are pushed into the
+overlay, because the page's own geocoder request returns reduced data due to its
+`Origin` header.
+
+`GeoLocatr.bat` is self-contained: the Node controller and the injected overlay
+are embedded as base64 after the `::JSB64::` marker at the bottom of the file.
+The bat unpacks them to `%TEMP%` and runs them — nothing is written to the game
+folder, and Steam's "Verify integrity" won't remove anything.
+
+## Troubleshooting
+
+- **"Node.js is required"** — install Node from https://nodejs.org and re-run.
+- **Overlay doesn't appear** — make sure you launched via `GeoLocatr.bat`; if you
+  attached mid-round, start a fresh round so a new Street View panorama loads.
+- **Country shows as letters instead of a flag** — fixed; flags are images
+  (Windows/Chromium has no flag-emoji font).

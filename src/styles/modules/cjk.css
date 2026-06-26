@@ -30,8 +30,8 @@
   height: 16px;
   background: var(--cjk-ink);
   pointer-events: none;
-  -webkit-mask-image: url("/assets/cjk/wqy-cjk-body.png");
-  mask-image: url("/assets/cjk/wqy-cjk-body.png");
+  -webkit-mask-image: var(--cjk-body-mask);
+  mask-image: var(--cjk-body-mask);
   -webkit-mask-position: var(--cjk-x) var(--cjk-y);
   mask-position: var(--cjk-x) var(--cjk-y);
   -webkit-mask-repeat: no-repeat;
@@ -49,8 +49,8 @@ a .cjk-bitmap {
 
 a .cjk-bitmap::before {
   top: -2px;
-  -webkit-mask-image: url("/assets/cjk/wqy-cjk-link.png");
-  mask-image: url("/assets/cjk/wqy-cjk-link.png");
+  -webkit-mask-image: var(--cjk-link-mask);
+  mask-image: var(--cjk-link-mask);
 }
 
 a:hover .cjk-bitmap,

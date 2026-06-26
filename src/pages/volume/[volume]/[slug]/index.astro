@@ -1,7 +1,7 @@
 ---
 import TextmodeLayout from "../../../../layouts/textmode/TextmodeLayout.astro";
 import PhileShell from "../../../../components/phile/PhileShell.astro";
-import { getAllPhiles, getPhileByRoute } from "../../../../modules/philes/repository";
+import { getAllPhiles } from "../../../../modules/philes/repository";
 import { phileExcerpt } from "../../../../modules/seo/xml";
 
 export async function getStaticPaths() {
@@ -15,12 +15,24 @@ export async function getStaticPaths() {
 }
 
 const volumeNumber = Number(Astro.params.volume);
-const phile = await getPhileByRoute(volumeNumber, Astro.params.slug ?? "");
+const allPhiles = await getAllPhiles();
+const phile = allPhiles.find(
+  (candidate) => candidate.route.volume === volumeNumber && candidate.route.slug === (Astro.params.slug ?? "")
+);
 
 if (!phile) {
   return Astro.redirect("/");
 }
 
+const childPhiles =
+  phile.data.writeupKind === "ctf"
+    ? allPhiles.filter(
+        (candidate) =>
+          candidate.route.volume === volumeNumber &&
+          candidate.data.writeupKind === "challenge" &&
+          candidate.data.ctfSlug === phile.data.ctfSlug
+      )
+    : [];
 const hasCjk = phile.data.lang === "zh" || /[\p{Script=Han}]/u.test(`${phile.data.title}\n${phile.body}`);
 ---
 
@@ -31,5 +43,5 @@ const hasCjk = phile.data.lang === "zh" || /[\p{Script=Han}]/u.test(`${phile.dat
   pageType="article"
   publishedTime={phile.data.date}
 >
-  <PhileShell phile={phile} />
+  <PhileShell phile={phile} childPhiles={childPhiles} />
 </TextmodeLayout>

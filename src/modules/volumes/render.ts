@@ -12,9 +12,9 @@ const tocContentWidth = tocInnerWidth - 2;
 
 export function renderVolumePre(volume: Volume): string {
   const toc = renderToc(volume);
-  const postscript = volumeConfig(volume.number).postscript ?? [];
+  const footer = `ret ${link("/", "<main>")}`;
 
-  return `\n${toc}\n\n${textHtml(postscript.join("\n"))}\n`;
+  return `\n${toc}\n\n${footer}\n`;
 }
 
 function renderToc(volume: Volume): string {

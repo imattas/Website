@@ -1,0 +1,318 @@
+---
+title: "Task 3: Digging Deeper — NSA Codebreaker Challenge 2025-26"
+date: 2025-09-26
+author: "Ian Mattas"
+slug: "nsa-code-breaker-challenge-2025-26-task3"
+order: 76
+writeupKind: "challenge"
+ctfSlug: "nsa-code-breaker-challenge-2025-26"
+ctfTitle: "NSA Codebreaker Challenge 2025-26"
+---
+
+# Task 3: Digging Deeper — NSA Codebreaker Challenge 2025-26
+
+> **Category:** `Reverse Engineering`  
+> **Difficulty:** Medium  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `36 DNS-hijack IP↔FQDN entries → C2 203.0.113.181 / .247 / .249 (see Answer)`  
+> **Date:** September 26, 2025
+
+*Part of a series on the 2025 NSA Codebreaker Challenge.*
+
+---
+
+## Challenge Description
+
+> We've provided you with a recent memory dump of the router along with some useful files. We need you to fully analyze this malware and determine the complete list of affected IP addresses and fully qualified domain names.
+
+**Objective:** Submit all affected IPs and FQDNs, one per line.
+
+**Provided files:**
+
+- `memory.dump.gz` – Router memory snapshot
+- `vmlinux.xz` – Kernel image
+- `System.map.br` – Kernel symbol map (brotli-compressed)
+
+---
+
+## Recon / Initial Analysis
+
+Before any real analysis happened, I spent *hours* fighting with forensic tools.
+
+**Axiom** was my first attempt. It's a solid tool for Windows forensics, but it doesn't know what to do with a raw Linux memory dump. It ran through its analysis, produced some artifacts, but nothing useful for this kind of target.
+
+**Autopsy** was next. Same story – great for disk images, not designed for volatile memory analysis. It ran its modules (including aLeapp and iLeapp, which are for *mobile* forensics), indexed keywords, and produced a bunch of reports that told me nothing about the running processes on this router.
+
+**Volatility 3** was always the right answer, but it required the most setup:
+
+```bash
+# Decompress the provided files
+gunzip memory.dump.gz
+unxz vmlinux.xz
+brotli -d System.map.br -o System.map
+
+# Extract kernel version
+strings vmlinux | grep "Linux version "
+# Linux version 5.15.134
+
+# Build the Volatility symbol table
+dwarf2json linux --elf vmlinux --system-map System.map > profile.json
+# Place in volatility3/symbols/linux/
+```
+
+The custom profile was the key. Without it, Volatility can't parse the memory structures of this specific kernel build. Once that was in place, everything opened up.
+
+---
+
+## Vulnerability / Observation
+
+### Finding the Malware: PID 1552
+
+The first Volatility command that mattered was the process listing:
+
+```
+$ vol -f memory.dump linux.psaux.PsAux
+
+PID   PPID  COMM       ARGS
+1     0     procd      /sbin/procd
+515   1     ash        /bin/ash --login
+1168  1     dnsmasq    /sbin/ujail -t 5 -n dnsmasq ...
+1174  1168  dnsmasq    /usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf...
+1244  1     dropbear   /usr/sbin/dropbear -F -P ... -p 22
+1405  1     netifd     /sbin/netifd
+1552  515   4          /bin/hosts-regen /proc/self/fd/5    ← !!!
+1854  1552  service    /bin/sh /sbin/service dnsmasq restart
+1855  1854  service    /bin/sh /sbin/service dnsmasq restart
+```
+
+This is an OpenWrt router – identifiable by the OpenWrt-specific processes (`procd`, `ubusd`, `ujail`, `netifd`, `odhcpd`) and the UCI-style config path in the dnsmasq args (`/var/etc/dnsmasq.conf.cfg01411c`). Everything here is standard except for **PID 1552**.
+
+Three red flags:
+
+1. **Process name is `4`.** A single digit as a binary name is bizarre. It's also suspiciously close to the kernel thread `rcu_par_gp` which has PID 4 – possibly an attempt to blend into a process listing at a quick glance.
+2. **Command: `/bin/hosts-regen /proc/self/fd/5`.** There is no standard `hosts-regen` utility. The argument `/proc/self/fd/5` means it's reading from a file descriptor, not a file on disk.
+3. **It's spawning `service dnsmasq restart`.** The malware is actively modifying DNS configuration and restarting the DNS server to apply its changes.
+
+The process tree confirmed the chain:
+
+```
+ash (515)
+  └── 4 (1552)        ← malware
+       └── service (1854)
+            └── service (1855)    ← dnsmasq restart
+```
+
+### Fileless Execution via memfd
+
+The memory maps revealed the real trick:
+
+```
+PID   Name  Start              End                Perm  Path
+1552  4     0x5607f5716000     0x5607f5717000     r--   /memfd:x (deleted)
+1552  4     0x5607f5717000     0x5607f5718000     r-x   /memfd:x (deleted)
+1552  4     0x5607f5718000     0x5607f5719000     r--   /memfd:x (deleted)
+1552  4     0x5607f5719000     0x5607f571a000     r--   /memfd:x (deleted)
+1552  4     0x5607f571a000     0x5607f571b000     rw-   /memfd:x (deleted)
+```
+
+The binary is running entirely from `memfd:x (deleted)` – this is **fileless malware**. The attacker used `memfd_create()` to create an anonymous in-memory file, wrote the malware into it, executed it, and then "deleted" the file descriptor. The binary exists only in RAM; there's nothing on disk to find.
+
+Crucially, the `lsof` output reveals a second memfd:
+
+```
+1552  4  5  /memfd:c (deleted)  REG  r--r--r--  1680 bytes
+```
+
+FD 5 – the argument to `/bin/hosts-regen` – points to **`memfd:c`**, a separate 1680-byte in-memory file containing the encoded payload. So the architecture is: the malware executable lives in `memfd:x`, and the encoded DNS hijack data lives in `memfd:c`. Both exist only in memory.
+
+This explains why Task 1's filesystem analysis didn't find a binary – the `eanzovmwru` service file just contained configuration parameters. The actual malware was delivered and executed in memory.
+
+---
+
+## Exploitation / Solution
+
+### Dumping and Analyzing the Binary
+
+I dumped all VMAs for PID 1552 using Volatility:
+
+```bash
+vol -f memory.dump linux.proc.Maps -p 1552 --dump
+```
+
+This produced memory region dumps. The key regions:
+
+| Region | Permissions | Contents |
+|--------|-------------|----------|
+| `0x5607f5716000` | r-- | ELF header |
+| `0x5607f5717000` | r-x | Executable code (the malware) |
+| `0x5607f5718000` | r-- | Read-only data (strings: `fopen`, `/etc/hosts`, `service dnsmasq restart`, `Decoded payload too short to even have the key...`) |
+| `0x5607f571a000` | rw- | **Base64 lookup table + encoded payload (1680 chars)** |
+
+The strings in the read-only section immediately confirmed the malware's purpose: it opens `/etc/hosts`, writes entries, and restarts `dnsmasq`. The error message about the payload being "too short to even have the key" was a direct hint that the first few bytes of the decoded data serve as the decryption key. The rw- data section contained the pre-built base64 lookup table at offset 0x40, followed by the 1680-character encoded payload.
+
+### Reverse Engineering in Ghidra
+
+I loaded the executable code region (`0x5607f5717000`) into Ghidra as a raw x86-64 binary. The binary was linked against musl libc (lightweight, common on OpenWrt), which made it relatively clean to analyze.
+
+The key functions I identified:
+
+**Custom Base64 Decoder** – Not a standard library call. The malware implements its own base64 decoder:
+- Builds a lookup table: `A-Z` → 0-25, `a-z` → 26-51, `0-9` → 52-61, `+` → 62, `/` → 63, `=` → -2 (padding)
+- Groups input characters by 4, combines into 24-bit values, outputs 3 bytes per group
+
+**XOR Deobfuscator** – After base64 decoding, the output is XOR'd with a rolling key:
+- First 4 bytes of the decoded data are the initial key (big-endian uint32)
+- Each subsequent byte is XOR'd with the current key value
+- The key rotates through a shifting pattern after each byte
+
+**Execution Flow:**
+
+1. Read encoded payload from `/proc/self/fd/5` (the `memfd:c` containing the 1680-byte payload)
+2. Base64 decode the payload
+3. XOR deobfuscate the decoded bytes
+4. Parse the result as IP/FQDN pairs
+5. Write entries to `/etc/hosts`
+6. Execute `service dnsmasq restart`
+
+### Decoding the Payload
+
+Rather than trying to run the malware (though my friend Tejas took that approach successfully in an isolated environment), I replicated the decoding in Python (see the [Full Exploit Script](#full-exploit-script)).
+
+The initial script output was garbage – I had the XOR key extraction wrong. It took a few iterations of comparing Ghidra's decompilation against my Python to get the rolling key logic right. Once the constants matched, the output was clean: a list of IP addresses paired with FQDNs.
+
+### Other Forensic Indicators
+
+While the payload decode was the main objective, a few other Volatility findings were interesting:
+
+**Syscall anomalies** – `linux.check_syscall` flagged indices 449-450 pointing to `0x0` with symbol `8250_core.c`. These are high-numbered syscall slots that normally shouldn't exist, possibly indicating kernel-level tampering by the malware.
+
+**dnsmasq restarts** – Two `dnsmasq` process pairs: the original (PIDs 1168/1174) and what appears to be a restart cycle triggered by the malware. This confirms the malware was actively modifying DNS behavior at the time of the memory capture.
+
+### Confirming the Approach
+
+I used the NSA's "Get Help" feature to validate my direction. The conversation with "NSA Jack" confirmed:
+
+- Volatility 3 was the right tool
+- PID 1552 ("4") was indeed the malicious process
+- The base64 + XOR decoding chain was the correct approach
+- The submission format was IP and FQDN pairs, one per line
+
+Honestly, I mostly used Get Help because I wanted to interact with the staff – but the confirmation that I was on the right track saved me from second-guessing the decoder output.
+
+---
+
+## Answer
+
+The decoded payload contained 36 DNS hijacking entries, redirecting Linux package repositories and Python package indexes to three C2 IPs in the `203.0.113.0/24` range:
+
+```
+203.0.113.181 repo.almalinux.org
+203.0.113.249 mirrors.rockylinux.org
+203.0.113.249 mirrors.kernel.org
+203.0.113.249 mirrors.fedoraproject.org
+203.0.113.249 mirrors.rpmfusion.org
+203.0.113.181 us.archive.ubuntu.com
+203.0.113.181 archive.archlinux.org
+203.0.113.181 deb.debian.org
+203.0.113.181 security.debian.org
+203.0.113.247 files.pythonhosted.org
+203.0.113.247 pypi.org
+203.0.113.249 geo.mirror.pkgbuild.com
+203.0.113.181 repo-default.voidlinux.org
+203.0.113.181 download.opensuse.org
+203.0.113.247 pypi.python.org
+203.0.113.249 mirror.rackspace.com
+203.0.113.181 archive.ubuntu.com
+203.0.113.181 distfiles.gentoo.org
+203.0.113.249 mirror.stream.centos.org
+203.0.113.181 ftp.us.debian.org
+203.0.113.181 packages.linuxmint.com
+203.0.113.181 http.kali.org
+203.0.113.181 security.ubuntu.org
+203.0.113.181 archive.ubuntu.org
+203.0.113.181 dl.rockylinux.org
+203.0.113.181 dl-cdn.alpinelinux.org
+203.0.113.181 security.ubuntu.com
+203.0.113.181 download1.rpmfusion.org
+203.0.113.249 mirrors.opensuse.org
+203.0.113.249 xmirror.voidlinux.org
+203.0.113.181 dl.fedoraproject.org
+203.0.113.181 repos.opensuse.org
+203.0.113.181 cache.nixos.org
+203.0.113.247 pypi.io
+203.0.113.181 repo.almalinux.org
+203.0.113.249 mirrors.alpinelinux.org
+```
+
+Note: `repo.almalinux.org` appears twice (first and second-to-last entries) – this was present in the malware's payload and accepted as-is in the submission.
+
+Three C2 IPs (all in RFC 5737 documentation space, as we saw in Task 2) across 35 unique domains targeting:
+
+- **Debian-family**: Ubuntu, Debian, Linux Mint, Kali
+- **RHEL-family**: AlmaLinux, Rocky Linux, Fedora, CentOS
+- **Others**: Arch, Alpine, Gentoo, openSUSE, Void, NixOS
+- **Python ecosystem**: PyPI (`pypi.org`, `pypi.python.org`, `pypi.io`, `files.pythonhosted.org`)
+- **Mirrors**: kernel.org, Rackspace, RPMFusion
+
+A comprehensive supply-chain poisoning attack at the DNS level – any machine on LAN 3 trying to install packages from *any* major distro or from PyPI was getting redirected to adversary infrastructure.
+
+---
+
+## Full Exploit Script
+
+```python
+import struct
+
+# Custom base64 decode
+def custom_b64_decode(data):
+    table = {}
+    for i, c in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"):
+        table[c] = i
+
+    filtered = [table[c] for c in data if c in table]
+    out = bytearray()
+
+    for i in range(0, len(filtered) - len(filtered) % 4, 4):
+        val = (filtered[i] << 18) | (filtered[i+1] << 12) | (filtered[i+2] << 6) | filtered[i+3]
+        out.append((val >> 16) & 0xFF)
+        out.append((val >> 8) & 0xFF)
+        out.append(val & 0xFF)
+
+    return bytes(out)
+
+# XOR deobfuscation
+def xor_deobfuscate(data):
+    key = struct.unpack('>I', data[:4])[0]  # first 4 bytes = initial key
+    result = bytearray()
+    for b in data[4:]:
+        result.append(b ^ (key & 0xFF))
+        key = ((key << 1) | (key >> 31)) & 0xFFFFFFFF  # rotate left
+        key = (key + 1915106221) & 0xFFFFFFFF           # add constant
+    return bytes(result)
+
+# Extract base64 from memory dump, decode, deobfuscate
+encoded = open('base64_payload.bin', 'r').read().strip()
+decoded = custom_b64_decode(encoded)
+plaintext = xor_deobfuscate(decoded)
+print(plaintext.decode('ascii', errors='ignore'))
+```
+
+---
+
+## Key Takeaways
+
+- **Fileless malware leaves no disk artifacts.** `memfd_create()` execution means the binary only exists in memory. Without a memory dump, you'd never find it. This is why the filesystem image in Task 1 only contained the launcher config, not the malware itself.
+- **Don't waste time with the wrong tools.** Axiom and Autopsy are excellent for their domains (Windows artifacts and disk forensics), but Linux memory forensics requires Volatility. Recognizing when to switch tools is as important as knowing how to use them.
+- **Replicate the decoder, don't just run the malware.** Understanding the encoding scheme (custom base64 → XOR with rolling key) means you can verify the output and adapt if the implementation changes. Running the binary in isolation works too, but reversing gives you deeper understanding of the malware's internals.
+- **Process names lie.** A process named "4" is designed to look like a kernel thread in a quick `ps` listing. Always check the full command line and parent process chain.
+- **The scope of the attack is massive.** This wasn't just targeting Ubuntu – every major distro plus PyPI was being redirected. Any machine on LAN 3 trying to install packages was getting served malicious content from the C2 infrastructure.
+
+---
+
+## References
+
+- [Volatility 3](https://github.com/volatilityfoundation/volatility3) — Linux memory forensics framework
+- [dwarf2json](https://github.com/volatilityfoundation/dwarf2json) — building a custom Volatility symbol table from `vmlinux` + `System.map`
+- [Ghidra](https://ghidra-sre.org/) — disassembly/decompilation of the dumped code region
+- [`memfd_create(2)`](https://man7.org/linux/man-pages/man2/memfd_create.2.html) — the anonymous in-memory file mechanism behind fileless execution
+- [OpenWrt](https://openwrt.org/) — the router platform (procd/ujail/netifd, UCI dnsmasq config)

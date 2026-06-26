@@ -25,74 +25,80 @@ export type SiteConfig = {
 };
 
 export const siteConfig: SiteConfig = {
-  name: "Entropic",
-  description: "Security Research Philes",
-  homeAsciiArt: `▓█████  ███▄    █ ▄▄▄█████▓ ██▀███   ▒█████   ██▓███   ██▓ ▄████▄
-▓█   ▀  ██ ▀█   █ ▓  ██▒ ▓▒▓██ ▒ ██▒▒██▒  ██▒▓██░  ██▒▓██▒▒██▀ ▀█
-▒███   ▓██  ▀█ ██▒▒ ▓██░ ▒░▓██ ░▄█ ▒▒██░  ██▒▓██░ ██▓▒▒██▒▒▓█    ▄
-▒▓█  ▄ ▓██▒  ▐▌██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒██   ██░▒██▄█▓▒ ▒░██░▒▓▓▄ ▄██▒
-░▒████▒▒██░   ▓██░  ▒██▒ ░ ░██▓ ▒██▒░ ████▓▒░▒██▒ ░  ░░██░▒ ▓███▀ ░
-░░ ▒░ ░░ ▒░   ▒ ▒   ▒ ░░   ░ ▒▓ ░▒▓░░ ▒░▒░▒░ ▒▓▒░ ░  ░░▓  ░ ░▒ ▒  ░
- ░ ░  ░░ ░░   ░ ▒░    ░      ░▒ ░ ▒░  ░ ▒ ▒░ ░▒ ░      ▒ ░  ░  ▒
-   ░      ░   ░ ░   ░        ░░   ░ ░ ░ ░ ▒  ░░        ▒ ░░
-   ░  ░         ░             ░         ░ ░            ░  ░ ░
-                                                        ░`,
+  name: "imattas",
+  description: "Ian Mattas - aspiring red teamer, pwn player, and security tooling builder.",
+  homeAsciiArt: ` ██▓ ███▄ ▄███▓ ▄▄▄     ▄▄▄█████▓▄▄▄█████▓ ▄▄▄        ██████
+▓██▒▓██▒▀█▀ ██▒▒████▄   ▓  ██▒ ▓▒▓  ██▒ ▓▒▒████▄    ▒██    ▒
+▒██▒▓██    ▓██░▒██  ▀█▄ ▒ ▓██░ ▒░▒ ▓██░ ▒░▒██  ▀█▄  ░ ▓██▄
+░██░▒██    ▒██ ░██▄▄▄▄██░ ▓██▓ ░ ░ ▓██▓ ░ ░██▄▄▄▄██   ▒   ██▒
+░██░▒██▒   ░██▒ ▓█   ▓██▒ ▒██▒ ░   ▒██▒ ░  ▓█   ▓██▒▒██████▒▒
+░▓  ░ ▒░   ░  ░ ▒▒   ▓▒█░ ▒ ░░     ▒ ░░    ▒▒   ▓▒█░▒ ▒▓▒ ▒ ░
+ ▒ ░░  ░      ░  ▒   ▒▒ ░   ░        ░      ▒   ▒▒ ░░ ░▒  ░ ░
+ ▒ ░░      ░     ░   ▒    ░        ░        ░   ▒   ░  ░  ░
+ ░         ░         ░  ░                       ░  ░      ░`,
   homeSections: [
     {
       title: "TL;DR",
       items: [
         {
-          label: "Cybersecurity enthusiast. Idealist. Purist."
+          label: "Ian Mattas / imattas"
         },
         {
-          label: "Researcher @RaptX",
-          linkLabel: "@RaptX",
-          href: "https://raptx.org/",
+          label: "Aspiring red teamer focused on pwn, security tooling, and CTF infrastructure."
+        },
+        {
+          label: "Doing pwn for @idktheflag",
+          linkLabel: "@idktheflag",
+          href: "https://github.com/idktheflag",
           external: true
         },
-        { label: "My CVEs", href: "/cves/" }
+        {
+          label: "Founder of @redsecc",
+          linkLabel: "@redsecc",
+          href: "https://github.com/redsecc",
+          external: true
+        },
+        { label: "About", href: "/volume/0/about/" }
       ]
     },
     {
-      title: "Philes",
+      title: "Index",
       volumes: {
         sort: "asc",
         showEmpty: false
       }
     },
     {
-      title: "Research",
+      title: "Projects",
       items: [
-        { label: "Binary Exploitation" },
-        { label: "Windows Security" },
-        { label: "IoT Security" },
-        { label: "Automation" }
+        {
+          label: "All public GitHub repos rendered from their README files.",
+          href: "/volume/1/"
+        },
+        {
+          label: "Writeups - CTF and cybersecurity notes.",
+          href: "/volume/2/"
+        }
       ]
     },
     {
       title: "Contact",
       items: [
-        { label: "root -at- cubeyond -dot- net" },
-        {
-          label: "PGP Encryption Key",
-          href: "/key.asc"
-        },
         {
           label: "github@plt",
-          href: "https://github.com/CuB3y0nd/",
+          href: "https://github.com/imattas",
           external: true,
           prefix: "~ call"
         },
         {
-          label: "memos@plt",
-          href: "https://memos.cubeyond.net/",
+          label: "web@plt",
+          href: "https://ianmattas.com",
           external: true,
           prefix: "~ call"
         },
         {
-          label: "kofi@plt",
-          href: "https://ko-fi.com/cub3y0nd",
-          external: true,
+          label: "links@local",
+          href: "/volume/0/about/",
           prefix: "~ call"
         }
       ]

@@ -24,17 +24,17 @@ export function phileLoader(base = "./src/content/philes"): Loader {
 
       context.watcher?.add(baseDir);
       context.watcher?.on("change", async (changedPath) => {
-        if (changedPath.endsWith(".phile")) {
+        if (isPhileFile(changedPath)) {
           await syncPhile(context, baseDir, changedPath, new Set());
         }
       });
       context.watcher?.on("add", async (addedPath) => {
-        if (addedPath.endsWith(".phile")) {
+        if (isPhileFile(addedPath)) {
           await syncPhile(context, baseDir, addedPath, new Set());
         }
       });
       context.watcher?.on("unlink", (deletedPath) => {
-        if (deletedPath.endsWith(".phile")) {
+        if (isPhileFile(deletedPath)) {
           context.store.delete(idForPath(baseDir, deletedPath));
         }
       });
@@ -87,11 +87,15 @@ async function listPhiles(dir: string): Promise<string[]> {
         return listPhiles(entryPath);
       }
 
-      return entry.isFile() && entry.name.endsWith(".phile") ? [entryPath] : [];
+      return entry.isFile() && isPhileFile(entry.name) ? [entryPath] : [];
     })
   );
 
   return files.flat();
+}
+
+function isPhileFile(filePath: string): boolean {
+  return filePath.endsWith(".phile") || filePath.endsWith(".mdx");
 }
 
 function parsePhile(source: string): { data: Frontmatter; body: string } {

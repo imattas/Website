@@ -1,0 +1,39 @@
+---
+title: "About imattas"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "about"
+order: 0
+---
+
+--[ identity ]---------------------------------------------------------------
+
+    handle   : imattas
+    name     : Ian Mattas
+    location : Ohio
+    role     : aspiring red teamer
+    team     : pwn for @idktheflag
+    org      : founder of @redsecc
+
+I build security tooling, CTF infrastructure, low-level experiments, and small
+systems projects. The public work is mostly Python, TypeScript, C, Rust, and
+C++.
+
+--[ focus ]------------------------------------------------------------------
+
+    red team        : offensive security workflows, automation, recon tooling
+    pwn             : binary exploitation, debugging, CTF challenge work
+    systems         : kernels, low-level C/Rust projects, operating systems
+    infrastructure  : CTF hosting, Cloudflare Workers, service automation
+    developer tools : MCP servers, Codex installers, debugging utilities
+
+--[ contact ]----------------------------------------------------------------
+
+    GitHub   : https://github.com/imattas
+    Email    : ian@mattas.net
+    LinkedIn : https://linkedin.com/in/ian-mattas
+    Website  : https://ianmattas.com
+    Team     : https://idktheflag.sh
+    Org      : https://github.com/redsecc
+
+![](https://avatars.githubusercontent.com/u/256696372?v=4)

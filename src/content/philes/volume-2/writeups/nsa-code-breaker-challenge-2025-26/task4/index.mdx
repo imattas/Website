@@ -1,0 +1,248 @@
+---
+title: "Task 4: Unpacking Insight — NSA Codebreaker Challenge 2025-26"
+date: 2025-09-28
+author: "Ian Mattas"
+slug: "nsa-code-breaker-challenge-2025-26-task4"
+order: 77
+writeupKind: "challenge"
+ctfSlug: "nsa-code-breaker-challenge-2025-26"
+ctfTitle: "NSA Codebreaker Challenge 2025-26"
+---
+
+# Task 4: Unpacking Insight — NSA Codebreaker Challenge 2025-26
+
+> **Category:** `Malware Analysis`  
+> **Difficulty:** Medium  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `/tmp/.Q4JMdcyorlib52mg`  
+> **Date:** September 28, 2025
+
+*Part of a series on the 2025 NSA Codebreaker Challenge.*
+
+---
+
+## Challenge Description
+
+> Back at NSA, you are provided with a copy of the file. There is a lot of high level interest in uncovering who facilitated this attack. The file appears to be obfuscated.
+>
+> You are tasked to work on de-obfuscating the file and report back to the team.
+
+**Objective:** Submit the file path the malware uses to write a file.
+
+**Provided files:**
+
+- `suspicious` – obfuscated ELF binary
+
+---
+
+## Recon / Initial Analysis
+
+The `suspicious` binary is a 64-bit stripped PIE ELF executable that's actually a two-stage packer. Its imports tell the story before you even open a disassembler: `ptrace`, `sigaction`, `_setjmp`/`__longjmp_chk` (anti-debug), `tanh`, `powf`, `sqrt`, `sincos` (dummy math), and `memfd_create`, `dlopen`, `dlsym` (in-memory loading). The outer binary (the "meme packer") is a heavily obfuscated wrapper that extracts, decodes, and executes an inner payload via `memfd_create` + `dlopen`. The inner payload is the real malware – a shared library with validation checks, RC4 encryption, and C2 communication logic.
+
+Both stages had to be defeated to find the answer.
+
+---
+
+## Vulnerability / Observation
+
+The core insight that makes this tractable: every anti-analysis and validation check follows the same `call check → test al,al → jnz fail` shape, and the binary's encrypted strings are decrypted with a **streaming RC4-like cipher whose state advances on each call**. That means you can defeat all the checks by patching only the conditional jumps to NOPs while **leaving the actual function calls intact** – the cipher state stays in sync and the downstream string decryptions remain valid. NOP out a whole check function and every subsequent decryption comes out as garbage.
+
+---
+
+## Exploitation / Solution
+
+### Stage 1: The Meme Packer
+
+#### Anti-Analysis Arsenal
+
+The outer binary throws everything at you before doing anything useful:
+
+**Anti-debug checks:**
+
+- `detect_tracer_via_proc_status` (0x7470) – reads `/proc/self/status` looking for `TracerPid`
+- `detect_debugger_via_ptrace_attach` (0x7590) – calls `ptrace(PTRACE_TRACEME)` to detect if a debugger is already attached
+- `install_sigsegv_handler_and_test` (0x75E0) – installs a SIGSEGV handler with `longjmp` for fault detection
+- `check_timeout_exceeded` (0x7440) – times execution to detect the slowdown from single-stepping in a debugger
+
+**Dummy computations** (pure time-wasting):
+
+- A neural network simulation with `tanh` activations (0x7FE0)
+- An image filtering/blending routine with `powf` (0x87E0)
+- Random loops with `rand()` and `sqrt()` (0x79D0)
+
+These do nothing useful – they just burn CPU time and make static analysis painful by burying the real logic under thousands of lines of math.
+
+**Fake ELF sections:**  
+The binary contains custom ELF sections designed to look legitimate: `.bss_secure_buffer` (1,658 bytes), `.init.checksum.validation` (156 bytes), and `.init.constructors.global` (16,786 bytes – the actual encoded payload). The naming mimics standard ELF conventions to avoid scrutiny.
+
+**Meme obfuscation:**  
+The binary contains a massive string buffer starting with:
+
+> *"Yo yo yo, no cap fr fr, walking into that Monday morning standup had me feeling like the Ohio final boss in some skibidi toilet code review gone wrong…"*
+
+This isn't just for laughs – the meme string doubles as a data container, with offsets within it used for function pointers and jump buffers. There are also fake SQL queries and hash strings scattered throughout for misdirection.
+
+#### The Real Payload Path
+
+Under all the noise, the actual extraction logic is:
+
+1. Parse its own ELF headers via `/proc/self/exe` to find the embedded `.init.constructors.global` section (16,786 bytes of encoded payload)
+2. Copy/mmap the section into executable memory
+3. Apply vectorized polymorphic decoding (shuffles, XORs, rotations)
+4. Write the decoded payload to a `memfd_create` anonymous file
+5. `dlopen` the memfd and call `dlsym("run")` to execute the inner binary
+
+#### Patching Through
+
+The strategy was surgical: patch only the conditional jumps after each anti-analysis check, but **leave the actual function calls intact**. This was critical because the RC4-like decryption state carries forward through function calls – if you NOP out entire functions instead of just their branch conditions, the decryption state gets corrupted and all the encrypted strings come out as garbage.
+
+Each check follows the same pattern:
+
+```
+call check_function
+test al, al
+jnz  fail_label      ← patch this to NOP (90 90)
+```
+
+Patches applied in `main` (0x8D65):
+
+| Address | Original | Patched | Check Bypassed |
+|---------|----------|---------|----------------|
+| 0x8DB5 | `jnz` | `nop nop` | TracerPid detection |
+| 0x8DCB | `jnz` | `nop nop` | ptrace detection |
+| 0x8DD7 | `jnz` | `nop nop` | SIGSEGV handler |
+| 0x8DE3 | `jnz` | `nop nop` | Timeout check |
+| 0x8DF9 | `jnz` | `nop nop` | cpuinfo/hardware check |
+
+In the payload loader (0x9DA0), I patched `dlopen` to return early – preventing the inner binary from actually executing – and set a GDB breakpoint at the `write` syscall to dump the decoded payload from memory right before it would be loaded:
+
+```
+(gdb) break write if $rdi == memfd_fd
+(gdb) dump binary memory inner.bin $rsi $rsi+$rdx
+```
+
+This gave me the extracted inner ELF – a 53KB shared library exporting a `run` function (confirmed at offset 0x8D65 in the symbol table, 233 bytes).
+
+### Stage 2: The Inner Payload
+
+#### Six Validation Gates
+
+The inner binary's `run` function initializes an RC4 key schedule with the key **`"skibidi"`** and then runs six validation checks, all of which must pass before it does anything interesting:
+
+1. **`check_file_exists`** – Decrypts a path and checks if it exists: `/opt/dafin/intel/ops_brief_redteam.pdf`
+2. **`check_env_var_set`** – Checks for environment variable: `DAFIN_SEC_PROFILE`
+3. **`check_year_is_2024`** – Verifies `tm_year == 124` (year 2024). It was September 2025 when I did this, so this always fails.
+4. **`check_running_as_root`** – Requires `geteuid() == 0`
+5. **`check_cpuinfo_for_raspberry`** – Searches `/proc/cpuinfo` for "Raspberry," requiring Pi hardware
+6. **`run_command_and_check_output`** – Executes a decrypted command via `popen` and checks the output for a specific substring
+
+These checks serve dual purposes: they verify the malware is running on the intended target (a DAFIN military system, specifically a Raspberry Pi running as root with the right files in place), and they advance the RC4 state through decryption calls. Each check decrypts its own strings using the shared RC4 stream, so the cipher state is sequential – you can't skip checks without corrupting subsequent decryptions.
+
+#### Same Patching Strategy
+
+Same approach as the outer binary – patch the `jnz` instructions after each check to NOPs, preserving the actual calls so the RC4 state advances correctly:
+
+```
+0x8DB5: jnz → nop nop    (file exists)
+0x8DCB: jnz → nop nop    (env var)
+0x8DD7: jnz → nop nop    (year 2024)
+0x8DE3: jnz → nop nop    (root check)
+0x8DF9: jnz → nop nop    (cpuinfo)
+```
+
+#### The File Path
+
+After all checks pass, execution reaches `download_and_execute_payload` (0x7F5D), which:
+
+1. Creates a TCP socket and connects to **`203.0.113.42:8080`** (another RFC 5737 address – same C2 infrastructure from Task 2/3)
+2. Sends **`GET /module HTTP/1.1\r\n\r\n`**
+3. Constructs a file path by decrypting three RC4-encrypted components:
+   - 5 bytes → `/tmp/`
+   - 1 byte → `.`
+   - 16 bytes → `Q4JMdcyorlib52mg`
+4. Opens an `ofstream` to write the downloaded data to this path
+5. Calls `dlopen` on the written file and executes a function from it
+
+I also patched the network operations (socket/connect/recv) to skip gracefully, then set a breakpoint at the `ofstream` constructor to inspect the constructed path in memory:
+
+```
+(gdb) x/s *($rbp - 0x6D0)
+0x7fffffffd990: "/tmp/.Q4JMdcyorlib52mg"
+```
+
+---
+
+## Answer
+
+```
+/tmp/.Q4JMdcyorlib52mg
+```
+
+---
+
+## Full Exploit Script
+
+```gdb
+# Task 4 - Unpacking Insight (NSA Codebreaker Challenge 2025-26)
+# Defeat both packer stages by NOPing the conditional jumps after each
+# anti-analysis / validation check (preserving the RC4 state-advancing calls),
+# then breakpoint write/ofstream to read the constructed drop path.
+
+# --- Stage 1: outer "meme packer" anti-analysis jumps in main (0x8D65) ---
+set {short}0x8DB5 = 0x9090   # TracerPid detection
+set {short}0x8DCB = 0x9090   # ptrace detection
+set {short}0x8DD7 = 0x9090   # SIGSEGV handler
+set {short}0x8DE3 = 0x9090   # timeout check
+set {short}0x8DF9 = 0x9090   # cpuinfo/hardware check
+
+# Dump the decoded inner ELF right before dlopen loads it.
+break write if $rdi == memfd_fd
+dump binary memory inner.bin $rsi $rsi+$rdx
+
+# --- Stage 2: inner payload validation jumps (jnz -> nop nop) ---
+#   0x8DB5 file exists / 0x8DCB env var / 0x8DD7 year 2024 /
+#   0x8DE3 root / 0x8DF9 cpuinfo
+
+# Read the constructed drop path at the ofstream constructor.
+x/s *($rbp - 0x6D0)
+# -> "/tmp/.Q4JMdcyorlib52mg"
+```
+
+---
+
+## Intelligence Summary
+
+Beyond the flag, the binary revealed the malware's operational profile:
+
+| Detail | Value |
+|--------|-------|
+| Target file | `/opt/dafin/intel/ops_brief_redteam.pdf` |
+| Required env var | `DAFIN_SEC_PROFILE` |
+| Target hardware | Raspberry Pi |
+| Target year | 2024 |
+| C2 server | `203.0.113.42:8080` |
+| C2 request | `GET /module HTTP/1.1` |
+| Drop path | `/tmp/.Q4JMdcyorlib52mg` |
+| RC4 key | `skibidi` |
+
+This paints a clear picture: the malware targets a specific DAFIN military system (a Raspberry Pi running a defense application), downloads a second-stage module from C2, and drops it as a hidden file in `/tmp`. The validation gates ensure it only executes on the intended target – a supply-chain attack with a very specific victim in mind.
+
+The RC4 key `"skibidi"` became a running joke from NSA Jack. The meme packer's absurd string – referencing "skibidi toilet code reviews" and "Ohio final bosses" – combined with the key name was too good to let go.
+
+---
+
+## Key Takeaways
+
+- **Patch jumps, not calls.** When a binary uses streaming cipher state (like RC4) that advances through function calls, you *must* let the calls execute – just patch the conditional branches that check their return values. NOP the wrong thing and all downstream decryptions produce garbage.
+- **Meme strings can be functional.** The "skibidi toilet code review" buffer wasn't just comic relief – it stored offsets and function pointers. Always check cross-references on suspicious strings.
+- **`memfd_create` + `dlopen` is a pattern.** Both the outer packer and the Task 3 malware use anonymous in-memory execution to avoid leaving artifacts on disk. If you see `memfd_create` in a binary's imports, it's almost certainly a loader/packer.
+- **Validation checks reveal targeting.** The specific file path, environment variable, and hardware checks tell you exactly who the malware was built for – intelligence that's often as valuable as the payload itself.
+
+---
+
+## References
+
+- [`memfd_create(2)`](https://man7.org/linux/man-pages/man2/memfd_create.2.html) / [`dlopen(3)`](https://man7.org/linux/man-pages/man3/dlopen.3.html) — the in-memory loading pattern used by the packer
+- [`ptrace(2)`](https://man7.org/linux/man-pages/man2/ptrace.2.html) — the anti-debug primitive (`PTRACE_TRACEME`, `TracerPid`)
+- [Ghidra](https://ghidra-sre.org/) / [GDB](https://www.sourceware.org/gdb/) — static patching analysis and dynamic dump/breakpoint workflow
+- [RC4](https://en.wikipedia.org/wiki/RC4) — the streaming cipher whose sequential state forced the patch-jumps-not-calls strategy

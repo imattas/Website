@@ -1,0 +1,178 @@
+---
+title: "OmniSolve (archived)"
+date: 2026-06-20
+author: "Ian Mattas"
+slug: "omnisolve"
+order: 5
+contentFormat: "markdown"
+---
+
+--[ repository ]------------------------------------------------------------
+
+    URL      : https://github.com/imattas/OmniSolve
+    Language : Python
+    Status   : archived
+    Stars    : 0
+    Updated  : 2026-06-20
+
+No repository description provided.
+
+---
+
+# OmniSolve
+
+A self-hosted, web-based, **multi-tool CTF / forensics analysis platform**.
+Drop in an artifact — image, audio, binary, memory dump, pcap, document,
+archive, hash, ciphertext — and OmniSolve detects its type, fans it out to
+every relevant analysis tool, runs each in a **sandbox**, and presents unified,
+structured results with a top-level **"Possible Flags / Findings"** panel.
+
+Think [AperiSolve](https://github.com/Zeecka/AperiSolve) (drop an image → it
+runs zsteg / steghide / exiftool / binwalk / strings / bit-plane decomposition)
+— generalized into an extensible plugin platform that also covers memory
+forensics (Volatility 3), binary exploitation, reverse engineering, crypto,
+network/pcap, and document forensics.
+
+---
+
+## Quickstart
+
+**Requirements:** Docker Engine + the **Docker Compose v2 plugin** (`docker compose`).
+`make` auto-detects `docker compose` (v2) or the legacy `docker-compose` (v1) and
+prints install instructions if neither is present. If `docker compose` is missing,
+install the plugin binary **system-wide** (works on amd64 and arm64, and with or
+without `sudo` — a per-user `~/.docker` plugin is invisible under `sudo`, which
+resets `$HOME` to `/root`):
+
+```bash
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+sudo docker compose version
+# (Docker apt-repo users can instead: sudo apt-get install -y docker-compose-plugin)
+```
+
+> If `make up` needs `sudo` on your machine, install Compose system-wide as above
+> (or add yourself to the `docker` group: `sudo usermod -aG docker $USER` then
+> re-login, and run `make up` without sudo).
+
+```bash
+git clone <this-repo> omnisolve && cd omnisolve
+cp .env.example .env            # tweak if you like (defaults are sane)
+make up                         # builds the tools image + starts the stack
+```
+
+Then open **http://localhost:8080**, drag in a file, and watch the per-plugin
+results populate live. Celery's Flower dashboard is at http://localhost:5555.
+
+> The first `make up` builds the heavy analysis-tools image and can take a
+> while. Tools that fail to install (or that you skipped) simply report
+> `UNAVAILABLE` — the platform still runs.
+
+**Architecture support:** the images build and run on both **x86_64 (amd64)**
+and **ARM (arm64)**. All apt/pip/gem/JVM tooling is multi-arch; the two tools
+whose upstreams ship only amd64 binaries (`stegseek`, `bkcrack`) are compiled
+from source so they work on arm64 too. To build a single multi-arch image for a
+registry: `make build-tools-multiarch TOOLS_IMAGE=your-registry/omnisolve-tools:tag`.
+
+### Full capability requires external assets
+
+Some assets are too large / license-encumbered to bake into the image. Fetch
+them once:
+
+```bash
+make fetch-assets   # rockyou wordlist, Ghidra, Volatility 3 symbol packs
+```
+
+Until then: `ghidra_decompile` is `UNAVAILABLE`, `volatility3` runs with limited
+symbol support, and `steghide_crack` / `john_crack` degrade gracefully.
+
+### Local development (no Docker)
+
+```bash
+make venv     # backend/.venv with dev deps
+make test     # in-process end-to-end suite (SQLite + eager Celery)
+make lint     # ruff + mypy --strict
+make frontend # build the React app into backend/static
+```
+
+---
+
+## How it works
+
+1. **Upload** → the file is stored under a UUID (sanitized name), hashed
+   (md5/sha1/sha256), and type-detected (libmagic + extension + magic-byte
+   signatures) into a set of **category hints**.
+2. **Fan-out** → every plugin whose `accepts()` matches is scheduled as an
+   independent Celery task, routed to a per-category queue (heavy categories
+   like `memory` and `rev_heavy` get their own low-concurrency workers).
+3. **Sandboxed execution** → each tool invocation runs with **no network,
+   read-only input, a private writable scratch dir, non-root, dropped
+   capabilities, resource limits, and a hard timeout**.
+4. **Aggregation** → stdout, tables, and produced artifacts are persisted; flag
+   regexes are run across every text output and extracted strings; matches
+   bubble up to the sticky **Findings** panel.
+
+See [ARCHITECTURE.md](https://github.com/imattas/OmniSolve/blob/claude/keen-brahmagupta-pq03hm/ARCHITECTURE.md) for the full design.
+
+## Analysis categories
+
+| Category | What it does | Example plugins |
+|----------|--------------|-----------------|
+| **stego** | Images/audio: metadata, LSB, carving, bit planes, spectrograms | `bitplane_extractor`, `zsteg`, `steghide_crack`, `exiftool`, `binwalk`, `spectrogram`, `qr_barcode` |
+| **memory** | RAM dumps | `volatility3`, `bulk_extractor`, `mem_flag_hunt`, `yara_scan` |
+| **binex** | Binary exploitation (pwn) — all static | `checksec`, `elf_info`, `rop_gadgets`, `one_gadget`, `pwn_template`, `libc_id`, `seccomp_dump` |
+| **rev** | Reverse engineering | `binary_triage`, `radare2_analyze`, `ghidra_decompile`, `floss`, `capa`, `upx_unpack`, `{pyc,java,dotnet,apk,wasm,lua}_decompile`, `angr_autosolve` |
+| **crypto** | Hashes & ciphers | `hash_id`, `rsactftool`, `xortool`, `cipher_id`, `john_crack`, `factordb_lookup` |
+| **forensics** | Documents & disks | `pdf_analyze`, `office_analyze`, `zip_inspect`, `disk_image` |
+| **network** | Packet captures | `pcap_overview`, `pcap_extract`, `pcap_flags` |
+| **misc** | Universal | `generic_decode` (recursive base/hex/compression), `cyberchef_link` |
+
+## ⚠️ Dynamic analysis & network egress (off by default)
+
+OmniSolve **never executes the uploaded target** and **never allows analysis
+network egress** unless you explicitly opt in:
+
+- `ALLOW_DYNAMIC_ANALYSIS=true` enables plugins that *run the binary*
+  (`angr_autosolve`, `seccomp_dump`). **Only enable this for files you trust** —
+  you are executing attacker-controlled code, albeit inside the strongest
+  available sandbox. Off by default; the UI surfaces a prominent warning.
+- `ALLOW_NETWORK_PLUGINS=true` enables network-egress plugins
+  (`factordb_lookup`). All other analysis runs with the network namespace
+  unshared.
+
+When either gate is off, the corresponding plugins return `SKIPPED` with a clear
+reason instead of running.
+
+## Security model (summary)
+
+- Containers run as **non-root** with `no-new-privileges` and dropped caps.
+- **Every** tool invocation goes through the sandbox (`sandbox.py`):
+  bubblewrap → firejail → `unshare`+rlimits, in that order of preference. If no
+  isolation backend exists, OmniSolve **refuses to run** rather than execute a
+  tool unsandboxed.
+- Output sizes, gadget/string counts, and artifact counts are capped.
+- Filenames are sanitized; files are stored by UUID; the extension is never
+  trusted for an execution decision.
+
+## Configuration
+
+All knobs live in `.env` (see [`.env.example`](https://github.com/imattas/OmniSolve/blob/claude/keen-brahmagupta-pq03hm/.env.example)) and are read by
+`backend/app/config.py`. Highlights: `FLAG_FORMAT`, `ALLOW_DYNAMIC_ANALYSIS`,
+`ALLOW_NETWORK_PLUGINS`, `MAX_UPLOAD_MB`, `JOB_SOFT_TIMEOUT`/`JOB_HARD_TIMEOUT`,
+`RESULT_TTL`, the `MEMORY_MB`/`CPU_SECONDS` sandbox caps, per-queue
+`WORKER_CONCURRENCY_*`, and asset paths (`GHIDRA_HOME`, `VOL_SYMBOLS_DIR`,
+`WORDLIST_DIR`, `YARA_RULES_DIR`).
+
+## Adding a plugin
+
+A new tool is a **single new file** implementing one interface, auto-discovered
+at startup. See [docs/adding-a-plugin.md](https://github.com/imattas/OmniSolve/blob/claude/keen-brahmagupta-pq03hm/docs/adding-a-plugin.md).
+
+## API
+
+`POST /api/jobs` (multipart upload) · `GET /api/jobs/{id}` ·
+`GET /api/jobs/{id}/runs/{run_id}` · `GET /api/artifacts/{id}` ·
+`GET /api/plugins` · `POST /api/jobs/{id}/rerun`. Interactive docs at
+`http://localhost:8080/docs`.

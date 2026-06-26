@@ -1,4 +1,5 @@
 import type { Phile } from "../philes/model";
+import { siteHref } from "../textmode/core/html";
 import type { Volume } from "../volumes/model";
 
 export type SitemapEntry = {
@@ -6,7 +7,7 @@ export type SitemapEntry = {
 };
 
 export function absoluteUrl(site: URL, href: string): string {
-  return new URL(href, site).toString();
+  return new URL(siteHref(href), site).toString();
 }
 
 export function phileExcerpt(phile: Phile, maxLength = 240): string {
@@ -55,7 +56,6 @@ ${entries.map((entry) => renderSitemapEntry(site, entry)).join("\n")}
 export function sitemapEntries(volumes: Volume[], philes: Phile[]): SitemapEntry[] {
   return [
     { href: "/" },
-    { href: "/cves/" },
     { href: "/rss.xml" },
     ...volumes.map((volume) => ({
       href: volume.href

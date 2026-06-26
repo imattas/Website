@@ -1,8 +1,8 @@
 {
-  "name": "entropic",
+  "name": "imattas-portfolio",
   "version": "0.1.0",
   "private": true,
-  "description": "A retro textmode blog theme for purists.",
+  "description": "Ian Mattas / imattas portfolio built on a retro textmode Astro theme.",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1",
@@ -17,6 +17,8 @@
     "check": "astro check && biome check .",
     "format": "biome format --write .",
     "lint": "biome lint .",
+    "projects:import": "node scripts/import-projects.mjs",
+    "writeups:import": "node scripts/import-writeups.mjs",
     "assets:fonts": "pnpm fonts:subset && pnpm fonts:atlas",
     "fonts:atlas": "node scripts/build-cjk-atlas.mjs",
     "fonts:subset": "node scripts/subset-fonts.mjs"

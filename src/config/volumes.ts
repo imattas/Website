@@ -12,10 +12,12 @@ export type VolumeConfig = {
   entryLabel?: "index" | "year";
   reverseEntryNumbers?: boolean;
   phileSort?: VolumePhileSort;
+  tocWriteupKind?: "root" | "template" | "ctf" | "challenge";
+  countWriteupKind?: "root" | "template" | "ctf" | "challenge";
 };
 
 export const defaultVolumeConfig = (number: number): VolumeConfig => ({
-  title: `Entropic Volume ${number}`,
+  title: `imattas Volume ${number}`,
   listLabel: `Volume ${number}`,
   phileSort: {
     by: "date",
@@ -28,79 +30,54 @@ export const volumeConfigs = new Map<number, VolumeConfig>([
   [
     0,
     {
-      title: "Security Research",
-      listLabel: "Volume 0 - Security Research",
+      title: "Profile",
+      listLabel: "Volume 0 - Profile",
       phileSort: {
         by: "order",
         direction: "asc"
       },
       postscript: [
-        "  ──[ 0x51 ]─────────────────────────────────────────────────────────────────//───",
+        "  --[ EOF ]-------------------------------------------------------------//---",
         "",
-        "  What is this unseen flame of darkness whose sparks are the stars?",
-        "",
-        "  Tagore, Stray Birds"
-      ]
+        "  profile loaded"
+      ],
+      entryPrefix: "P"
     }
   ],
   [
     1,
     {
-      title: "Historical Philes",
-      listLabel: "Volume 1 - Historical Philes",
+      title: "Projects",
+      listLabel: "Volume 1 - Projects",
       postscript: [
-        "  ──[ EOF ]──────────────────────────────────────────────────────────────────//───",
+        "  --[ EOF ]-------------------------------------------------------------//---",
         "",
-        "  Life can only be understood backwards;",
-        "  but it must be lived forwards.",
-        "",
-        "  Søren Kierkegaard"
+        "  source available on github.com/imattas"
       ],
       phileSort: {
-        by: "date",
-        direction: "desc"
+        by: "order",
+        direction: "asc"
       },
-      entryPrefix: "A"
+      entryPrefix: "X"
     }
   ],
   [
     2,
     {
-      title: "Year-End Wrap-ups",
-      listLabel: "Volume 2 - Year-End Wrap-ups",
+      title: "Writeups",
+      listLabel: "Volume 2 - Writeups",
       postscript: [
-        "  ──[ 0x146 ]────────────────────────────────────────────────────────────────//───",
+        "  --[ EOF ]-------------------------------------------------------------//---",
         "",
-        "  Let this be my last word,",
-        "  that I trust in thy love.",
-        "",
-        "  Tagore, Stray Birds"
+        "  imported from github.com/imattas/Writeups as checked-in MDX"
       ],
       phileSort: {
-        by: "date",
-        direction: "desc"
+        by: "order",
+        direction: "asc"
       },
-      entryLabel: "year"
-    }
-  ],
-  [
-    3,
-    {
-      title: "Chromatic Philes",
-      listLabel: "Volume 3 - Chromatic Philes",
-      postscript: [
-        "  ──[ SGR ]──────────────────────────────────────────────────────────────────//───",
-        "",
-        "  Color is only another byte of pressure",
-        "  applied to a line that was already executable.",
-        "",
-        "  Entropic notes"
-      ],
-      phileSort: {
-        by: "date",
-        direction: "desc"
-      },
-      entryPrefix: "C"
+      tocWriteupKind: "ctf",
+      countWriteupKind: "challenge",
+      entryPrefix: "W"
     }
   ]
 ]);

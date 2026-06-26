@@ -24,4 +24,6 @@
 - `pnpm lint`
 - `pnpm check`
 - `pnpm build`
+- `pnpm projects:import` to refresh Volume 1 from public `imattas` GitHub repositories
+- `pnpm writeups:import` to refresh Volume 2 from a local `../Writeups` clone
 - `pnpm assets:fonts` after changing CJK font coverage

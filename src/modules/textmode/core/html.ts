@@ -13,8 +13,22 @@ export function textHtml(input: string): string {
   );
 }
 
+export function siteHref(href: string): string {
+  if (!href.startsWith("/") || href.startsWith("//")) {
+    return href;
+  }
+
+  const base = import.meta.env.BASE_URL ?? "/";
+
+  if (base === "/" || href.startsWith(base)) {
+    return href;
+  }
+
+  return `${base.replace(/\/$/, "")}${href}`;
+}
+
 export function link(href: string, text: string): string {
-  return `<a href="${escapeHtml(href)}">${textHtml(text)}</a>`;
+  return `<a href="${escapeHtml(siteHref(href))}">${textHtml(text)}</a>`;
 }
 
 export function externalLink(href: string, text: string): string {

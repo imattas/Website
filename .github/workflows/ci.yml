@@ -75,4 +75,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build site
-        run: pnpm exec astro build
+        run: pnpm build

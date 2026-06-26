@@ -1,0 +1,80 @@
+---
+title: "task-demanager"
+date: 2026-05-04
+author: "Ian Mattas"
+slug: "task-demanager"
+order: 13
+contentFormat: "markdown"
+---
+
+--[ repository ]------------------------------------------------------------
+
+    URL      : https://github.com/imattas/task-demanager
+    Language : Rust
+    Status   : active
+    Stars    : 0
+    Updated  : 2026-05-04
+
+Windows PID Roulette
+
+---
+
+# Task Unmanager (Rust) — *Roulette for your PC*
+
+> keeps killing processes Russian Roulette style, until your machine crashes
+
+A terminal UI that spins a wheel of running PIDs. Whatever the arrows land on
+gets killed. Earn coins per kill, spend them in the Shop on increasingly
+unhinged "upgrades" until either you're rich or your machine isn't.
+
+Renders **in place** — frames overwrite the same cells; no scrolling.
+
+## Build & run
+
+```powershell
+cd task_unmanager_rs
+cargo run --release
+```
+
+The release binary embeds a `requireAdministrator` UAC manifest, so launching
+it triggers the elevation prompt. There is also a runtime fallback that
+re-launches via `ShellExecuteW("runas")` if for some reason the manifest
+didn't apply. Pass `--no-elevate` to skip both.
+
+## Main menu
+
+```
+ [P] Play Russian Roulette
+ [S] Shop
+ [R] Reset Save
+ [Q] Quit
+```
+
+`↑/↓` to navigate, `ENTER` to confirm, or use the bracketed shortcut keys.
+
+## Shop
+
+| upgrade                  | effect                                                 |
+|--------------------------|--------------------------------------------------------|
+| Download More RAM        | +25% coins per kill (stackable up to ×10)              |
+| Defrag Hard Drive        | Faster wheel spin (stackable up to ×5)                 |
+| Bigger Magazine          | +1 kill per trigger pull (stackable up to ×4)          |
+| Lucky Charm              | +5% chance of 10× JACKPOT payout per kill (×5)         |
+| Download McAfee          | Marks "infected" processes worth 5× coins              |
+| Rewrite Kernel in Rust   | 2× all coin gains, gold theme. Blazingly unsafe.       |
+
+Save state lives at `%APPDATA%\TaskUnmanager\save.txt`.
+
+## Controls in-game
+
+| key             | action                |
+|-----------------|-----------------------|
+| `SPACE`/`ENTER` | spin the wheel & fire |
+| `Q` / `ESC`     | back to main menu     |
+
+No processes are off-limits. The trigger always pulls; the wheel always
+lands on something; that something always dies (subject only to the OS
+returning access-denied). Everything in `tasklist` is a valid target,
+including SYSTEM-critical processes. Have fun.
+
+**Do not run this on a machine you care about.**

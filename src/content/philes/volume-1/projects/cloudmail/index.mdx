@@ -1,0 +1,110 @@
+---
+title: "cloudmail"
+date: 2026-06-23
+author: "Ian Mattas"
+slug: "cloudmail"
+order: 4
+contentFormat: "markdown"
+---
+
+--[ repository ]------------------------------------------------------------
+
+    URL      : https://github.com/imattas/cloudmail
+    Language : TypeScript
+    Status   : active
+    Stars    : 0
+    Updated  : 2026-06-23
+
+Cloudflare mail service
+
+---
+
+<div align="center">
+  <h1>CloudMail Inbox</h1>
+  <p><em>A self-hosted email client running on Cloudflare Workers.</em></p>
+</div>
+
+CloudMail Inbox is based on [cloudflare/agentic-inbox](https://github.com/cloudflare/agentic-inbox), with the AI agent, MCP server, Workers AI binding, and auto-draft features removed. It keeps the core mail client: send and receive email through Cloudflare Email Routing and Email Service, uses D1 for mailbox registry/settings and attachment blobs, and keeps per-mailbox message operations isolated in Durable Objects.
+
+## Features
+
+- Full email client with rich text compose, reply, forward, threaded reading, folders, search, and attachments.
+- Inbound email through Cloudflare Email Routing, including multiple configured domains.
+- Outbound email through the `send_email` Worker binding.
+- D1-backed mailbox registry, settings, and attachment blobs with tracked SQL migrations.
+- Per-mailbox Durable Object storage with SQLite for fast mailbox-local message operations.
+- Optional Cloudflare Access protection for deployed/shared environments.
+- Production attachment guardrails: D1-backed attachments are limited to 1,900,000 bytes each and 10 files per message.
+- No AI agent, no Workers AI binding, no MCP endpoint, and no automatic draft generation.
+
+## Setup
+
+1. Deploy to Cloudflare.
+
+   [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/imattas/cloudmail)
+
+2. Optional: configure Cloudflare Access on the Worker under Settings > Domains & Routes. To require Access, set `REQUIRE_ACCESS=true` and set the resulting `POLICY_AUD` and `TEAM_DOMAIN` values as Worker secrets.
+
+3. Configure Email Routing for each domain in `DOMAINS` and create a catch-all rule on each domain that forwards to this Worker.
+
+4. Enable Cloudflare Email Service for outbound sending.
+
+5. Create the D1 database and copy the returned database ID into `wrangler.jsonc` if your deployment flow does not auto-provision it:
+
+```bash
+wrangler d1 create cloudmail-db
+```
+
+6. Apply D1 migrations before first production use:
+
+```bash
+wrangler d1 migrations apply cloudmail-db --remote
+```
+
+7. Deploy and visit the app to create mailboxes for any configured domain.
+
+## Local Development
+
+```bash
+npm install
+npm run dev
+```
+
+On Windows ARM, run Wrangler commands from WSL if native `workerd` is unavailable:
+
+```bash
+cd /mnt/c/CloudMail
+corepack npm install
+corepack npm exec -- wrangler d1 migrations apply cloudmail-db --local
+corepack npm run typecheck
+corepack npm run build
+corepack npm exec -- wrangler deploy --dry-run
+```
+
+## Configuration
+
+- `DOMAINS`: comma-separated domains allowed for mailbox creation and inbound routing, for example `example.com,example.org`.
+- `EMAIL_ADDRESSES`: optional explicit allowlist of mailbox addresses. When set, only those exact addresses can be created or receive inbound mail; when empty, any mailbox under `DOMAINS` is allowed.
+- `REQUIRE_ACCESS`: set to `true` only when you want the app to require Cloudflare Access JWTs. Defaults to `false`.
+- `POLICY_AUD`: Cloudflare Access audience value. Required only when `REQUIRE_ACCESS=true`.
+- `TEAM_DOMAIN`: Cloudflare Access team domain or `/cdn-cgi/access/certs` URL. Required only when `REQUIRE_ACCESS=true`.
+- `DB`: D1 binding configured in `wrangler.jsonc` with migrations in `migrations/`.
+
+## Stack
+
+- Frontend: React 19, React Router v7, Tailwind CSS, Zustand, TipTap, `@cloudflare/kumo`.
+- Backend: Hono, Cloudflare Workers, D1, Durable Objects with SQLite, Email Routing, Email Service.
+- Auth: optional Cloudflare Access JWT validation outside local development.
+
+## Verification
+
+```bash
+npm run typecheck
+npm run build
+wrangler d1 migrations apply cloudmail-db --local
+wrangler deploy --dry-run
+```
+
+## License
+
+Apache 2.0 -- see [LICENSE](https://github.com/imattas/cloudmail/blob/main/LICENSE).

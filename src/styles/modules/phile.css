@@ -40,6 +40,22 @@
   color: var(--fg);
 }
 
+.phile-code-pre {
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  width: calc(var(--text-cell) * 80);
+  margin: var(--text-size) 0 var(--text-size) calc(var(--text-cell) * 4);
+  padding: var(--text-size) 0 var(--text-size) calc(var(--text-cell) * 2);
+  overflow-x: auto;
+  border-left: 1px solid var(--ansi-bright-black);
+  color: var(--ansi-white);
+}
+
+.phile-code-pre code {
+  font: inherit;
+}
+
 .phile-media {
   position: relative;
   z-index: 2;

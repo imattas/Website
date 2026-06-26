@@ -1,7 +1,13 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
   "files": {
-    "includes": ["astro.config.mjs", "package.json", "tsconfig.json", "src/**/*.{css,js,json,ts}"]
+    "includes": [
+      "astro.config.mjs",
+      "package.json",
+      "tsconfig.json",
+      "scripts/import-writeups.mjs",
+      "src/**/*.{css,js,json,ts}"
+    ]
   },
   "formatter": {
     "enabled": true,

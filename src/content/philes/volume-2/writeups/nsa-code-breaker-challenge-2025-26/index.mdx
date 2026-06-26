@@ -1,0 +1,54 @@
+---
+title: "NSA Codebreaker Challenge 2025-26 Writeups"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "nsa-code-breaker-challenge-2025-26"
+order: 73
+writeupKind: "ctf"
+ctfSlug: "nsa-code-breaker-challenge-2025-26"
+ctfTitle: "NSA Codebreaker Challenge 2025-26"
+---
+
+# NSA Codebreaker Challenge 2025-26 Writeups
+
+Detailed writeups for the tasks I solved in the **NSA Codebreaker Challenge 2025-26** — a multi-stage investigation tracing a single intrusion from a compromised development machine, through DNS-poisoning router malware, into the adversary's fileless implant and finally their command-and-control infrastructure.
+
+**5 / 8 Tasks Solved** | **Author: Imattas aka Zemi**
+
+Each writeup follows a consistent template: Challenge Description → Recon → Vulnerability / Observation → Exploitation / Solution → Answer → Full Exploit Script → Key Takeaways → References.
+
+## Tasks
+
+| Task | Category | Difficulty | Objective | Solved |
+|------|----------|------------|-----------|--------|
+| [Task 1 — Getting Started](./Task1.mdx) | Forensics | Easy | SHA-1 of the suspicious artifact in an ext2 image | Yes |
+| [Task 2 — The Hunt Continues](./Task2.mdx) | Network Forensics | Easy | All IPs of the malicious device in a PCAP | Yes |
+| [Task 3 — Digging Deeper](./Task3.mdx) | Reverse Engineering | Medium | All affected IPs/FQDNs from a router memory dump | Yes |
+| [Task 4 — Unpacking Insight](./Task4.mdx) | Malware Analysis | Medium | The file path the malware writes to | Yes |
+| [Task 5 — Going on the Offensive](./Task5.mdx) | Cryptanalysis | Hard | The adversary's C2 server URL | Yes |
+| Task 6 | Vulnerability Research | — | — | No |
+| Task 7 | Exploitation | — | — | No |
+| Task Redacted | Steganalysis | — | — | No |
+
+## The Storyline
+
+The solved tasks chain together into one coherent intrusion:
+
+1. **Task 1** — A rogue OpenRC service (`eanzovmwru`) on an Alpine dev box reveals a C2 callback config, but no actual malware on disk.
+2. **Task 2** — A PCAP shows the missing piece: a compromised router (Router 3) poisoning DNS for `archive.ubuntu.com`, redirecting victims to a custom C2 over a π-themed port pair.
+3. **Task 3** — A router memory dump exposes the malware running *fileless* via `memfd_create()`, with a custom base64 + rolling-XOR payload that hijacks 35 package/PyPI domains.
+4. **Task 4** — The implant itself is a two-stage "meme packer" with heavy anti-debug; patching jumps (not calls) preserves its RC4 state and reveals the drop path `/tmp/.Q4JMdcyorlib52mg`.
+5. **Task 5** — The downloaded module uses double AES-128-ECB, but a key-derivation bug collapses each key to 26 bits — a meet-in-the-middle attack recovers the C2 URL (a Mattermost instance).
+
+A recurring tell throughout: the adversary consistently uses RFC 5737 documentation ranges (`203.0.113.0/24`, `198.51.100.0/24`) for its infrastructure.
+
+## Tools Used
+
+- **mount / file / sha1sum** — read-only ext2 forensic mounting and hashing (Task 1)
+- **Wireshark / tshark** — PCAP protocol analysis and DNS/FTP inspection (Task 2)
+- **Volatility 3 / dwarf2json** — Linux memory forensics with a custom kernel symbol table (Task 3)
+- **Ghidra / IDA** — disassembly and decompilation of the malware stages (Tasks 3–5)
+- **GDB** — dynamic analysis, jump patching, and in-memory payload dumping (Task 4)
+- **OpenSSL libcrypto / PyCryptodome** — AES-128-ECB primitives and decryption (Task 5)
+- **Python** — custom base64/XOR decoders and the meet-in-the-middle key search (Tasks 3, 5)
+- **gzip / xz / brotli** — decompressing the provided dump, kernel, and symbol map (Task 3)

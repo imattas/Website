@@ -1,0 +1,135 @@
+---
+title: "Task 1: Getting Started — NSA Codebreaker Challenge 2025-26"
+date: 2025-09-24
+author: "Ian Mattas"
+slug: "nsa-code-breaker-challenge-2025-26-task1"
+order: 74
+writeupKind: "challenge"
+ctfSlug: "nsa-code-breaker-challenge-2025-26"
+ctfTitle: "NSA Codebreaker Challenge 2025-26"
+---
+
+# Task 1: Getting Started — NSA Codebreaker Challenge 2025-26
+
+> **Category:** `Forensics`  
+> **Difficulty:** Easy  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `74de81b13b647fde618a8a935e025ddf051607f0`  
+> **Date:** September 24, 2025
+
+*Part of a series on the 2025 NSA Codebreaker Challenge.*
+
+---
+
+## Challenge Description
+
+> The DAFIN-SOC team has noticed numerous anomalous behaviors – tools randomly failing tests and anti-virus flagging on seemingly clean workstations. They have narrowed in on one machine they would like NSA to thoroughly evaluate.
+>
+> They have provided a zipped EXT2 image from this development machine. Help DAFIN-SOC perform a forensic analysis on this – looking for any suspicious artifacts.
+
+**Objective:** Provide the SHA-1 hash of the suspicious artifact.
+
+---
+
+## Recon / Initial Analysis
+
+The provided `image.ext2.zip` contains a 64MB ext2 filesystem image. Mounting it read-only to preserve forensic integrity:
+
+```bash
+sudo mkdir /mnt/ext2
+sudo mount -o loop,ro image.ext2 /mnt/ext2
+```
+
+The filesystem is an Alpine Linux v3.17 environment (confirmed via `/etc/os-release` and identifiable by its use of the OpenRC init system and `/etc/runlevels/` directory structure). The root contains a standard Linux filesystem tree along with an empty `/app/` directory, suggesting it was a containerized or purpose-built development machine.
+
+---
+
+## Vulnerability / Observation
+
+Browsing the init service directory at `/etc/runlevels/default/` reveals two entries:
+
+```
+/etc/runlevels/default/
+├── eanzovmwru
+└── nginx
+```
+
+One of these is not like the other. `nginx` is a legitimate web server service with a corresponding init script at `/etc/init.d/nginx`. `eanzovmwru` is a randomly-generated name with no relation to any known service or package – and critically, it has **no matching script in `/etc/init.d/`**. Every legitimate OpenRC service has one. That's the artifact.
+
+---
+
+## Exploitation / Solution
+
+Inspecting it:
+
+```bash
+$ file /mnt/ext2/etc/runlevels/default/eanzovmwru
+eanzovmwru: ASCII text
+
+$ cat /mnt/ext2/etc/runlevels/default/eanzovmwru
+U=/a/fdcc8b701827ebd0cbcebc28f8c3efe0/xxyz
+P=20
+A=/app/www
+```
+
+The file contains what appears to be configuration for a malicious service:
+
+- **U** – a URL path containing `fdcc8b701827ebd0cbcebc28f8c3efe0`, a 32-character hex string consistent with an MD5 hash. This is likely a C2 callback endpoint.
+- **P** – a port number (20)
+- **A** – a local directory path pointing to the app's web root (which is empty on disk, suggesting the malware hadn't fully staged or had been cleaned)
+
+Placed in the OpenRC default runlevel, this file would be processed automatically on boot – a classic persistence mechanism. Computing its SHA-1 hash gives the answer:
+
+```bash
+$ sha1sum /mnt/ext2/etc/runlevels/default/eanzovmwru
+74de81b13b647fde618a8a935e025ddf051607f0
+```
+
+---
+
+## Answer
+
+```
+74de81b13b647fde618a8a935e025ddf051607f0
+```
+
+---
+
+## Full Exploit Script
+
+```bash
+#!/usr/bin/env bash
+# Task 1 - Getting Started (NSA Codebreaker Challenge 2025-26)
+# Mount the ext2 image read-only and locate the rogue OpenRC service.
+
+sudo mkdir -p /mnt/ext2
+sudo mount -o loop,ro image.ext2 /mnt/ext2
+
+# Every OpenRC service in a runlevel should have a matching init script.
+# Flag the runlevel entry that has no /etc/init.d/ counterpart.
+for svc in /mnt/ext2/etc/runlevels/default/*; do
+    name=$(basename "$svc")
+    [ -e "/mnt/ext2/etc/init.d/$name" ] || echo "[!] Rogue service: $name"
+done
+
+# Inspect and hash the suspicious artifact.
+cat     /mnt/ext2/etc/runlevels/default/eanzovmwru
+sha1sum /mnt/ext2/etc/runlevels/default/eanzovmwru
+# -> 74de81b13b647fde618a8a935e025ddf051607f0
+```
+
+---
+
+## Key Takeaways
+
+- OpenRC stores service symlinks in `/etc/runlevels/default/`. Anything with a random name – especially without a corresponding `/etc/init.d/` script – is immediately suspicious.
+- A quick check of other persistence vectors (crontabs, `.bashrc`, `/etc/init.d/`) turned up nothing else malicious. The 8000-line `.bash_history` in `/root/` is all routine sysadmin activity (nginx config, package updates, network checks).
+- This artifact becomes relevant again in later tasks – the C2 path and the MD5-formatted hash tie into the malware analysis in Tasks 3 and 4.
+
+---
+
+## References
+
+- [OpenRC init system](https://github.com/OpenRC/openrc) — how runlevel service symlinks relate to `/etc/init.d/` scripts
+- [Alpine Linux](https://www.alpinelinux.org/) — the distribution used in the disk image
+- `mount(8)` / `sha1sum(1)` — read-only loopback mounting and hashing for forensic integrity

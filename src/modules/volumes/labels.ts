@@ -6,5 +6,5 @@ export function volumeTitle(volume: Volume): string {
 }
 
 export function volumeListLabel(volume: Volume): string {
-  return `${volumeConfig(volume.number).listLabel} (${volume.philes.length})`;
+  return `${volumeConfig(volume.number).listLabel} (${volume.displayCount})`;
 }

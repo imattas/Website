@@ -1,0 +1,135 @@
+---
+title: "BetterDiscordRPC"
+date: 2026-05-26
+author: "Ian Mattas"
+slug: "betterdiscordrpc"
+order: 11
+contentFormat: "markdown"
+---
+
+--[ repository ]------------------------------------------------------------
+
+    URL      : https://github.com/imattas/BetterDiscordRPC
+    Language : Python
+    Status   : active
+    Stars    : 0
+    Updated  : 2026-05-26
+
+A tool to customize Discord RPC to your desire.
+
+---
+
+# Discord RPC
+
+A Windows system-tray app for custom Discord Rich Presence. Click the tray icon and a frameless popup appears next to it; click anywhere else and it hides back into the tray. Presets, live preview, API-driven dynamic fields, and automatic public hosting for local images.
+
+## Features
+
+- **Tray-anchored popup** — frameless, opens at the tray, hides on focus loss or `Esc`.
+- **Presets** — save any number of activity configurations, switch instantly from the tray menu or popup.
+- **Live preview** — Discord-style activity card that updates as you type, with the actual image thumbnail for local files.
+- **Placeholders** — `{time}`, `{date}`, and `{api:path.to.value}` work in any text field.
+- **API source** — poll a JSON endpoint on a configurable interval. A **Test request** button on the API tab fetches the URL and lists the exact placeholder paths available.
+- **Local images** — Browse to pick a file; the app copies it into `%LOCALAPPDATA%\DiscordRPC\images\` and, when you start RPC, auto-uploads it to **Catbox** (no setup) or **Imgur** (with a free Client-ID) so Discord can display it. URLs are cached by file hash, so each unique file uploads only once.
+- **Drag-and-drop** — drop any image onto the popup to add it to the local library.
+- **Tray icon state coloring** — green when active, red on error, blurple when stopped.
+- **Keyboard shortcuts** — `Ctrl+S` save, `Ctrl+N` new, `Ctrl+Enter` start/stop, `Ctrl+W` or `Esc` to hide.
+
+## Install (installer)
+
+1. Grab `DiscordRPC-Setup.exe` (from a Releases page if published, or build it yourself — see **Build** below).
+2. Run the installer. It installs per-user under `%LOCALAPPDATA%\Programs\DiscordRPC` — no UAC prompt.
+3. The wizard offers two optional tasks:
+   - **Create a desktop shortcut**
+   - **Launch Discord RPC when Windows starts** — adds a shortcut to your per-user Startup folder so the app runs silently to the tray on every login.
+
+## Install (from source)
+
+Requires Python 3.10+.
+
+```powershell
+pip install -r requirements.txt
+python main.py
+```
+
+If `pip install` fails with a Windows path-length error (common with the Microsoft Store Python because its `site-packages` path is already long), run this once in an **Administrator** PowerShell — no reboot needed:
+
+```powershell
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
+
+## First-time setup
+
+1. Create an application at https://discord.com/developers/applications and copy its **Application ID**.
+2. Open the popup, go to **Settings**, paste the ID into **Client ID**.
+3. On **Activity**, fill in **Details** and **State**.
+4. (Optional) **Images** — set a large image. Three options:
+   - Paste a Discord asset key uploaded via the Developer Portal.
+   - Paste a public image URL.
+   - Click **Browse...** to pick a local file. It's copied into the local library and auto-uploaded on Start (default host: Catbox).
+5. Click **Save**, then **Start**. The tray icon turns green when the activity is live.
+
+## Placeholders
+
+Available in any text field:
+
+| Placeholder | Replaced with |
+| --- | --- |
+| `{time}` | local clock time `HH:MM:SS` |
+| `{date}` | local date `YYYY-MM-DD` |
+| `{api:path.to.value}` | a value pulled from the configured API source (any depth, dot-separated; integers index into arrays) |
+
+The **API source** tab has a **Test request** button: it fetches your URL and lists every `{api:...}` path available (up to depth 4, 40 keys). Paste them straight into the Details/State/etc. fields.
+
+## Data location
+
+Everything lives in `%LOCALAPPDATA%\DiscordRPC\`. The folder is created automatically on first launch:
+
+| Path | Purpose |
+| --- | --- |
+| `presets\*.json` | one file per preset |
+| `images\` | imported local images |
+| `config.json` | app-wide settings (active preset, autostart, upload host, etc.) |
+| `upload_cache.json` | uploaded URL cache, keyed by `<service>:<sha256>` |
+
+Uninstalling does **not** remove this folder, so your presets survive reinstalls.
+
+## Local image upload settings
+
+Found in **Settings → Local image upload**:
+
+- **Auto-upload local images** — default on. When off, local images are stripped from the activity sent to Discord (preview still shows them).
+- **Host** — `Catbox` (no setup, free, permanent URLs) or `Imgur` (requires a free Client-ID).
+- **Imgur Client-ID** — register an anonymous app at https://api.imgur.com/oauth2/addclient (choose *Anonymous usage without user authorization*) and paste the Client-ID here.
+- **Clear upload cache** — forgets the URL cache. The next start re-uploads any local images.
+
+## Build
+
+To produce the standalone `.exe` and the Inno Setup installer:
+
+1. Install build tools:
+   ```powershell
+   pip install -r requirements-build.txt
+   ```
+2. Install Inno Setup 6 from https://jrsoftware.org/isinfo.php (only needed for the installer step; the standalone `.exe` builds without it).
+3. From the project directory:
+   ```powershell
+   .\build.bat
+   ```
+
+Outputs:
+- `dist\DiscordRPC\DiscordRPC.exe` — the standalone app folder (run this directly to test the build).
+- `installer_output\DiscordRPC-Setup.exe` — the wizard-style installer with the "launch on startup" task.
+
+The build pipeline is:
+1. `make_icon.py` renders `icon.ico` (multi-resolution if Pillow is installed, single 256×256 via Qt otherwise).
+2. `pyinstaller DiscordRPC.spec` produces the one-folder build.
+3. `iscc installer.iss` produces the installer.
+
+## Troubleshooting
+
+- **Tray icon doesn't appear.** Some Windows setups hide new tray icons behind the up-arrow until you pin them via *Taskbar settings → Other system tray icons*.
+- **"Invalid client_id" status.** Client IDs must be the numeric Application ID, not the application name or any other token. Check Settings → Client ID.
+- **Image upload fails.** Catbox and Imgur both have size limits and occasional rate limiting. Try the other host from Settings, or paste a URL directly into the image field instead.
+- **"Connect failed" status.** Discord needs to be running and logged in on the same machine. The IPC connection is local-only.
+- **Updates not appearing in Discord.** Discord rate-limits RPC updates to 5 per 20 seconds; this app updates every 15 seconds. Text changes can take that long to propagate.

@@ -1,3 +1,4 @@
+import { volumeConfig } from "../../config";
 import type { Phile } from "../philes/model";
 import { getAllPhiles, getPhilesByVolume } from "../philes/repository";
 import type { Volume } from "./model";
@@ -18,11 +19,17 @@ export async function getAllVolumes(philes?: Phile[]): Promise<Volume[]> {
 
   return [...philesByVolume.entries()]
     .sort(([left], [right]) => compareVolumes(left, right))
-    .map(([number, volumePhiles]) => ({
-      number,
-      href: `/volume/${number}/`,
-      philes: volumePhiles
-    }));
+    .map(([number, volumePhiles]) => {
+      const philes = tocPhiles(number, volumePhiles);
+
+      return {
+        number,
+        href: `/volume/${number}/`,
+        philes,
+        displayCount: displayCount(number, volumePhiles, philes)
+      };
+    })
+    .filter((volume) => volume.philes.length > 0);
 }
 
 function compareVolumes(left: number, right: number): number {
@@ -30,7 +37,8 @@ function compareVolumes(left: number, right: number): number {
 }
 
 export async function getVolume(number: number): Promise<Volume | undefined> {
-  const philes = await getPhilesByVolume(number);
+  const volumePhiles = await getPhilesByVolume(number);
+  const philes = tocPhiles(number, volumePhiles);
 
   if (philes.length === 0) {
     return undefined;
@@ -39,6 +47,27 @@ export async function getVolume(number: number): Promise<Volume | undefined> {
   return {
     number,
     href: `/volume/${number}/`,
-    philes
+    philes,
+    displayCount: displayCount(number, volumePhiles, philes)
   };
+}
+
+function tocPhiles(number: number, philes: Phile[]): Phile[] {
+  const kind = volumeConfig(number).tocWriteupKind;
+
+  if (!kind) {
+    return philes;
+  }
+
+  return philes.filter((phile) => phile.data.writeupKind === kind);
+}
+
+function displayCount(number: number, allPhiles: Phile[], tocEntries: Phile[]): number {
+  const kind = volumeConfig(number).countWriteupKind;
+
+  if (!kind) {
+    return tocEntries.length;
+  }
+
+  return allPhiles.filter((phile) => phile.data.writeupKind === kind).length;
 }

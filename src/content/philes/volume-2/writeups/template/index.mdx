@@ -1,0 +1,146 @@
+---
+title: "[Challenge Name] — [CTF Name] [Year]"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "writeup-template"
+order: 1
+writeupKind: "template"
+---
+
+# [Challenge Name] — [CTF Name] [Year]
+
+> **Category:** `Pwn` / `Rev` / `Crypto` / `Web` / `Forensics` / `OSINT` / `Misc`  
+> **Difficulty:** Easy / Medium / Hard  
+> **Points:** XXX  
+> **Author:** XXX
+> **Flag:** `flag{...}`
+
+---
+
+## Challenge Description
+
+> *Paste the original challenge description verbatim here.*
+
+---
+
+## Recon / Initial Analysis
+
+Brief overview of what you're looking at before touching any tools.
+
+- File type, architecture, protections (`checksec`, `file`)
+- Entry point behavior
+- Any immediately obvious clues
+
+```bash
+$ file challenge
+challenge: ELF 64-bit LSB executable, x86-64, ...
+
+$ checksec --file=challenge
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE
+```
+
+---
+
+## Vulnerability / Observation
+
+What's actually wrong (or interesting). Be specific.
+
+- Describe the bug class (buffer overflow, use-after-free, format string, etc.)
+- Point to the exact function / offset / line
+- Include relevant decompiled/disassembled snippets
+
+```c
+// Vulnerable function — no bounds check on user input
+void vuln() {
+    char buf[64];
+    gets(buf);  // <-- classic
+}
+```
+
+---
+
+## Exploitation / Solution
+
+Step-by-step walkthrough of how you went from observation → flag.
+
+### Step 1 — [e.g. Leak libc base]
+
+What you did and why.
+
+```python
+# leak libc via puts@plt
+payload = b'A' * 72
+payload += p64(pop_rdi)
+payload += p64(got_puts)
+payload += p64(plt_puts)
+payload += p64(main)
+```
+
+### Step 2 — [e.g. Ret2libc]
+
+```python
+# calculate offsets, overwrite return address
+libc_base = leaked - libc.sym['puts']
+system    = libc_base + libc.sym['system']
+binsh     = libc_base + next(libc.search(b'/bin/sh'))
+```
+
+### Step 3 — [e.g. Get shell]
+
+```python
+io.sendline(payload)
+io.interactive()
+```
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pwn import *
+
+# ── config ──────────────────────────────────────────────
+exe   = ELF('./challenge')
+libc  = ELF('./libc.so.6')
+ld    = ELF('./ld.so')
+
+context.binary = exe
+context.log_level = 'info'
+
+# ── helpers ─────────────────────────────────────────────
+def conn():
+    if args.REMOTE:
+        return remote('chall.ctf.example', 1337)
+    return process([exe.path])
+
+# ── exploit ─────────────────────────────────────────────
+def pwn():
+    io = conn()
+
+    # ... exploit logic ...
+
+    io.interactive()
+
+if __name__ == '__main__':
+    pwn()
+```
+
+---
+
+## Key Takeaways
+
+- What technique / concept this challenge taught or reinforced
+- Any tools or tricks worth remembering
+- Anything you'd do differently
+
+---
+
+## References
+
+- [Resource title](https://link) — why it's relevant
+- [Tool docs](https://link)

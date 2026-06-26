@@ -1,4 +1,5 @@
 import type { AppearanceConfig } from "../../../config";
+import { siteHref } from "./html";
 
 export function appearanceCssVariables(config: AppearanceConfig): string {
   const variables = {
@@ -19,13 +20,19 @@ export function appearanceCssVariables(config: AppearanceConfig): string {
     "--cjk-size": config.sizing.cjkSize,
     "--cjk-link-size": config.sizing.cjkLinkSize,
     "--text-cell": config.sizing.textCell,
-    "--home-size": config.sizing.homeSize
+    "--home-size": config.sizing.homeSize,
+    "--cjk-body-mask": cssUrl(siteHref("/assets/cjk/wqy-cjk-body.png")),
+    "--cjk-link-mask": cssUrl(siteHref("/assets/cjk/wqy-cjk-link.png"))
   };
 
-  return `${fontFace(config.fonts.asciiFamily, config.fonts.asciiUrl, config.fonts.asciiFormat)}
+  return `${fontFace(config.fonts.asciiFamily, siteHref(config.fonts.asciiUrl), config.fonts.asciiFormat)}
 :root {\n${Object.entries(variables)
     .map(([name, value]) => `  ${name}: ${value};`)
     .join("\n")}\n}`;
+}
+
+function cssUrl(url: string): string {
+  return `url("${escapeCssString(url)}")`;
 }
 
 function fontFace(family: string, url: string, format: string, unicodeRange?: string): string {

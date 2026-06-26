@@ -1,0 +1,207 @@
+---
+title: "Task 2: The Hunt Continues — NSA Codebreaker Challenge 2025-26"
+date: 2025-09-25
+author: "Ian Mattas"
+slug: "nsa-code-breaker-challenge-2025-26-task2"
+order: 75
+writeupKind: "challenge"
+ctfSlug: "nsa-code-breaker-challenge-2025-26"
+ctfTitle: "NSA Codebreaker Challenge 2025-26"
+---
+
+# Task 2: The Hunt Continues — NSA Codebreaker Challenge 2025-26
+
+> **Category:** `Network Forensics`  
+> **Difficulty:** Easy  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `192.168.3.254, 192.168.5.1, 127.9.8.3`  
+> **Date:** September 25, 2025
+
+*Part of a series on the 2025 NSA Codebreaker Challenge.*
+
+---
+
+## Challenge Description
+
+> The team concludes that there was clearly a sophisticated piece of malware installed on that endpoint that was generating some network traffic. Fortunately, DAFIN-SOC also has an IDS which retained the recent network traffic in this segment.
+>
+> DAFIN-SOC has provided a PCAP to analyze. Thoroughly evaluate the PCAP to identify potential malicious activity.
+
+**Objective:** Submit all the IP addresses that are assigned to the malicious device, one per line.
+
+---
+
+## Recon / Initial Analysis
+
+Opening `traffic.pcap` in Wireshark, the first thing to note is the protocol breakdown:
+
+| Protocol | Frames | Notes |
+|----------|--------|-------|
+| TCP | 1628 | Bulk of traffic |
+| ARP | 363 | Normal network discovery |
+| UDP | 204 | DHCP, DNS, NTP, NBNS |
+| ICMP | 149 | Pings |
+
+Within TCP, we see SSH (745 frames), FTP (132 + 7 data), HTTP (4), and some unidentified data streams. The DNS traffic (34 frames) is small but turns out to be the key.
+
+The capture spans about 2.5 minutes and covers several network segments: `192.168.1.0/24`, `192.168.2.0/24`, `192.168.3.0/24`, a `172.25.1.0` admin segment, and a `192.168.46.0` segment with Microsoft telemetry traffic.
+
+### Red Herrings (and Why They Looked Suspicious)
+
+This task took several attempts. The PCAP is full of activity that *looks* suspicious if you don't have the full picture yet. Here's what I chased before finding the real answer:
+
+**SSH from `172.25.1.230`** – This IP has SSH sessions to all three routers (`192.168.1.254`, `192.168.2.254`, `192.168.3.254`). An external IP SSHing into every router in the network? That screamed "lateral movement." But this is just the network administrator managing the routers – normal operations.
+
+**FTP hosts `192.168.2.50` and `192.168.1.140`** – Anonymous FTP sessions transferring files (including `RFC2549.txt`). Unencrypted file transfers with anonymous login seemed wrong, but this is just a lab/dev environment file share. Nothing malicious in the content.
+
+**`192.168.1.204`** – This machine downloads Ubuntu `.deb` packages from `archive.ubuntu.com`. Package downloads from the internet could be malware staging, but these resolve to legitimate Ubuntu mirror IPs (`91.189.91.83`, etc.) and the packages themselves are standard (`libavahi`, `spice-webdavd`).
+
+**`192.168.3.89`** – This one has a weird outbound TCP connection (covered below). I tried submitting it, but it's a *victim*, not the malicious device.
+
+**Various router IP combinations** – I tried different groupings of router IPs, including Router 2's interfaces, before landing on the correct set.
+
+---
+
+## Vulnerability / Observation
+
+The key is in the DNS responses. Three machines on different subnets all query `archive.ubuntu.com`:
+
+**`192.168.2.146`** (on LAN 2) queries through **Router 2** (`192.168.2.254`):
+
+```
+Frame 538: 192.168.2.254 → 192.168.2.146
+  DNS Response: archive.ubuntu.com
+  → 91.189.91.83    ← legitimate Ubuntu mirror
+  → 91.189.91.81, 185.125.190.83, ...
+```
+
+**`192.168.1.204`** (on LAN 1) queries through **Router 1** (`192.168.1.254`):
+
+```
+Frame 1700: 192.168.1.254 → 192.168.1.204
+  DNS Response: archive.ubuntu.com
+  → 91.189.91.83    ← legitimate Ubuntu mirror
+  → 91.189.91.81, 185.125.190.83, ...
+```
+
+**`192.168.3.107`** (on LAN 3) queries through **Router 3** (`192.168.3.254`):
+
+```
+Frame 2025: 192.168.3.254 → 192.168.3.107
+  DNS Response: archive.ubuntu.com
+  → 203.0.113.108   ← NOT a Ubuntu mirror
+```
+
+Same query, three different routers – but only Router 3 returns a bogus answer. Router 3 is returning `203.0.113.108` for `archive.ubuntu.com` – that's a DNS poisoning attack. The `203.0.113.0/24` range is an RFC 5737 documentation range that should never appear in real traffic, which makes it doubly suspicious.
+
+---
+
+## Exploitation / Solution
+
+### Confirming the C2 Connection
+
+About 5 seconds after the poisoned DNS response, we see `192.168.3.89` (another machine on LAN 3) initiate a TCP connection to the fake IP:
+
+```
+Frame 2226: 192.168.3.89 → 203.0.113.108  SYN     port 26535 → 14159
+Frame 2273: 203.0.113.108 → 192.168.3.89  SYN/ACK
+Frame 2280: 192.168.3.89 → 203.0.113.108  ACK
+Frame 2330: 203.0.113.108 → 192.168.3.89  DATA    457 bytes
+Frame 2332: 192.168.3.89 → 203.0.113.108  DATA    262 bytes
+...
+```
+
+Note that it was `192.168.3.107` that received the poisoned DNS response, but `192.168.3.89` that connects to the C2. In fact, `192.168.3.89` has *no other traffic* in the entire capture – no DNS queries, no ARP, nothing. Its sole purpose in this PCAP is the C2 session. Any machine on LAN 3 using Router 3 for DNS would get the same poisoned resolution.
+
+The ports are a fun Easter egg: 14159 and 26535 are consecutive digit groups from **π** (3.**14159** **26535**). This is clearly a custom C2 protocol, not a standard service. Examining the payload confirms it – the first data packet from the server starts with the magic bytes `\xde\xc0\xde\xc0\xff\xee` followed by an RSA public key in PEM format:
+
+```
+Frame 2330: dec0dec0ffee  -----BEGIN PUBLIC KEY----- ...
+Frame 2332: dec0dec0ffee  [262 bytes encrypted response]
+Frame 2336: dec0dec0ffee  KEY_RECEIVED
+Frame 2340+: [encrypted session data]
+```
+
+This is a key exchange handshake: the server sends its public key, the client encrypts and sends session key material, and after confirmation the channel switches to symmetric encryption. This protocol becomes central in Task 5.
+
+### Mapping Router 3's Interfaces
+
+The malicious device is **Router 3** – it's the one poisoning DNS. But the challenge asks for *all* IP addresses assigned to the device. The router configs can be extracted from the PCAP's FTP data streams – each router uploads its own config to an FTP server at `172.25.1.5` (Router 1 from `192.168.4.1`, Router 3 from `192.168.5.1`, Router 2 from `172.25.1.254`). This independently confirms which IPs belong to which router. Router 3's config reveals the full topology:
+
+```
+Router 3 Configuration:
+  lo:    127.9.8.3          (loopback)
+  eth0:  192.168.3.254      (LAN 3 gateway)
+  eth1:  192.168.5.1        (link to Router 2)
+```
+
+Router 2 sits at the center, connecting all three LANs:
+
+```
+LAN 1 (192.168.1.0/24)                     LAN 3 (192.168.3.0/24)
+       |                                          |
+  Router 1                                    Router 3       ← COMPROMISED
+  192.168.1.254                               192.168.3.254
+  192.168.4.1                                 192.168.5.1
+       |                                          |
+  192.168.4.2                                192.168.5.2
+       |                                          |
+                      Router 2
+                    192.168.2.254
+                    172.16.1.254
+```
+
+---
+
+## Answer
+
+All IPs assigned to the compromised Router 3:
+
+```
+192.168.3.254
+192.168.5.1
+127.9.8.3
+```
+
+---
+
+## Full Exploit Script
+
+```bash
+#!/usr/bin/env bash
+# Task 2 - The Hunt Continues (NSA Codebreaker Challenge 2025-26)
+# The PCAP was analyzed manually in Wireshark; these tshark filters
+# reproduce the key findings.
+
+# 1. Compare DNS answers for archive.ubuntu.com across the three routers.
+#    Only Router 3 (192.168.3.254) returns the bogus 203.0.113.108.
+tshark -r traffic.pcap \
+    -Y 'dns.flags.response==1 && dns.qry.name=="archive.ubuntu.com"' \
+    -T fields -e ip.src -e dns.a
+
+# 2. Find the C2 session to the DNS-poisoned IP (RFC 5737 documentation space).
+tshark -r traffic.pcap -Y 'ip.addr==203.0.113.108 && tcp' \
+    -T fields -e frame.number -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport
+
+# 3. Pull the router configs uploaded over FTP to confirm Router 3's interfaces
+#    (loopback 127.9.8.3, eth0 192.168.3.254, eth1 192.168.5.1).
+tshark -r traffic.pcap -Y 'ftp-data' -T fields -e data.text
+```
+
+---
+
+## Key Takeaways
+
+- **Compare identical queries across subnets.** The same DNS query returning different results from different routers is a clear indicator of localized DNS poisoning.
+- **RFC 5737 ranges (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`)** are reserved for documentation. Seeing them in live traffic is an immediate red flag.
+- **The malicious device isn't the one talking to C2** – it's the infrastructure device that *redirected* traffic to C2. The hosts on LAN 3 are victims, not attackers.
+- Don't forget loopback addresses. Routers have multiple interfaces, and the challenge specifically asked for *all* IPs assigned to the device.
+- **Look at the data payloads.** The C2 protocol details (magic bytes, key exchange, encryption) foreshadow later tasks. Even if you don't need them now, noting protocol details early pays off.
+
+---
+
+## References
+
+- [Wireshark](https://www.wireshark.org/) / [tshark](https://www.wireshark.org/docs/man-pages/tshark.html) — PCAP inspection and field extraction
+- [RFC 5737 — IPv4 Address Blocks Reserved for Documentation](https://datatracker.ietf.org/doc/html/rfc5737) — why `203.0.113.0/24` should never appear in live traffic
+- [DNS cache poisoning / spoofing](https://en.wikipedia.org/wiki/DNS_spoofing) — the attack class identified here

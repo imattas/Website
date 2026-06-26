@@ -4,4 +4,5 @@ export type Volume = {
   number: number;
   href: string;
   philes: Phile[];
+  displayCount: number;
 };

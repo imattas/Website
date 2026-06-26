@@ -1,0 +1,178 @@
+---
+title: "SUFFERING (archived)"
+date: 2026-03-20
+author: "Ian Mattas"
+slug: "suffering"
+order: 17
+contentFormat: "markdown"
+---
+
+--[ repository ]------------------------------------------------------------
+
+    URL      : https://github.com/imattas/SUFFERING
+    Language : C
+    Status   : archived
+    Stars    : 0
+    Updated  : 2026-03-20
+
+coding language
+
+---
+
+# SUFFERING - Language Specification
+
+> *"Programming should hurt."*
+
+SUFFERING is an esoteric programming language designed to be strictly worse than
+Brainfuck in every conceivable way. It is Turing complete, self-modifying,
+context-dependent, and actively hostile to the programmer.
+
+---
+
+## Commands
+
+SUFFERING has exactly **4 instructions**. All of them are invisible Unicode whitespace characters.
+
+| Symbol | Code Point | Name       | Description |
+|--------|------------|------------|-------------|
+| ` `    | U+2003     | **Shift**  | Em space. Context-dependent operation (see below) |
+| ` `    | U+2009     | **Unmake** | Thin space. Context-dependent operation (see below) |
+| ` `    | U+200A     | **Flip**   | Hair space. Context-dependent operation (see below) |
+| `​`    | U+200B     | **Torment**| Zero-width space. Literally invisible. Context-dependent. |
+
+All other characters (including regular spaces, tabs, newlines, letters, digits) are **ignored**.
+Only the four Unicode whitespace characters above are instructions.
+
+Yes, all four instructions are invisible. Your source code looks blank. You're welcome.
+
+---
+
+## Memory Model
+
+- **Tape**: 256 cells, each holding a value 0-255 (unsigned, wrapping).
+- **Pointer** (`P`): Points to current cell. Starts at cell 0. Wraps around (0-255).
+- **Instruction Pointer** (`IP`): Current position in the program. Starts at 0.
+- **Direction** (`D`): Execution direction. `1` = forward, `-1` = reverse. Starts at `1`.
+- **Agony Register** (`A`): Counts total instructions executed (mod 256). Starts at 0. This register influences instruction behavior.
+- **Previous Instruction** (`PREV`): The last instruction executed. Starts as `None`.
+- **Suffering Counter** (`SC`): Incremented every time the program self-modifies. When `SC` reaches a multiple of 7, execution direction reverses.
+
+---
+
+## Execution Rules
+
+### The Agony Cycle
+
+Every instruction's behavior depends on `A mod 3` (the "**Phase**"):
+- Phase 0: **Anguish** - Instructions have their "primary" meaning.
+- Phase 1: **Despair** - Instructions have their "secondary" meaning.
+- Phase 2: **Torment** - Instructions have their "tertiary" meaning.
+
+The phase changes with EVERY instruction executed. You must mentally track what
+phase you're in at all times. Good luck.
+
+### The Previous Instruction Rule
+
+When the same instruction is executed twice in a row (`PREV == current`), the
+instruction's meaning is **inverted** (see inversion table below). This stacks
+with the phase system.
+
+### Self-Modification
+
+The Thin Space (TH) instruction in certain phases replaces instructions in the
+program source. The replaced instruction depends on the current memory cell value.
+
+---
+
+## Instruction Behavior Table
+
+### Em Space U+2003 (Shift)
+
+| Phase | Normal | Inverted (repeated) |
+|-------|--------|---------------------|
+| 0 (Anguish) | Move pointer RIGHT by 1 | Move pointer LEFT by 1 |
+| 1 (Despair) | INCREMENT current cell by 1 | DECREMENT current cell by 1 |
+| 2 (Torment) | OUTPUT current cell as ASCII | INPUT one byte into current cell |
+
+### Thin Space U+2009 (Unmake)
+
+| Phase | Normal | Inverted (repeated) |
+|-------|--------|---------------------|
+| 0 (Anguish) | DECREMENT current cell by 1 | INCREMENT current cell by 1 |
+| 1 (Despair) | **SELF-MODIFY**: Replace instruction at `(IP + cell_value) mod program_length` with instruction `cell_value mod 4` (0=EM, 1=TH, 2=HR, 3=ZW). Increments SC. | Move pointer LEFT by 1 |
+| 2 (Torment) | Jump forward to matching HR if current cell is 0 | Jump forward to matching HR if current cell is NOT 0 |
+
+### Hair Space U+200A (Flip)
+
+| Phase | Normal | Inverted (repeated) |
+|-------|--------|---------------------|
+| 0 (Anguish) | Jump backward to matching TH if current cell is NOT 0 | Jump backward to matching TH if current cell is 0 |
+| 1 (Despair) | REVERSE execution direction (D = -D). Increments SC counter by the current cell value. | OUTPUT current cell as ASCII |
+| 2 (Torment) | Move pointer LEFT by `(cell_value mod 5) + 1` positions | Move pointer RIGHT by `(cell_value mod 5) + 1` positions |
+
+### Zero-Width Space U+200B (Torment)
+
+| Phase | Normal | Inverted (repeated) |
+|-------|--------|---------------------|
+| 0 (Anguish) | Set current cell to `A` (the agony register value) | Set current cell to `255 - A` |
+| 1 (Despair) | SWAP current cell value with the cell at position `cell_value` | Move pointer to position `cell_value` |
+| 2 (Torment) | **SELF-MODIFY**: Replace instruction at `(IP - 1) mod program_length` with EM. Increments SC. | No operation (NOP). But you had to track it anyway. |
+
+---
+
+## Loop Matching (TH/HR pairs)
+
+Thin Space (TH) in Phase 2 and Hair Space (HR) in Phase 0 form loop brackets,
+similar to `[` and `]` in Brainfuck:
+- TH (Phase 2, normal): Jump forward past matching HR if cell is 0.
+- HR (Phase 0, normal): Jump backward to matching TH if cell is NOT 0.
+
+**HOWEVER**: Because the phase rotates every instruction, TH and HR only act
+as loop brackets when they happen to be in the right phase. The programmer must
+carefully count instructions to ensure TH lands on Phase 2 and HR lands on
+Phase 0 for loops to work.
+
+If they're in the wrong phase, they do something completely different. Surprise!
+
+---
+
+## Direction Reversal
+
+When `SC` (suffering counter) hits a multiple of 7 (and SC > 0), execution
+direction reverses (`D = -D`). This means self-modification can cause the
+program to start running backward through its own code.
+
+---
+
+## Halt Condition
+
+The program halts when:
+1. `IP` moves outside the bounds of the program (before position 0 or after the last instruction).
+2. More than 1,000,000 instructions have been executed (mercy kill).
+
+---
+
+## Why This Is Worse Than Brainfuck
+
+1. **Only 4 instructions** but each has **6 possible meanings** (3 phases x 2 inversion states).
+2. **All 4 instructions are invisible** — your source code looks completely blank.
+3. **Every instruction changes the phase**, so behavior shifts constantly.
+4. **Repeating an instruction inverts it**, making consecutive operations treacherous.
+5. **Self-modifying code** means your program mutates as it runs.
+6. **Direction reversal** means your program can start running backward.
+7. **Loop brackets only work in specific phases**, requiring precise instruction counting.
+8. **The agony register** leaks runtime state into instruction behavior.
+9. **The suffering counter** can trigger direction changes at unpredictable times.
+10. **Writing "Hello World" requires calculating phase alignments by hand.**
+11. **You need a hex editor to read your own source code.**
+
+---
+
+## Example Programs
+
+See the `examples/` directory for working programs:
+- `hello.sfr` - Hello World
+- `count.sfr` - Print numbers 1-10
+- `loop.sfr` - Infinite loop
+
+File extension: `.sfr`

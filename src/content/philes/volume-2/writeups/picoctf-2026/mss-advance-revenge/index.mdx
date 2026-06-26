@@ -1,0 +1,415 @@
+---
+title: "MSS ADVANCE Revenge — picoCTF 2026"
+date: 2026-06-26
+author: "Ian Mattas"
+slug: "picoctf-2026-mss-advance-revenge"
+order: 16
+writeupKind: "challenge"
+ctfSlug: "picoctf-2026"
+ctfTitle: "picoCTF 2026"
+---
+
+# MSS ADVANCE Revenge — picoCTF 2026
+
+> **Category:** `Cryptography`  
+> **Difficulty:** Hard  
+> **Points:** 400  
+> **Author:** Imattas aka Zemi
+
+---
+
+## Challenge Description
+
+> Last time we went easy on you. You'll never get the flag this time! (Mignotte Secret Sharing scheme)
+
+---
+
+## Recon / Initial Analysis
+
+This challenge is based on the **Mignotte Secret Sharing Scheme (MSS)**, a threshold secret sharing mechanism built on the **Chinese Remainder Theorem (CRT)**. It is a follow-up ("Revenge") to an earlier MSS challenge, implying tighter constraints.
+
+### Background: Mignotte Secret Sharing
+
+In Mignotte's scheme, a secret `S` is shared among `n` parties using a specially chosen sequence of pairwise coprime integers `m_1 < m_2 < ... < m_n`. A `(k, n)`-threshold scheme means any `k` shares can reconstruct `S`, but `k-1` shares cannot. The secret is encoded as residues: each share `s_i = S mod m_i`.
+
+To reconstruct the secret, one applies CRT to any `k` shares to recover `S` uniquely, provided the product of any `k` moduli exceeds the secret's value.
+
+---
+
+## Vulnerability / Observation
+
+The challenge likely implements a polynomial-based variant where:
+
+1. A secret key is embedded as the constant term (or linear coefficient) of a polynomial `P(x)` of degree `d`.
+2. Users can request evaluations `P(x_i)` for chosen `x` values (shares).
+3. The number of shares provided is fewer than `d+1`, so standard polynomial interpolation (Lagrange) is impossible.
+
+However, the polynomial is evaluated over the **integers** (not over a finite field). This is the critical flaw. If we choose **prime numbers** as our `x` values, then:
+
+- `P(x_i) mod x_i` gives us the constant term (the secret key) modulo `x_i`
+- This is because all higher-degree terms `a_j * x_i^j` vanish modulo `x_i`
+
+By collecting enough such residues modulo distinct primes, we can apply CRT to recover the secret key, as long as the product of our chosen primes exceeds the key's value (e.g., 256-bit key).
+
+### "Revenge" Hardening
+
+The "Revenge" variant likely adds constraints such as:
+- Smaller allowed range for `x` values
+- Fewer allowed queries
+- Larger polynomial degree
+- Additional noise or obfuscation
+
+The core attack remains the same: evaluate at primes, reduce modulo the prime, apply CRT. We just need to be more careful with prime selection and ensure the product of primes exceeds the secret size.
+
+---
+
+## Exploitation / Solution
+
+### Step-by-step:
+
+1. **Connect** to the challenge server (typically via netcat or pwntools).
+2. **Request shares** at carefully chosen prime `x` values within the allowed range.
+3. **Compute residues**: For each share `y_i = P(p_i)`, compute `r_i = y_i mod p_i`.
+4. **Apply CRT**: Use the Chinese Remainder Theorem on the system `{ S ≡ r_i (mod p_i) }` to recover the secret key `S`.
+5. **Decrypt the flag**: Use the recovered key (typically SHA-256 hashed) as an AES key to decrypt the encrypted flag.
+6. **Request the encrypted flag** from the server and decrypt it.
+
+### Key Math:
+
+Given polynomial `P(x) = a_d*x^d + ... + a_1*x + key`:
+- `P(p) mod p = key mod p` (since all `a_j * p^j ≡ 0 mod p` for j >= 1)
+- Collect `(p_i, key mod p_i)` pairs
+- CRT({key mod p_i}, {p_i}) --> unique key if `∏ p_i > key`
+
+For a 256-bit key, we need primes whose product exceeds `2^256`. Using ~19 primes of ~15 bits each gives `19 * 15 = 285 > 256` bits of product.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+"""
+MSS_ADVANCE Revenge - picoCTF 2026
+Category: Cryptography (400 points)
+
+Exploit: The Mignotte Secret Sharing scheme evaluates a polynomial over
+the integers (not a finite field). By evaluating at prime x-values, we
+can recover the secret key modulo each prime, then reconstruct the full
+key via the Chinese Remainder Theorem (CRT).
+
+Usage:
+    python3 solve.py
+    python3 solve.py --host <HOST> --port <PORT>
+"""
+
+import json
+import argparse
+from hashlib import sha256
+
+# Try importing pwntools for remote interaction; fall back to socket
+try:
+    from pwn import remote, log
+    HAS_PWNTOOLS = True
+except ImportError:
+    HAS_PWNTOOLS = False
+    import socket
+
+# Try importing sympy for CRT; fall back to manual implementation
+try:
+    from sympy.ntheory.modular import crt as sympy_crt
+    HAS_SYMPY = True
+except ImportError:
+    HAS_SYMPY = False
+
+# Try importing pycryptodome for AES decryption
+try:
+    from Crypto.Cipher import AES
+    from Crypto.Util.Padding import unpad
+    HAS_CRYPTO = True
+except ImportError:
+    HAS_CRYPTO = False
+
+
+# --- Math Utilities ---
+
+def is_prime(n):
+    """Simple primality test."""
+    if n < 2:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+
+def get_primes(count, bitsize=15):
+    """Generate `count` distinct primes of approximately `bitsize` bits."""
+    primes = []
+    # Start from a value near the middle of the bit range to get primes spread out
+    candidate = (1 << (bitsize - 1)) + 1
+    while len(primes) < count:
+        if is_prime(candidate):
+            primes.append(candidate)
+        candidate += 2
+    return primes
+
+
+def extended_gcd(a, b):
+    """Extended Euclidean Algorithm. Returns (gcd, x, y) such that a*x + b*y = gcd."""
+    if a == 0:
+        return b, 0, 1
+    gcd, x1, y1 = extended_gcd(b % a, a)
+    return gcd, y1 - (b // a) * x1, x1
+
+
+def crt(moduli, remainders):
+    """
+    Chinese Remainder Theorem.
+    Given pairwise coprime moduli and corresponding remainders,
+    returns the unique solution x such that x ≡ r_i (mod m_i) for all i,
+    and x is in the range [0, product of all moduli).
+    """
+    if HAS_SYMPY:
+        result = sympy_crt(moduli, remainders)
+        if result is None:
+            raise ValueError("CRT failed - moduli may not be pairwise coprime")
+        return result  # Returns (solution, product_of_moduli)
+
+    # Manual CRT implementation
+    M = 1
+    for m in moduli:
+        M *= m
+
+    x = 0
+    for m_i, r_i in zip(moduli, remainders):
+        M_i = M // m_i
+        _, inv, _ = extended_gcd(M_i, m_i)
+        inv = inv % m_i
+        x += r_i * M_i * inv
+
+    return x % M, M
+
+
+# --- Communication Utilities ---
+
+class Connection:
+    """Wrapper for server communication, supports pwntools or raw sockets."""
+
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        if HAS_PWNTOOLS:
+            self.conn = remote(host, port)
+        else:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((host, port))
+            self.buffer = b""
+
+    def recvuntil(self, delim):
+        if HAS_PWNTOOLS:
+            return self.conn.recvuntil(delim)
+        if isinstance(delim, str):
+            delim = delim.encode()
+        while delim not in self.buffer:
+            data = self.sock.recv(4096)
+            if not data:
+                break
+            self.buffer += data
+        idx = self.buffer.find(delim)
+        result = self.buffer[:idx + len(delim)]
+        self.buffer = self.buffer[idx + len(delim):]
+        return result
+
+    def recvline(self):
+        return self.recvuntil(b"\n")
+
+    def sendline(self, data):
+        if isinstance(data, str):
+            data = data.encode()
+        if HAS_PWNTOOLS:
+            self.conn.sendline(data)
+        else:
+            self.sock.sendall(data + b"\n")
+
+    def recv(self, n=4096):
+        if HAS_PWNTOOLS:
+            return self.conn.recv(n)
+        if self.buffer:
+            result = self.buffer[:n]
+            self.buffer = self.buffer[n:]
+            return result
+        return self.sock.recv(n)
+
+    def close(self):
+        if HAS_PWNTOOLS:
+            self.conn.close()
+        else:
+            self.sock.close()
+
+
+def send_command(conn, command_dict):
+    """Send a JSON command to the server and receive the JSON response."""
+    conn.sendline(json.dumps(command_dict))
+    # Read response - may need to handle different server formats
+    response_line = conn.recvline().decode().strip()
+    # Try to parse JSON from the response
+    try:
+        return json.loads(response_line)
+    except json.JSONDecodeError:
+        # Server might include prefix text; try to find JSON in the line
+        for i, ch in enumerate(response_line):
+            if ch == '{':
+                try:
+                    return json.loads(response_line[i:])
+                except json.JSONDecodeError:
+                    continue
+        return {"raw": response_line}
+
+
+def solve(host, port, num_shares=19, prime_bits=15, key_bits=256):
+    """
+    Main solve routine:
+    1. Connect to the server
+    2. Request shares at prime x-values
+    3. Apply CRT to recover the secret key
+    4. Decrypt the flag
+    """
+    print(f"[*] Connecting to {host}:{port}...")
+    conn = Connection(host, port)
+
+    # Absorb any initial banner/prompt
+    try:
+        banner = conn.recvuntil(b"query")
+        print(f"[*] Banner received")
+    except Exception:
+        pass
+
+    # Step 1: Generate prime x-values
+    primes = get_primes(num_shares, prime_bits)
+    product = 1
+    for p in primes:
+        product *= p
+    print(f"[*] Generated {num_shares} primes (~{prime_bits} bits each)")
+    print(f"[*] Product bit-length: {product.bit_length()} (need > {key_bits})")
+
+    if product.bit_length() <= key_bits:
+        print(f"[!] Warning: product of primes may be too small. Try more primes.")
+
+    # Step 2: Collect shares (polynomial evaluations at each prime)
+    remainders = []
+    for i, p in enumerate(primes):
+        try:
+            # Try JSON-based protocol first
+            resp = send_command(conn, {"command": "get_share", "x": p})
+            y = resp.get("y") or resp.get("share") or resp.get("result")
+            if y is None:
+                # Might be a different protocol format
+                print(f"[!] Unexpected response format: {resp}")
+                continue
+            y = int(y)
+        except Exception as e:
+            print(f"[!] Error getting share {i}: {e}")
+            continue
+
+        # The key is the constant term: P(p) mod p = key mod p
+        r = y % p
+        remainders.append(r)
+        print(f"[+] Share {i+1}/{num_shares}: P({p}) mod {p} = {r}")
+
+    if len(remainders) < num_shares:
+        print(f"[!] Only got {len(remainders)}/{num_shares} shares")
+
+    # Step 3: Apply CRT to recover the key
+    print(f"[*] Applying Chinese Remainder Theorem...")
+    key, _ = crt(primes[:len(remainders)], remainders)
+    print(f"[+] Recovered key: {key}")
+    print(f"[+] Key bit-length: {key.bit_length()}")
+
+    # Step 4: Request encrypted flag
+    try:
+        resp = send_command(conn, {"command": "encrypt_flag"})
+        print(f"[*] Encrypted flag response: {resp}")
+    except Exception as e:
+        print(f"[!] Error getting encrypted flag: {e}")
+        resp = {}
+
+    # Step 5: Decrypt the flag
+    iv_hex = resp.get("iv")
+    enc_flag_hex = resp.get("enc_flag") or resp.get("ciphertext") or resp.get("ct")
+
+    if iv_hex and enc_flag_hex:
+        iv = bytes.fromhex(iv_hex)
+        enc_flag = bytes.fromhex(enc_flag_hex)
+
+        # The key is typically SHA-256 hashed before use as AES key
+        key_bytes = sha256(str(key).encode()).digest()
+
+        if HAS_CRYPTO:
+            cipher = AES.new(key_bytes, AES.MODE_CBC, iv)
+            try:
+                flag = unpad(cipher.decrypt(enc_flag), AES.block_size).decode()
+                print(f"\n[+] FLAG: {flag}")
+            except Exception as e:
+                # Try without unpadding
+                flag = cipher.decrypt(enc_flag)
+                print(f"\n[+] FLAG (raw): {flag}")
+        else:
+            print("[!] pycryptodome not installed. Install with: pip install pycryptodome")
+            print(f"[*] Key (hex): {key_bytes.hex()}")
+            print(f"[*] IV (hex): {iv_hex}")
+            print(f"[*] Ciphertext (hex): {enc_flag_hex}")
+    else:
+        # The flag might be returned directly after key verification
+        flag_data = resp.get("flag") or resp.get("message") or resp.get("raw", "")
+        if flag_data:
+            print(f"\n[+] FLAG: {flag_data}")
+        else:
+            print("[*] Could not automatically extract flag.")
+            print(f"[*] Recovered key value: {key}")
+            print("[*] Try using this key to manually decrypt the flag.")
+
+    conn.close()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="MSS_ADVANCE Revenge Solver - picoCTF 2026")
+    parser.add_argument("--host", default="rescued-float.picoctf.net",
+                        help="Challenge server hostname")
+    parser.add_argument("--port", type=int, default=61898,
+                        help="Challenge server port")
+    parser.add_argument("--shares", type=int, default=19,
+                        help="Number of shares to request (default: 19)")
+    parser.add_argument("--prime-bits", type=int, default=15,
+                        help="Bit size of primes to use (default: 15)")
+    parser.add_argument("--key-bits", type=int, default=256,
+                        help="Expected key bit size (default: 256)")
+    args = parser.parse_args()
+
+    solve(args.host, args.port, args.shares, args.prime_bits, args.key_bits)
+```
+
+---
+
+## Key Takeaways
+
+- The fatal flaw is evaluating the secret-sharing polynomial **over the integers instead of a finite field**: `P(p) mod p = key mod p` because every higher-degree term vanishes modulo `p`.
+- Querying the polynomial at **prime** x-values turns each response into a residue of the secret key modulo that prime — Lagrange interpolation is not needed and the polynomial degree is irrelevant.
+- Collecting residues modulo enough distinct primes lets the **Chinese Remainder Theorem** reconstruct the full key, provided the product of primes exceeds the key (e.g. ~19 primes of ~15 bits for a 256-bit key).
+- The recovered key is typically SHA-256 hashed into an AES key to decrypt the flag (AES-CBC with a provided IV).
+- Tools used: pwntools/sockets for the JSON protocol, sympy (or a manual CRT), and pycryptodome for AES decryption.
+
+---
+
+## References
+
+- [Mignotte's threshold secret sharing scheme (Wikipedia)](https://en.wikipedia.org/wiki/Secret_sharing_using_the_Chinese_remainder_theorem)
+- [Chinese Remainder Theorem (Wikipedia)](https://en.wikipedia.org/wiki/Chinese_remainder_theorem)
+- [SymPy ntheory.modular.crt](https://docs.sympy.org/latest/modules/ntheory.html)
+- [PyCryptodome documentation](https://pycryptodome.readthedocs.io/)

@@ -1,6 +1,6 @@
 import type { PhileEntry, PhileRoute } from "./model";
 
-const volumePathPattern = /^volume-(\d+)\/(.+?)(?:\.phile)?$/;
+const volumePathPattern = /^volume-(\d+)\/(.+?)(?:\.(?:phile|mdx))?$/;
 
 export function routeForPhile(entry: PhileEntry): PhileRoute {
   const match = entry.id.match(volumePathPattern);

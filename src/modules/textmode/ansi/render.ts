@@ -1,4 +1,4 @@
-import { textHtml } from "../core/html";
+import { externalLink, link, textHtml } from "../core/html";
 import { cellWidth } from "../core/layout";
 import { normalizeText } from "../core/text";
 
@@ -10,6 +10,16 @@ type AnsiToken = {
 type RenderChunk = {
   text: string;
   role?: string;
+};
+
+type RenderAnsiOptions = {
+  wordWrap?: boolean;
+};
+
+type WordGroup = {
+  chunks: RenderChunk[];
+  width: number;
+  whitespace: boolean;
 };
 
 const ansiRoles = new Map<string, string>([
@@ -59,11 +69,11 @@ const inkBlockPattern = /^\s*--\[ ink \]--\s*$/;
 const inkMaskPrefixPattern = /^~(.*)$/;
 const inkTextPrefixPattern = /^\|(.*)$/;
 
-export function renderAnsiText(input: string, width: number): string {
-  return renderBlocks(normalizeText(input).trim(), width).join("\n");
+export function renderAnsiText(input: string, width: number, options: RenderAnsiOptions = {}): string {
+  return renderBlocks(normalizeText(input).trim(), width, options).join("\n");
 }
 
-function renderBlocks(input: string, width: number): string[] {
+function renderBlocks(input: string, width: number, options: RenderAnsiOptions): string[] {
   const lines = input.split("\n");
   const rendered: string[] = [];
   let cursor = 0;
@@ -79,7 +89,7 @@ function renderBlocks(input: string, width: number): string[] {
         cursor += 1;
       }
 
-      rendered.push(...renderPlainAnsiLines(textLines.join("\n"), width));
+      rendered.push(...renderPlainAnsiLines(textLines.join("\n"), width, options));
       continue;
     }
 
@@ -102,7 +112,11 @@ function renderBlocks(input: string, width: number): string[] {
   return rendered;
 }
 
-function renderPlainAnsiLines(input: string, width: number): string[] {
+function renderPlainAnsiLines(input: string, width: number, options: RenderAnsiOptions): string[] {
+  if (options.wordWrap) {
+    return renderWordWrappedAnsiLines(input, width);
+  }
+
   const output: string[] = [];
   let lineChunks: RenderChunk[] = [];
   let lineWidth = 0;
@@ -135,6 +149,136 @@ function renderPlainAnsiLines(input: string, width: number): string[] {
   }
 }
 
+function renderWordWrappedAnsiLines(input: string, width: number): string[] {
+  const output: string[] = [];
+  let lineTokens: AnsiToken[] = [];
+
+  for (const token of parseInlineAnsi(input)) {
+    const parts = token.text.split("\n");
+
+    for (const [index, part] of parts.entries()) {
+      if (index > 0) {
+        flushLogicalLine();
+      }
+
+      if (part.length > 0) {
+        lineTokens.push({ text: part, role: token.role });
+      }
+    }
+  }
+
+  flushLogicalLine();
+  return output;
+
+  function flushLogicalLine(): void {
+    output.push(...renderWordWrappedLine(lineTokens, width));
+    lineTokens = [];
+  }
+}
+
+function renderWordWrappedLine(tokens: AnsiToken[], width: number): string[] {
+  const groups = wordGroups(tokens);
+  const output: string[] = [];
+  let lineChunks: RenderChunk[] = [];
+  let lineWidth = 0;
+  let pendingSpace: WordGroup | undefined;
+
+  for (const group of groups) {
+    if (group.whitespace) {
+      if (lineWidth === 0) {
+        appendGroup(group);
+      } else {
+        pendingSpace = group;
+      }
+      continue;
+    }
+
+    if (group.width > width) {
+      appendPendingSpace();
+      appendHardWrappedGroup(group);
+      pendingSpace = undefined;
+      continue;
+    }
+
+    const pendingWidth = pendingSpace?.width ?? 0;
+
+    if (lineWidth > 0 && lineWidth + pendingWidth + group.width > width) {
+      flushLine();
+      pendingSpace = undefined;
+    } else {
+      appendPendingSpace();
+    }
+
+    appendGroup(group);
+  }
+
+  flushLine();
+  return output.length > 0 ? output : [""];
+
+  function appendPendingSpace(): void {
+    if (!pendingSpace) {
+      return;
+    }
+
+    appendGroup(pendingSpace);
+    pendingSpace = undefined;
+  }
+
+  function appendGroup(group: WordGroup): void {
+    for (const chunk of group.chunks) {
+      appendChunk(lineChunks, chunk);
+    }
+
+    lineWidth += group.width;
+  }
+
+  function appendHardWrappedGroup(group: WordGroup): void {
+    for (const chunk of group.chunks) {
+      for (const char of chunk.text) {
+        const charWidth = cellWidth(char);
+
+        if (lineWidth + charWidth > width && lineWidth > 0) {
+          flushLine();
+        }
+
+        appendChunk(lineChunks, { text: char, role: chunk.role });
+        lineWidth += charWidth;
+      }
+    }
+  }
+
+  function flushLine(): void {
+    output.push(renderChunks(lineChunks));
+    lineChunks = [];
+    lineWidth = 0;
+  }
+}
+
+function wordGroups(tokens: AnsiToken[]): WordGroup[] {
+  const groups: WordGroup[] = [];
+
+  for (const token of tokens) {
+    for (const part of token.text.match(/\s+|\S+/g) ?? []) {
+      const whitespace = /^\s+$/u.test(part);
+      const previous = groups.at(-1);
+      const chunk = { text: part, role: token.role };
+
+      if (previous && previous.whitespace === whitespace) {
+        previous.chunks.push(chunk);
+        previous.width += cellWidth(part);
+      } else {
+        groups.push({
+          chunks: [chunk],
+          width: cellWidth(part),
+          whitespace
+        });
+      }
+    }
+  }
+
+  return groups;
+}
+
 function renderInkBlock(lines: string[], width: number): string[] {
   const output: string[] = [];
   let cursor = 0;
@@ -154,7 +298,7 @@ function renderInkBlock(lines: string[], width: number): string[] {
       continue;
     }
 
-    output.push(...renderPlainAnsiLines(lines[cursor], width));
+    output.push(...renderPlainAnsiLines(lines[cursor], width, {}));
     cursor += 1;
   }
 
@@ -286,9 +430,57 @@ function appendChunk(chunks: RenderChunk[], chunk: RenderChunk): void {
 function renderChunks(chunks: RenderChunk[]): string {
   return chunks
     .map((chunk) =>
-      chunk.role ? `<span class="ansi ansi-${chunk.role}">${textHtml(chunk.text)}</span>` : textHtml(chunk.text)
+      chunk.role
+        ? `<span class="ansi ansi-${chunk.role}">${linkedTextHtml(chunk.text)}</span>`
+        : linkedTextHtml(chunk.text)
     )
     .join("");
+}
+
+function linkedTextHtml(input: string): string {
+  const autoLinkPattern = /https?:\/\/[^\s<>"')]+|mailto:[^\s<>"')]+|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+  let html = "";
+  let cursor = 0;
+
+  for (const match of input.matchAll(autoLinkPattern)) {
+    const candidate = match[0] ?? "";
+    const index = match.index ?? 0;
+    const { href, label, trailing } = splitTrailingPunctuation(candidate);
+
+    html += textHtml(input.slice(cursor, index));
+    html += autoLink(href, label);
+    html += textHtml(trailing);
+    cursor = index + candidate.length;
+  }
+
+  return `${html}${textHtml(input.slice(cursor))}`;
+}
+
+function autoLink(href: string, label: string): string {
+  if (href.toLowerCase().startsWith("mailto:")) {
+    return link(href, label.replace(/^mailto:/i, ""));
+  }
+
+  if (isEmailAddress(href)) {
+    return link(`mailto:${href}`, label);
+  }
+
+  return externalLink(href, label);
+}
+
+function isEmailAddress(input: string): boolean {
+  return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(input);
+}
+
+function splitTrailingPunctuation(url: string): { href: string; label: string; trailing: string } {
+  const trailing = url.match(/[.,;:!?]+$/)?.[0] ?? "";
+  const href = trailing.length > 0 ? url.slice(0, -trailing.length) : url;
+
+  return {
+    href,
+    label: href,
+    trailing
+  };
 }
 
 function renderWrappedChunks(chunks: RenderChunk[], width: number): string[] {

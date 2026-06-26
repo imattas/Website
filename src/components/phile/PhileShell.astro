@@ -2,6 +2,7 @@
 import type { Phile } from "../../modules/philes/model";
 import {
   renderPhileBodyBlocks,
+  renderPhileChildIndexPre,
   renderPhileFooterPre,
   renderPhileHeader
 } from "../../modules/philes/render";
@@ -9,14 +10,17 @@ import { renderRedactedBody } from "../../modules/philes/redacted";
 
 type Props = {
   phile: Phile;
+  childPhiles?: Phile[];
 };
 
 const phile = Astro.props.phile;
+const childPhiles = Astro.props.childPhiles ?? [];
 const header = renderPhileHeader(phile);
 const isRedacted = phile.data.redacted || (phile.body ?? "").trim().length === 0;
-const bodyBlocks = isRedacted ? [] : renderPhileBodyBlocks(phile);
+const childIndexHtml = phile.data.writeupKind === "ctf" ? renderPhileChildIndexPre(phile, childPhiles) : undefined;
+const bodyBlocks = isRedacted || childIndexHtml ? [] : renderPhileBodyBlocks(phile);
 const hasImages = bodyBlocks.some((block) => block.kind === "image");
-const redactedHtml = isRedacted ? renderRedactedBody(phile) : undefined;
+const redactedHtml = isRedacted && !childIndexHtml ? renderRedactedBody(phile) : undefined;
 const footerHtml = renderPhileFooterPre(phile);
 ---
 
@@ -33,11 +37,15 @@ const footerHtml = renderPhileFooterPre(phile);
     <pre class="textmode-pre phile-pre phile-header-meta" set:html={header.metaHtml}></pre>
   </header>
   {
-    redactedHtml ? (
+    childIndexHtml ? (
+      <pre class="textmode-pre phile-pre phile-body-pre" set:html={childIndexHtml}></pre>
+    ) : redactedHtml ? (
       <pre class="textmode-pre phile-pre phile-body-pre phile-redacted-pre" set:html={redactedHtml}></pre>
     ) : bodyBlocks.map((block) =>
       block.kind === "image" ? (
         <div class="phile-media" set:html={block.html}></div>
+      ) : block.kind === "code" ? (
+        <pre class="textmode-pre phile-pre phile-code-pre" set:html={block.html}></pre>
       ) : (
         <pre class="textmode-pre phile-pre phile-body-pre" set:html={block.html}></pre>
       )

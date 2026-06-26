@@ -27,7 +27,7 @@ const particlesEnabled = effectsConfig.particles.enable;
 const asciiFontUrl = siteHref(appearanceConfig.fonts.asciiUrl);
 const cjkBodyAtlas = siteHref("/assets/cjk/wqy-cjk-body.png");
 const cjkLinkAtlas = siteHref("/assets/cjk/wqy-cjk-link.png");
-const analyticsEnabled = import.meta.env.BASE_URL === "/";
+const analyticsEnabled = import.meta.env.VERCEL === "1";
 ---
 
 <!doctype html>

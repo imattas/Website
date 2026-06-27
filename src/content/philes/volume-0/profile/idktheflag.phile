@@ -1,0 +1,61 @@
+---
+title: "idktheflag"
+date: 2026-06-27
+author: "Ian Mattas"
+slug: "idktheflag"
+order: 1
+---
+
+--[ identity ]---------------------------------------------------------------
+
+    name     : idktheflag
+    type     : competitive CTF team
+    motto    : "We'll Know It When We Find It."
+    founded  : January 2026
+    origin   : high-school PicoCTF roots; founding members came from
+               the PicoCTF 2025 team "Babies of RaptX"
+    home     : https://idktheflag.sh
+
+idktheflag is a competitive CTF team built around weekend CTFs, fast learning,
+and a flat team structure. The team started as a high-school PicoCTF team, then
+quickly moved into larger CTFs after placing well against older and more
+established teams.
+
+--[ snapshot ]---------------------------------------------------------------
+
+    source date : 2026-06-27
+    global rank : #145
+    USA rank    : #13
+    rating      : 263.481
+    events      : 17
+    goal        : reach CTFtime global top 50 in 2026
+
+Notable public achievements include a 1st place finish at THEM?!CTF 2026, top
+150 worldwide placement on CTFtime, and top 15 national placement in the USA.
+
+--[ focus ]------------------------------------------------------------------
+
+    CTF play       : regular weekend competitions across categories
+    tooling        : team tooling, automation, and ML-adjacent projects
+    infrastructure : CTF hosting, challenge development, and internal services
+    culture        : competitive, non-toxic, late-night solve energy
+
+The team site describes a group split across day and night shifts, with members
+working on tooling, ML projects, CTF infrastructure, and challenge development
+outside of competitions.
+
+--[ staff ]------------------------------------------------------------------
+
+    quickshot : founder / captain
+    zemi      : admin / infrastructure
+    cloud     : founder / admin
+
+--[ links ]------------------------------------------------------------------
+
+    Website  : https://idktheflag.sh
+    CTFtime  : https://ctftime.org/team/419270
+    GitHub   : https://github.com/idktheflag
+    LinkedIn : https://www.linkedin.com/company/idktheflag
+    Contact  : https://idktheflag.sh/contact/
+    Team     : https://idktheflag.sh/team/
+    CTFs     : https://idktheflag.sh/ctf/

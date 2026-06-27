@@ -1,0 +1,74 @@
+---
+title: "Player 2 — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-player-2"
+order: 103
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# Player 2 — BoroCTF 2026
+
+> **Category:** `Cryptography`  
+> **Difficulty:** Hard  
+> **Points:** 300  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{controlledinputs}`
+
+---
+
+## Challenge Description
+
+> The prompt linked a video and warned that this was a crypto challenge, not YouTube or video forensics.
+
+---
+
+## Recon / Initial Analysis
+
+The video showed a controller overlay. After ruling out obvious video tampering and glitch text, the useful signal was the sequence of button presses visible on that controller.
+
+Research into controller-input encodings led to the Petscop P2-to-TALK table, which maps PlayStation button inputs into phonetic words.
+
+---
+
+## Vulnerability / Observation
+
+The decoded words initially looked noisy, but their first letters formed meaningful acrostics. One partial block hinted at `boroctf`, confirming the method.
+
+A cleaner later block produced `controlledinputs`, which matched the expected no-underscore flag format.
+
+---
+
+## Exploitation / Solution
+
+1. Download the video and isolate the controller overlay region.
+2. Detect visible button presses frame-by-frame, then clean obvious false positives by visual inspection.
+3. Translate the button sequence through the P2-to-TALK table.
+4. Read the acrostic formed by the decoded word list and submit `controlledinputs`.
+
+---
+
+## Full Exploit Script
+
+The source notes used an OpenCV helper to detect brightened controller regions. The core detector was:
+
+```python
+for frame in video_frames:
+    scores = {button: brightness_delta(frame, baseline, roi) for button, roi in rois.items()}
+    pressed = [button for button, score in scores.items() if score >= threshold]
+    if pressed:
+        intervals.append((timestamp, strongest_button(pressed, scores)))
+
+# After cleanup, map the button stream through the P2-to-TALK table,
+# then read the first letters of the decoded words.
+```
+
+---
+
+## Key Takeaways
+
+- The warning that it was crypto mattered: the video was a carrier for an encoded input stream.
+- A noisy decode can still validate itself through a recognizable acrostic.
+- Visual cleanup after automated button detection is normal when the signal is small and the overlay aliases.

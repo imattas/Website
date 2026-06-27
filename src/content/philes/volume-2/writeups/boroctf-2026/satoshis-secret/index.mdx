@@ -1,0 +1,63 @@
+---
+title: "Satoshi's Secret — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-satoshis-secret"
+order: 100
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# Satoshi's Secret — BoroCTF 2026
+
+> **Category:** `OSINT`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{the_dyatlov_pass_incident}`
+
+---
+
+## Challenge Description
+
+> Description was read-protected in the challenge archive.
+
+---
+
+## Recon / Initial Analysis
+
+The solve started from Satoshi Nakamuda’s public interactions. The important neighbor account was `@soulfullybinded`, which Satoshi replied to with a short Latin message meaning the task was done and he wanted peace.
+
+The neighbor account had two useful artifacts: Brainfuck text in a post and a cryptid-style profile image with a date embedded in the lower-left corner.
+
+---
+
+## Vulnerability / Observation
+
+The Brainfuck helped establish that the neighboring account belonged to the same story chain, but the direct answer came from the profile image.
+
+Searching the date visible in the image led to the Dyatlov Pass incident, matching the challenge’s cryptid/horror tone.
+
+---
+
+## Exploitation / Solution
+
+1. Follow Satoshi’s interaction trail to `@soulfullybinded`.
+2. Save or zoom the profile image and read the small date in the corner.
+3. Search that date with the surrounding incident-style context.
+4. Submit the historical incident name in the required flag format.
+
+---
+
+## Full Exploit Script
+
+No script was needed; the critical step was careful image inspection.
+
+---
+
+## Key Takeaways
+
+- Social OSINT chains often hide the real clue on a neighboring account rather than the starting profile.
+- Generated-looking profile art can still carry deliberate embedded metadata.
+- Treat decoded text as context and keep looking for the concrete answer artifact.

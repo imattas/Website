@@ -1,0 +1,75 @@
+---
+title: "Hurtful — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-hurtful"
+order: 232
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Hurtful — BYUCTF 2026
+
+> **Category:** `Cryptography`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{cuz_st3r30typ3s_hurt_92de04}`  
+> **Source Path:** `crypto/hurtful`
+
+---
+
+## Challenge Description
+
+```text
+This one is for the nerds
+
+Files:
+- [enc.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/hurtful/enc.py)
+- [output.txt](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/hurtful/output.txt)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/crypto/hurtful)
+- [crypto/hurtful/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/hurtful/README.md)
+- [crypto/hurtful/solve.sage](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/hurtful/solve.sage)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Cryptography challenge **Hurtful**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [crypto/hurtful/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/hurtful/README.md)
+
+This is something called a [Stereotyped Message](https://gsdt.github.io/blog/2018/07/20/stereotyped-message-attack/) attack, meaning if you know a part of the message being encrypted and the public key. You do need to know the length of the unknown field of the message so that you can set up the right polynomial to attack.
+
+The solve script brute forces the flag length to set up the polynomial to solve. Starting around a good minimum for length of the flag, you can get the full thing in less than a minute iirc.
+
+Flag: `byuctf{cuz_st3r30typ3s_hurt_92de04}`
+
+---
+
+## Full Exploit Script
+
+- [crypto/hurtful/solve.sage](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/hurtful/solve.sage)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

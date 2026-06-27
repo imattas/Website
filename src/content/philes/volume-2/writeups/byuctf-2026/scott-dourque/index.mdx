@@ -1,0 +1,86 @@
+---
+title: "Scott Dourque — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-scott-dourque"
+order: 244
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Scott Dourque — BYUCTF 2026
+
+> **Category:** `OSINT`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{st00pid_ass1stant}`  
+> **Source Path:** `OSINT/Scott_Dourque`
+
+---
+
+## Challenge Description
+
+```text
+Title: Where in the World is Scott Dourque
+Description: We've been tracking international criminal Scott Dourque for months. Hes wanted on hundreds of counts of fraud for telling single mothers that he is the father of their baby and he needs "Father Support" money. 
+
+We've built out a full portfolio on Scott, but we can't get a warrant for his arrest until we know exactly where he was, and what he was doing on April 12th, 2026. Maybe you can figure out where he was? 
+
+Files: [No Files]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/OSINT/Scott_Dourque)
+- [OSINT/Scott_Dourque/challenge.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/OSINT/Scott_Dourque/challenge.md)
+- [OSINT/Scott_Dourque/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/OSINT/Scott_Dourque/writeup.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the OSINT challenge **Scott Dourque**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [OSINT/Scott_Dourque/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/OSINT/Scott_Dourque/writeup.md)
+
+This challenge is a simple "find the account" challenge. If you look up the name "Scott Dourque" on Instagram, you find his account. From there, the logical flow (at least to me) is to use the tail number of the airplane to figure out where he was on April 12th. Paired with the images on Instagram, its clear that he visited an Olive Garden near the airport he was at. By looking up historical flight data for this plane, you can find that on the 12th of April he was in Austin Texas, specifically landing at KAUS airport. The nearest Olive Garden is close (10 miles), and this location has a Google review with the flag below
+
+
+Links:
+
+Olive Garden in question on Google: https://maps.app.goo.gl/cPBkosMySjc8Q3ct5
+
+(Frick Yelp btw)
+
+Instagram Account: https://www.instagram.com/scott_dourque  
+
+Flight Data for the plane: https://www.flightaware.com/live/flight/N8GQ  
+
+
+Flag: byuctf{st00pid_ass1stant}
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

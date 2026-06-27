@@ -1,0 +1,149 @@
+---
+title: "Corrupted Cores — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-corrupted-cores"
+order: 242
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Corrupted Cores — BYUCTF 2026
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{Th3_P4rt_Wh3r3_H3_K!lls_Y0u}`  
+> **Source Path:** `forensics/corrupted_cores/CorruptedCores.md`
+
+---
+
+## Challenge Description
+
+```text
+"The scientists were always hanging cores on me to regulate my behavior. 
+I've heard voices all my life. But now I hear the voice of a conscience, 
+and it's terrifying, because for the first time it's my voice."
+
+
+*The pcap file contains a flag for each of the following challenges: "There will be cake", "Are you still there?", "Alright. Paradox time", and "Corrupted Cores". 
+
+If the flag you found doesn't work, then it most likely belongs to one of the other 3 challenges.
+
+
+Hint: the voices may not belong to a single identity
+Hint2: the arp packets are not part of this challenge.
+---
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/forensics/corrupted_cores)
+- [forensics/corrupted_cores/CorruptedCores.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/forensics/corrupted_cores/CorruptedCores.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Forensics challenge **Corrupted Cores**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/corrupted_cores/CorruptedCores.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/forensics/corrupted_cores/CorruptedCores.md)
+
+This one is the hardest of the 4 since it was something I thought of as an afterthought while working 
+on the other 3 challenges, and I couldn't find anything online about a similar approach.
+
+This challenge doesn't give you much to start out with, only that there are several "voices" speaking. This should 
+indicate that the flag will come from several outside sources. After looking over the pcap again, we notice that the 
+ping packets all seem to be coming from various IPs other than the 192.168.132.1 IP all the other requests came 
+from.
+
+![screenshot of the source IP for the first ping packet](https://raw.githubusercontent.com/BYU-CSA/BYUCTF-2026/main/forensics/corrupted_cores/images/PINGIP.png)
+
+From here it is mostly guesswork as to where the hidden flag is, but you could figure it out by reasoning through it.
+The 4 octets in the varying source IP's all correspond to an ascii value, however the values in the first packet don't make 
+out "byuc" like the last 2 times. However, an observant eye will notice that the ascii values of the different octets 
+are all valid characters for base64 encoding (despite the last packet not having any "=" characters). After determining
+this, the player should figure it out by either writing down all the characters found in the IP address packets in order 
+and running the string through a base64 decoder, or by writing a program to do it for them. Below is a script that will
+do this process for you, which can be found in the pingIPSolver.py file. (this script also uses the code found in 
+ParsePcap.py)
+
+```python
+from ParsePcap import *
+import base64
+
+PCAP_FILE = "GLaDOS_Network.pcapng"
+
+
+def get_src_ip(pkt):
+    """Extract source IP directly from the IP header of an Ethernet frame."""
+    if len(pkt) < 14:
+        return None
+    ip_start = 14
+    return '.'.join(str(b) for b in pkt[ip_start + 12:ip_start + 16])
+
+
+def solve(filepath):
+    packets = parse_pcapng(filepath)
+
+    chunks = {}  # seq -> 4 bytes from spoofed source IP
+
+    for pkt in packets:
+        result = parse_ip(pkt)
+        if not result:
+            continue
+        proto, payload = result
+
+        if proto != 1 or len(payload) < 8:  # ICMP
+            continue
+        if payload[0] != 8:                  # only echo requests
+            continue
+
+        seq    = struct.unpack_from('>I', payload, 4)[0]
+        src_ip = get_src_ip(pkt)
+
+        # Each spoofed source IP encodes 4 flag bytes as its octets
+        chunks[seq] = bytes(int(o) for o in src_ip.split('.'))
+
+    if not chunks:
+        print("No ICMP echo request packets found.")
+        return
+
+    # Reassemble IP octets -> base64 string -> decode to get flag
+    raw  = b"".join(chunks[k] for k in sorted(chunks.keys()))
+    flag = base64.b64decode(raw.rstrip(b'\x00'))
+
+    print(f"Flag: {flag.rstrip(b'\\x00').decode(errors='replace')}")
+
+
+if __name__ == "__main__":
+    solve(PCAP_FILE)
+```
+
+after running this script, you should get the following flag: byuctf{Th3_P4rt_Wh3r3_H3_K!lls_Y0u}
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

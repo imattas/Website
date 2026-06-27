@@ -1,0 +1,137 @@
+---
+title: "Choose Your RSA — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-choose-your-rsa"
+order: 258
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Choose Your RSA — BYUCTF 2025
+
+> **Category:** `Cryptography`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{Chin3s3_rema1nd3r_th30r3m_is_Sup3r_H3lpful}`  
+> **Source Path:** `crypto/choose`
+
+---
+
+## Challenge Description
+
+```text
+My RSA is so secure, I will even let you choose what value of `e` to use for 3 different encryptions! Of course, they have to be different values of `e`. Can't make it too easy.
+
+`nc choose.chal.cyberjousting.com 1348`
+
+[server.py]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/crypto/choose)
+- [crypto/choose/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/choose/README.md)
+- [crypto/choose/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/choose/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Cryptography challenge **Choose Your RSA**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [crypto/choose/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/choose/README.md)
+
+The idea behind this challenge is that you can use `e=2`, `e=3`, and `e=6` (in the real world, an even `e` would not work, but you never have to actually use an RSA decryption). Using the 3 cipher texts, you can use the Chinese Remainder theorem to find `m^6 mod (n0*n1*n2)` where `m` is the AES key. The size of the key and the primes are chosen so that `m^6<(n0*n1*n2)`, so that this yields the key directly. However, the key needed to be large enough so that `m^2 > n0`, `m^3>n1`, and `m^4>n2`, to avoid trivially revealing the key. The different AES key each time prevents using interactions from a previous connection to help in a current connection.
+
+See `solve.py`.
+
+**Flag** - `byuctf{Chin3s3_rema1nd3r_th30r3m_is_Sup3r_H3lpful}`
+
+---
+
+## Full Exploit Script
+
+Source: [crypto/choose/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/choose/solve.py)
+
+```python
+from Crypto.Cipher import AES
+from Crypto.Util.number import long_to_bytes
+from pwn import *
+import sys
+sys.setrecursionlimit(1000000)
+
+
+### REMOTE INTERACTION ###
+p = remote('choose.chal.cyberjousting.com', 1348)
+p.recvline()
+enc = p.recvline().strip().decode()
+print(f'enc: {enc}')
+p.recvline()
+p.sendline(b"2 3 6") # use these e values
+
+for _ in range(6):
+    exec(p.recvline().decode().strip())
+
+
+# crt code from https://www.geeksforgeeks.org/chinese-remainder-theorem-in-python/
+def gcd_extended(a, b):
+    if a == 0:
+        return b, 0, 1
+    gcd, x1, y1 = gcd_extended(b % a, a)
+    x = y1 - (b // a) * x1
+    y = x1
+    return gcd, x, y
+
+def chinese_remainder_thm(num, rem):
+    prod = 1
+    for n in num:
+        prod *= n
+
+    result = 0
+    for i in range(len(num)):
+        prod_i = prod // num[i]
+        _, inv_i, _ = gcd_extended(prod_i, num[i])
+        result += rem[i] * prod_i * inv_i
+    return result % prod
+
+def getIntRoot(n, root):
+    low = 10**(len(str(n))//root)
+    high = 10*low
+    while True:
+        guess = (low+high)//2
+        if guess**root == n:
+            return guess
+        if high==low:
+            return high
+        if guess**root < n:
+            low = guess+1
+        if guess**root > n:
+            high = guess - 1
+
+# n0-3 and c0-3 are set during the exec() above (hacky solution ik)
+key = chinese_remainder_thm([n0, n1, n2], [pow(c0, 3, n0), pow(c1, 2, n1), c2])
+key = long_to_bytes(getIntRoot(key, 6))
+cipher = AES.new(key[:16], AES.MODE_ECB)
+print(cipher.decrypt(bytes.fromhex(enc)))
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

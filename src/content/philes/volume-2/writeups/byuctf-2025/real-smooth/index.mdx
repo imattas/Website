@@ -1,0 +1,92 @@
+---
+title: "Real Smooth — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-real-smooth"
+order: 263
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Real Smooth — BYUCTF 2025
+
+> **Category:** `Cryptography`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{ch4ch4_sl1d3?...n0,ch4ch4_b1tfl1p}`  
+> **Source Path:** `crypto/real-smooth`
+
+---
+
+## Challenge Description
+
+```text
+Just do the dance, that's the solve
+
+`nc smooth.chal.cyberjousting.com 1350`
+
+[real-smooth.py]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/crypto/real-smooth)
+- [crypto/real-smooth/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/real-smooth/README.md)
+- [crypto/real-smooth/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/real-smooth/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Cryptography challenge **Real Smooth**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [crypto/real-smooth/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/real-smooth/README.md)
+
+ChaCha without Poly is vulnerable to a bit flip attack, so you can just flip bits across the board knowing the plaintexts and profit.
+
+See `solve.py`.
+
+**Flag** - `byuctf{ch4ch4_sl1d3?...n0,ch4ch4_b1tfl1p}`
+
+---
+
+## Full Exploit Script
+
+Source: [crypto/real-smooth/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/real-smooth/solve.py)
+
+```python
+from pwn import *
+
+p = remote('smooth.chal.cyberjousting.com', 1350)
+
+c1 = p.recvline().decode().rstrip()
+c2 = p.recvline().decode().rstrip()
+ciphertexts = bytes.fromhex(c1+c2)
+ogplaintext = b'Slide to the leftSlide to the right'
+newplaintext = b'Criss cross, criss cross'
+
+print("Forged ciphertext = ", forged:=xor(xor(ciphertexts, ogplaintext), newplaintext).hex()[:len(newplaintext.hex())])
+p.sendline(forged.encode())
+
+p.interactive()
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

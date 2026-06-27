@@ -1,0 +1,183 @@
+---
+title: "Anaken21sec1 — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-anaken21sec1"
+order: 256
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Anaken21sec1 — BYUCTF 2025
+
+> **Category:** `Cryptography`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{revisreallythestartingpointformostcategoriesiydk}`  
+> **Source Path:** `crypto/anaken21sec1`
+
+---
+
+## Challenge Description
+
+```text
+Your key is: `orygwktcjpb`
+
+Encrypted flag: `cnpiaytjyzggnnnktjzcvuzjexxkvnrlfzectovhfswyphjt`
+
+*Note - wrap the flag in `byuctf{}`*
+
+[encrypt.py]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/crypto/anaken21sec1)
+- [crypto/anaken21sec1/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/anaken21sec1/README.md)
+- [crypto/anaken21sec1/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/anaken21sec1/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Cryptography challenge **Anaken21sec1**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [crypto/anaken21sec1/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/anaken21sec1/README.md)
+
+You simply need to implement a decryption script that will give you the flag. Do the opposite of `encrypt.py`.
+
+See `solve.py`.
+
+**Flag** - `byuctf{revisreallythestartingpointformostcategoriesiydk}`
+
+---
+
+## Full Exploit Script
+
+Source: [crypto/anaken21sec1/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/crypto/anaken21sec1/solve.py)
+
+```python
+import numpy as np
+from encrypt import permutes
+
+
+
+
+def unPermute(blockM, count):
+    finalBlockM = np.zeros((6,6))
+    for i in range(6):
+        for j in range(6):
+            index = int(permutes[count][i,j]-1)
+            finalBlockM[index//6,index%6] = blockM[i,j]
+    return finalBlockM
+
+
+def unAdd(blockM, count):
+    if count == 0:
+        for i in range(6):
+            for j in range(6):
+                if (i+j)%2 == 0:
+                    blockM[i,j] +=2
+    elif count == 1:
+        blockM[3:,3:] = blockM[3:,3:]+2*blockM[:3,:3]
+    elif count == 2:
+        blockM[:3,:3] = 2*blockM[3:,3:]+blockM[:3,:3]
+    elif count == 3:
+        blockM[3:,:3] = blockM[3:,:3]+2*blockM[:3,3:]
+    else:
+        blockM[:3,3:] = 2*blockM[3:,:3]+blockM[:3,3:]
+    return np.mod(blockM, 3)
+
+
+def decrypt(ciphertext, key):
+    #rearrange the ciphertext according to the key
+    keyNums = [ord(key[i])-97 for i in range(len(key))]
+    reducedKeyNums = []
+    [reducedKeyNums.append(x) for x in keyNums if x not in reducedKeyNums]
+    letterBoxes = [[] for i in reducedKeyNums]
+    amountToTakeOff = len(ciphertext)//len(reducedKeyNums)
+    remainder = len(ciphertext)%len(reducedKeyNums)
+    for i in range(len(reducedKeyNums)):
+        nextLowest = reducedKeyNums.index(min(reducedKeyNums))
+        letterBoxes[nextLowest] = [ciphertext[i] for i in range(amountToTakeOff)]
+        ciphertext = ciphertext[amountToTakeOff:]
+        if nextLowest<remainder:
+            letterBoxes[nextLowest].append(ciphertext[0])
+            ciphertext = ciphertext[1:]
+        reducedKeyNums[nextLowest]+=26
+    intermediateText = ""
+    i=0
+    while sum([len(box) for box in letterBoxes]) != 0:
+        intermediateText += letterBoxes[i].pop(0)
+        i = (i+1)%len(letterBoxes)
+    
+    #do the block permutations and additions
+    blocks = [intermediateText[12*i:12*(i+1)] for i in range(0,len(intermediateText)//12)]
+    plaintext = ""
+    for block in blocks:
+        #make 6 by 6 matrix
+        blockM =np.zeros((6,6))
+        for (i,letter) in enumerate(block[0:6]):
+            if letter == "0":
+                letter = "`"
+            letterNum = ord(letter)-96
+            blockM[i,0] = letterNum//9
+            blockM[i,1] = (letterNum%9)//3
+            blockM[i,2] = letterNum%3
+        for (i,letter) in enumerate(block[6:]):
+            if letter == "0":
+                letter = "`"
+            letterNum = ord(letter)-96
+            blockM[i,3] = letterNum//9
+            blockM[i,4] = (letterNum%9)//3
+            blockM[i,5] = letterNum%3
+            
+        #unscramble matrix
+        for keyNum in reversed(keyNums):
+            blockM = unAdd(blockM, keyNum%5)
+            blockM = unPermute(blockM,(keyNum//5)%5)
+
+        #get resulting letters from matrix
+        for i in range(6):
+            resultLetterNum = int(9*blockM[0,i]+3*blockM[1,i]+blockM[2,i])
+            if resultLetterNum == 0:
+                plaintext += "0"
+            else:
+                plaintext += chr(resultLetterNum+96)
+        for i in range(6):
+            resultLetterNum = int(9*blockM[3,i]+3*blockM[4,i]+blockM[5,i])
+            if resultLetterNum == 0:
+                plaintext += "0"
+            else:
+                plaintext += chr(resultLetterNum+96)
+    return plaintext
+
+if __name__ == "__main__":
+    ciphertext =  input("What would you like to decrypt?\n")
+    key = input("Enter the encryption key. \n")
+
+    if len(ciphertext)%12 ==0:
+        print(decrypt(ciphertext, key))
+    else:
+        print("Sorry, invalid ciphertext.")
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

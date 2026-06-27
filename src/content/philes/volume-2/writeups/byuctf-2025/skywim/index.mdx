@@ -1,0 +1,77 @@
+---
+title: "Skywim — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-skywim"
+order: 292
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Skywim — BYUCTF 2025
+
+> **Category:** `OSINT`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{Dragon_Bridge_Overlook}`  
+> **Source Path:** `osint/skywim`
+
+---
+
+## Challenge Description
+
+```text
+One time I tried to take a screenshot of my Skyrim character next to my favorite NPC (who doesn’t love goth girls). I decided to AFK for a second to heat up some soup. Unfortunately, there were some unexpected enemies up here, and I died. My last save was like 4 hours before this picture was taken, and I never remembered where I captured this beautiful sight. Can you help me find the name of the location where this picture was taken in Skyrim?
+
+Flag format: `byuctf{Shrine_of_Stendarr}`
+
+This is a real, named location in Skyrim. You do not need to own or play the game to solve this challenge, though it could be helpful.
+
+[skyrim.jpg]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/osint/skywim)
+- [osint/skywim/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/osint/skywim/README.md)
+- [osint/skywim/skyrim.jpg](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/osint/skywim/skyrim.jpg)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the OSINT challenge **Skywim**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [osint/skywim/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/osint/skywim/README.md)
+
+1. On the left side of the image you can see a boat in the water, with some kind of large arch behind it. If you look at a few pictures of skyrim locations, you will learn that is the city of Solitude.
+2. Looking in front of the boat, we see a single bridge. Also, the picture is taken on some sort of hill or something.
+3. Going to an interactive Skyrim map like (https://mapgenie.io/skyrim/maps/skyrim), we can find the boat in the water, the single bridge, and a cliff. That cliff houses the location "Dragon Bridge Overlook", where the image was taken from.
+
+**Flag** - `byuctf{Dragon_Bridge_Overlook}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

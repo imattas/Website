@@ -1,0 +1,78 @@
+---
+title: "Are You Looking Me Up? — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-are-you-looking-me-up"
+order: 287
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Are You Looking Me Up? — BYUCTF 2025
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{172.16.0.1}`  
+> **Source Path:** `forensics/Are-You-Looking-Me-Up.md`
+
+---
+
+## Challenge Description
+
+```text
+The network has a DNS server that's been receiving a lot of traffic. You've been handed a set of raw network logs. Your job? Hunt down the DNS server that has received the most DNS requests.
+
+Use the log file found [here](https://byu.box.com/s/2rong02xtfx7sfo52nos3ra2waifogv2)
+
+Analyze the logs and find the impostor.
+
+Flag format: `byuctf{IP1}`
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/forensics)
+- [forensics/Are-You-Looking-Me-Up.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/Are-You-Looking-Me-Up.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Forensics challenge **Are You Looking Me Up?**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/Are-You-Looking-Me-Up.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/Are-You-Looking-Me-Up.md)
+
+Look for which devices have a lot of UDP port 53 traffic:
+
+```bash
+cat logs.txt | grep udp | awk -F',' '$22 == 53 {print $20}' | sort | uniq -c | sort -nr | head
+```
+
+**Flag** - `byuctf{172.16.0.1}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material. The one-liner in the solution section is the complete replay path for this challenge.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

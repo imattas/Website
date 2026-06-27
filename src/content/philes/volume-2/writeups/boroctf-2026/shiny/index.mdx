@@ -1,0 +1,63 @@
+---
+title: "Shiny — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-shiny"
+order: 102
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# Shiny — BoroCTF 2026
+
+> **Category:** `OSINT`  
+> **Difficulty:** Hard  
+> **Points:** 300  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{4/6/2026}`
+
+---
+
+## Challenge Description
+
+> The prompt asked for the date of `mdhdlimv2` and gave the format `boroCTF{month/day/year}`.
+
+---
+
+## Recon / Initial Analysis
+
+The “140 years, not hours” phrasing pointed toward a well-known long-duration YouTube/video clue connected to `shinywr`.
+
+The relevant YouTube description contained an archived link labelled with an exaggerated hour count, which was the real pivot.
+
+---
+
+## Vulnerability / Observation
+
+The archived page pointed at a video titled exactly `mdhdlimv2`.
+
+The upload date on the archived video page was 6 Apr 2026, which needed to be converted into the challenge’s month/day/year flag format.
+
+---
+
+## Exploitation / Solution
+
+1. Use the prompt wording to identify the `shinywr` video clue.
+2. Open the archived link from the video description rather than only inspecting the live page.
+3. Find the archived video titled `mdhdlimv2`.
+4. Convert the displayed date into `4/6/2026` and submit it.
+
+---
+
+## Full Exploit Script
+
+No script was needed; the solve depended on following the archive trail.
+
+---
+
+## Key Takeaways
+
+- Archive links in descriptions can be the intended source of truth.
+- Keep the requested date format exact; this challenge used month/day/year.
+- When a prompt says a number is not hours, use that as a semantic correction rather than a math operation.

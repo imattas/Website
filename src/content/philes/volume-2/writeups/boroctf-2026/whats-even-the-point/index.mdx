@@ -1,0 +1,77 @@
+---
+title: "What's even the POINT? — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-whats-even-the-point"
+order: 104
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# What's even the POINT? — BoroCTF 2026
+
+> **Category:** `Miscellaneous`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{TILES}`
+
+---
+
+## Challenge Description
+
+> The prompt emphasized `ROOT`, `BINARIES`, `RELATIONAL`, `TREE`, and `BYTES`, then told players to play a board game.
+
+---
+
+## Recon / Initial Analysis
+
+The capitalized words were the data. The “board game” instruction pointed to Scrabble, so each word needed a Scrabble score rather than a binary/tree/byte analysis.
+
+Those scores were then used as positions into the same words.
+
+---
+
+## Vulnerability / Observation
+
+`ROOT` scores 4, giving its 4th letter `T`.
+
+`BINARIES` scores 10, which wraps to the 2nd letter `I`.
+
+`RELATIONAL` scores 10, giving `L`.
+
+`TREE` scores 4, giving `E`.
+
+`BYTES` scores 10, which wraps to the 5th letter `S`.
+
+---
+
+## Exploitation / Solution
+
+1. Score each capitalized word using standard Scrabble tile values.
+2. Use each score as a one-indexed position into that word, wrapping when needed.
+3. Concatenate the extracted letters to get `TILES`.
+4. Submit the extracted word in the flag wrapper.
+
+---
+
+## Full Exploit Script
+
+A short checker is enough for repeatability:
+
+```python
+scores = {**dict.fromkeys('AEILNORSTU', 1), **dict.fromkeys('DG', 2),
+          **dict.fromkeys('BCMP', 3), **dict.fromkeys('FHVWY', 4), 'K': 5,
+          **dict.fromkeys('JX', 8), **dict.fromkeys('QZ', 10)}
+words = ['ROOT', 'BINARIES', 'RELATIONAL', 'TREE', 'BYTES']
+print(''.join(word[(sum(scores[c] for c in word) - 1) % len(word)] for word in words))
+```
+
+---
+
+## Key Takeaways
+
+- The prompt’s uppercase words were intentional extraction inputs.
+- Negative instructions can be redirections away from technical rabbit holes.
+- Scrabble scores naturally produce index values for word-based extraction.

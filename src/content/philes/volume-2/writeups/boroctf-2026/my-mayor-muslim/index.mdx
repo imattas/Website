@@ -1,0 +1,67 @@
+---
+title: "My Mayor Muslim... — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-my-mayor-muslim"
+order: 106
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# My Mayor Muslim... — BoroCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{KN!CK5_1N_5555!!!!!}`
+
+---
+
+## Challenge Description
+
+> The web app was a basketball-shot game with a score gate around the winning value.
+
+---
+
+## Recon / Initial Analysis
+
+The useful routes were the game API endpoints, especially `/api/reset` and `/api/shoot`.
+
+Normal play could bring the score close to the target, but the final transition was blocked or reset by the application’s referee logic.
+
+---
+
+## Vulnerability / Observation
+
+The score update and reset/check logic were not atomic. If enough valid shot requests arrived at the right time, one response could observe the winning score before the reset took effect.
+
+The best setup was to play normally to score 44, wait out the cooldown, then send a burst of concurrent shoot requests.
+
+---
+
+## Exploitation / Solution
+
+1. Reset the game and play until the score reaches 44.
+2. Wait until the next shot is eligible.
+3. Send a burst of concurrent `POST /api/shoot` requests.
+4. Inspect responses for the one that reaches score 46 and returns the flag.
+
+---
+
+## Full Exploit Script
+
+```bash
+seq 1 20 | xargs -P20 -I{} curl -sS -X POST 'https://target.example/api/shoot'
+```
+
+Replace the host with the active challenge instance and run the burst at score 44 after cooldown expires.
+
+---
+
+## Key Takeaways
+
+- Game APIs often expose race conditions around score and cooldown checks.
+- The exploit was timing-sensitive but simple: prepare state, then race a single endpoint.
+- Look for transient winning responses even if the visible page resets immediately afterward.

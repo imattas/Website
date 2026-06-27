@@ -1,0 +1,68 @@
+---
+title: "Worthful Glory — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-worthful-glory"
+order: 105
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# Worthful Glory — BoroCTF 2026
+
+> **Category:** `Miscellaneous`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroctf{pixels_and_passwords_dont_mix}`
+
+---
+
+## Challenge Description
+
+> The prompt described a football-field photo, a hidden corrupted log file, and a “field goal on game day” key clue.
+
+---
+
+## Recon / Initial Analysis
+
+The provided JPEG did not parse cleanly. Hex inspection showed that the first two bytes were `67 67` instead of the JPEG SOI header `ff d8`.
+
+After repairing the image header, normal image and steganography tooling could inspect the file.
+
+---
+
+## Vulnerability / Observation
+
+The repaired image acted as a steghide carrier. `stegseek` recovered the steghide passphrase `3P0INTERBABY`.
+
+The extracted “log” was actually an encrypted ZIP. The sports clue supplied the second password: `football`.
+
+---
+
+## Exploitation / Solution
+
+1. Patch the first two bytes of the JPEG from `67 67` to `ff d8`.
+2. Run `stegseek` or `steghide` against the repaired image.
+3. Extract the hidden file with passphrase `3P0INTERBABY`.
+4. Open the extracted ZIP with password `football` and read `flag.txt`.
+
+---
+
+## Full Exploit Script
+
+```bash
+printf '\xff\xd8' | dd of=football_field.jpg bs=1 seek=0 conv=notrunc
+stegseek football_field.jpg
+stegide extract -sf football_field.jpg -p 3P0INTERBABY
+unzip -P football extracted_log_file
+```
+
+---
+
+## Key Takeaways
+
+- Fix file magic before assuming a tool failure means the data is not there.
+- Stego challenges can chain multiple password layers.
+- Prompt wording often supplies a human guessable password after the technical extraction step.

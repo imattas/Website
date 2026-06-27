@@ -1,0 +1,68 @@
+---
+title: "Klaud Code — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-klaud-code"
+order: 107
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# Klaud Code — BoroCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Hard  
+> **Points:** 300  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `not retained in source notes`
+
+---
+
+## Challenge Description
+
+> Klaud sold a MAX subscription, but Free-tier usage died after a greeting. The goal was to get Klaud Max without paying.
+
+---
+
+## Recon / Initial Analysis
+
+The application contained several decoys: a forged-looking JWT, a bot that mentioned an unhelpful `/admin` path, and workspace APIs that did not matter for the solve.
+
+The real clue was on the about page, which linked a promo video. The end of the video showed the promo code `KLAUD20OFF`.
+
+---
+
+## Vulnerability / Observation
+
+The backend treated promo-code reuse in a case-sensitive way. `KLAUD20OFF` and `klaud20off` were considered different “unused” codes, while the discount logic treated them as the same promotion.
+
+Repeating the discount with case variants could drive the final price down far enough to unlock the paid tier path.
+
+---
+
+## Exploitation / Solution
+
+1. Ignore the JWT/admin/workspace decoys and inspect the about page.
+2. Watch the promo video and extract `KLAUD20OFF`.
+3. Apply the code once, then keep applying case variants such as `klaud20off`, `KLAUD20off`, and `KlAuD20OfF`.
+4. Use the resulting free/discounted MAX access path to retrieve the flag. The original source notes did not preserve the exact flag value after infrastructure shutdown.
+
+---
+
+## Full Exploit Script
+
+```python
+code = 'KLAUD20OFF'
+variants = ['KLAUD20OFF', 'klaud20off', 'KLAUD20off', 'klaud20OFF', 'KlAuD20OfF']
+for promo in variants:
+    apply_promo_code(promo)
+```
+
+---
+
+## Key Takeaways
+
+- A convincing JWT/admin path can be a deliberate distraction.
+- Normalize promo codes before checking reuse; otherwise case variants become separate coupons.
+- When the exact flag is unavailable, preserve the exploit path and state that clearly.

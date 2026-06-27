@@ -1,0 +1,63 @@
+---
+title: "A Purpose Beyond Satoshi — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-a-purpose-beyond-satoshi"
+order: 99
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# A Purpose Beyond Satoshi — BoroCTF 2026
+
+> **Category:** `OSINT`  
+> **Difficulty:** Medium  
+> **Points:** 200  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{sidney_barber}`
+
+---
+
+## Challenge Description
+
+> Description was read-protected in the challenge archive.
+
+---
+
+## Recon / Initial Analysis
+
+This was the end of the Satoshi chain. The useful artifacts were spread across the earlier Satoshi social accounts: a Brainfuck block, a cryptic biography, a TikTok username, and a video frame that pointed at the final subject.
+
+The Brainfuck was not the flag, but it gave the theme: Satoshi had made a bargain and needed the head of “good ol' Sid.” That made the later “Sid” connection meaningful instead of just another horror clue.
+
+---
+
+## Vulnerability / Observation
+
+The account bio was the pivot. Reading the first words of its lines produced `ForeverFlames7`, and the account followed `@tiktok_us`, so the next search target was a TikTok profile rather than another X/Twitter account.
+
+TikTok search did not surface the account directly, but a cached profile viewer exposed a `tape002` video. The ending frame contained a visible “D.A.R.E Laboratory Log” page.
+
+---
+
+## Exploitation / Solution
+
+1. Decode or skim the Brainfuck to capture the “Sid” clue.
+2. Extract the first words from the cryptic bio to recover `ForeverFlames7`.
+3. Search cached TikTok profile viewers for that username and inspect the `tape002` video.
+4. Reverse-image-search the final log frame. The matching subject was The Sidney Barber Tapes, giving the final answer.
+
+---
+
+## Full Exploit Script
+
+No reusable exploit script was needed; this was a chained OSINT pivot.
+
+---
+
+## Key Takeaways
+
+- Intermediate decodes can be clue material rather than the final flag.
+- A single followed account can be an intentional platform hint.
+- When platform search fails, cached profile viewers can preserve enough public metadata to continue the chain.

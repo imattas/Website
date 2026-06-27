@@ -1,0 +1,73 @@
+---
+title: "OmegaCode — BoroCTF 2026"
+date: 2026-06-18
+author: "Imattas aka Zemi"
+slug: "boroctf-2026-omegacode"
+order: 108
+writeupKind: "challenge"
+ctfSlug: "boroctf-2026"
+ctfTitle: "BoroCTF 2026"
+---
+
+# OmegaCode — BoroCTF 2026
+
+> **Category:** `Reverse Engineering`  
+> **Difficulty:** Hard  
+> **Points:** 300  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `boroCTF{greek_alphabet_is_over_i_promise_on_franklin}`
+
+---
+
+## Challenge Description
+
+> AlphaCode returned in a harder form. The service accepted OmegaCode programs and ran them through visible and hidden gauntlet cases.
+
+---
+
+## Recon / Initial Analysis
+
+The examples in `examples.zip` defined enough of the esolang to recover the instruction set. The language was stack-oriented and used short opcodes for variable definition, input, output, arithmetic, equality, and exit.
+
+The critical behavior was `zz do X`: storing a computed value in `X` acted like an instruction-pointer jump. That gave the language conditional branching even though it did not expose a normal `if` statement.
+
+---
+
+## Vulnerability / Observation
+
+The visible tests looked like a 9-line echo challenge: print the prompt, read submitted lines until EOF, then print them with `N | ` prefixes.
+
+The hidden test stopped earlier, after 6 real lines and EOF. A solver hard-coded for 9 lines passed visible cases but failed hidden cases.
+
+---
+
+## Exploitation / Solution
+
+1. Infer the encoding for string constants and the stack operations from the examples.
+2. Generate an OmegaCode program that reads up to 9 lines.
+3. After the 7th read, compare the value with `EOF`.
+4. Use the Boolean result to compute a jump target: short-output path for 6 lines, normal path for 9 lines.
+5. Submit the generated program to the gauntlet mode to recover the flag.
+
+---
+
+## Full Exploit Script
+
+The source notes used a Python generator so jump offsets could be patched after labels were known. The important pattern was:
+
+```python
+def check_eof(var, on_eof, on_continue):
+    emit('zz di', var, 'zz di', 'z', 'zz eq')
+    emit('zz di', on_eof, 'zz mm', 'zz di', on_continue, 'zz ma', 'zz do', 'X')
+
+# Generate both output blocks, then patch constants once label line numbers are known.
+generate_solver([6, 9])
+```
+
+---
+
+## Key Takeaways
+
+- Example programs can define an esolang faster than reversing the whole interpreter.
+- Hidden cases often check that EOF behavior is truly handled instead of hard-coded.
+- When a language has computed jumps, generating code programmatically is safer than hand-counting line numbers.

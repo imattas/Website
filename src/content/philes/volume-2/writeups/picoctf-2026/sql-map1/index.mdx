@@ -1,7 +1,7 @@
 ---
 title: "Sql Map1 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-sql-map1"
 order: 65
 writeupKind: "challenge"
@@ -407,11 +407,3 @@ if __name__ == "__main__":
 - `--batch --dump-all` runs non-interactively and dumps every table; `--level`/`--risk` raise detection sensitivity for stubborn injection points.
 - `--forms` lets sqlmap auto-detect and test forms when you don't know the parameter; `--cookie` carries session state.
 - picoCTF SQLi backends are often SQLite with the flag tucked in a dedicated table — scan the dump for the `picoCTF{...}` pattern.
-
----
-
-## References
-
-- [sqlmap official site](https://sqlmap.org/)
-- [sqlmap usage wiki](https://github.com/sqlmapproject/sqlmap/wiki/Usage)
-- [OWASP: SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)

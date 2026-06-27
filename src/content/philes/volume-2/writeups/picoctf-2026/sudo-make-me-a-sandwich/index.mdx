@@ -1,7 +1,7 @@
 ---
 title: "SUDO MAKE ME A SANDWICH — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-sudo-make-me-a-sandwich"
 order: 50
 writeupKind: "challenge"
@@ -357,12 +357,3 @@ if __name__ == "__main__":
 - Any program that can spawn a shell or evaluate arbitrary code is a privesc primitive when runnable as root — Emacs qualifies via `M-x shell`, `(term ...)`, or `--eval '(shell-command-to-string ...)'`.
 - The non-interactive `--batch --eval` form is ideal for automation (and for scripting via paramiko), avoiding the need for a full TTY.
 - This is a canonical [GTFOBins](https://gtfobins.github.io/) technique — when you find a sudo-allowed binary, check GTFOBins first.
-
----
-
-## References
-
-- [GTFOBins — emacs](https://gtfobins.github.io/gtfobins/emacs/)
-- [GTFOBins](https://gtfobins.github.io/)
-- [sudo manual (sudo -l)](https://www.sudo.ws/docs/man/sudo.man/)
-- [Paramiko documentation](https://docs.paramiko.org/)

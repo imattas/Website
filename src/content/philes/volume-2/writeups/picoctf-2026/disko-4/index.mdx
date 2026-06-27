@@ -1,7 +1,7 @@
 ---
 title: "DISKO 4 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-disko-4"
 order: 31
 writeupKind: "challenge"
@@ -412,11 +412,3 @@ if __name__ == "__main__":
 - Filesystem-specific tools (`extundelete` for ext3/ext4) and signature carvers (`photorec`, `scalpel`) provide alternatives when metadata is gone.
 - A plain `strings | grep picoCTF` over the raw image often still works if the flag bytes were never overwritten — always try the cheap method first.
 - Disk images frequently come gzip-compressed and require the correct partition offset (commonly `2048`) when using SleuthKit tools.
-
----
-
-## References
-
-- [The Sleuth Kit](https://www.sleuthkit.org/sleuthkit/) — `fls`, `icat`, `tsk_recover` documentation
-- [extundelete](https://extundelete.sourceforge.net/) — ext3/ext4 file recovery
-- [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) — signature-based file carving

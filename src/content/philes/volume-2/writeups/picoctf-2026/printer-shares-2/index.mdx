@@ -1,7 +1,7 @@
 ---
 title: "Printer Shares 2 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-printer-shares-2"
 order: 40
 writeupKind: "challenge"
@@ -453,13 +453,3 @@ if __name__ == '__main__':
 - Brute-force the credential/share matrix systematically; tools like `smbmap`, `enum4linux`, and `rpcclient` reveal permissions and valid usernames.
 - Forcing an older protocol (`client min protocol=NT1`) can sidestep newer security checks.
 - The flag may be hidden in print-job artifacts (PCL/PJL/PostScript) rather than a plaintext file -- `strings | grep -i pico` over downloaded spool files finds it.
-
----
-
-## References
-
-- [smbclient manual page](https://www.samba.org/samba/docs/current/man-html/smbclient.1.html)
-- [smbmap](https://github.com/ShawnDEvans/smbmap)
-- [enum4linux](https://github.com/CiscoCXSecurity/enum4linux)
-- [NetExec (formerly crackmapexec)](https://github.com/Pennyw0rth/NetExec)
-- [HackTricks: SMB enumeration (139, 445)](https://book.hacktricks.xyz/network-services-pentesting/pentesting-smb)

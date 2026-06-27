@@ -1,7 +1,7 @@
 ---
 title: "Bypass Me — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-bypass-me"
 order: 59
 writeupKind: "challenge"
@@ -583,12 +583,3 @@ if __name__ == "__main__":
 - Conditional-jump patching (`jne` 0x75 ↔ `je` 0x74, or long-form `0F 85` ↔ `0F 84`) inverts or skips a check without ever knowing the password.
 - GDB can dump comparison arguments at runtime (`x/s $rdi` / `x/s $rsi`) or force a branch by flipping the zero flag in `$eflags`.
 - `angr` symbolic execution is a strong fallback: explore toward "Correct"/"picoCTF" strings while avoiding "Wrong"/"Invalid".
-
----
-
-## References
-
-- [Ghidra](https://ghidra-sre.org/) — open-source reverse engineering / decompiler suite
-- [angr](https://angr.io/) — binary analysis and symbolic execution framework
-- [radare2](https://rada.re/n/) — reversing and binary patching toolkit
-- [pwntools `checksec`](https://docs.pwntools.com/) — binary protection inspection

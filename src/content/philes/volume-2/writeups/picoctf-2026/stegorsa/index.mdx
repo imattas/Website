@@ -1,7 +1,7 @@
 ---
 title: "StegoRSA — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-stegorsa"
 order: 25
 writeupKind: "challenge"
@@ -556,13 +556,3 @@ if __name__ == "__main__":
 - A PEM private key is recognizable by its `-----BEGIN ... PRIVATE KEY-----` header — grep for `BEGIN`/`PRIVATE`.
 - Once you have the key, try multiple RSA padding schemes (OAEP, PKCS1 v1.5, raw/textbook) since the challenge doesn't say which was used.
 - pycryptodome, the `cryptography` library, and `openssl rsautl`/`pkeyutl` all decrypt with the recovered PEM.
-
----
-
-## References
-
-- [zsteg (GitHub)](https://github.com/zed-0xff/zsteg)
-- [steghide](https://steghide.sourceforge.net/)
-- [binwalk (GitHub)](https://github.com/ReFirmLabs/binwalk)
-- [ExifTool](https://exiftool.org/)
-- [pycryptodome documentation](https://pycryptodome.readthedocs.io/)

@@ -1,7 +1,7 @@
 ---
 title: "Binary Instrumentation 4 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-binary-instrumentation-4"
 order: 53
 writeupKind: "challenge"
@@ -418,12 +418,3 @@ if __name__ == "__main__":
 - Also hooking `connect()` reveals the destination IP/port by parsing the `sockaddr_in` structure (family, port, octets).
 - Ship the captured bytes to Python via `send()` and try base64 in case the flag is encoded before transmission.
 - `frida-trace -i "send*" -i "WSA*" -X WS2_32` quickly identifies which send primitive the binary actually uses.
-
----
-
-## References
-
-- [Frida documentation](https://frida.re/docs/home/)
-- [frida-trace](https://frida.re/docs/frida-trace/)
-- [Microsoft Docs — send (Winsock)](https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-send)
-- [Microsoft Docs — WSASend](https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasend)

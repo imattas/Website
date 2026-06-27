@@ -1,7 +1,7 @@
 ---
 title: "ClusterRSA — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-clusterrsa"
 order: 15
 writeupKind: "challenge"
@@ -220,11 +220,3 @@ if __name__ == '__main__':
 - Once `n` is factored, the totient generalizes to `phi(n) = product((p_i - 1))` (or `product(p_i^(a_i-1) * (p_i - 1))` for repeated primes), and the rest is textbook RSA.
 - `sympy.factorint()` quickly factors moduli built from small primes; factordb, `yafu`, and `msieve` are alternatives.
 - Recover the message with `d = pow(e, -1, phi(n))` and `m = pow(c, d, n)`, then convert the integer to bytes.
-
----
-
-## References
-
-- [factordb.com](http://factordb.com) — online integer factorization database
-- [SymPy `factorint` documentation](https://docs.sympy.org/latest/modules/ntheory.html) — integer factorization in Python
-- [yafu](https://github.com/bbuhrow/yafu) — automated integer factorization tool

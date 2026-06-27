@@ -1,7 +1,7 @@
 ---
 title: "No FA — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-no-fa"
 order: 67
 writeupKind: "challenge"
@@ -499,11 +499,3 @@ if __name__ == "__main__":
 - Parameter tampering variants worth trying: empty body, empty value, missing key, JSON `{}`, JSON `null`, and switching the HTTP method.
 - "Data has been leaked" is a strong hint to inspect HTML comments, linked JS files, response headers, and cookies for the flag.
 - Burp Suite (or any intercepting proxy) is the core tool for editing and replaying the verification request.
-
----
-
-## References
-
-- [OWASP: Testing Multi-Factor Authentication](https://owasp.org/www-project-web-security-testing-guide/)
-- [PortSwigger Burp Suite documentation](https://portswigger.net/burp/documentation)
-- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)

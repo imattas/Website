@@ -1,7 +1,7 @@
 ---
 title: "bytemancy 3 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-bytemancy-3"
 order: 35
 writeupKind: "challenge"
@@ -645,9 +645,3 @@ if __name__ == '__main__':
 - Every stage of an invertible pipeline has a clean inverse; the trick is applying the inverses in reverse order of the forward pass.
 - Inverse cheat-sheet: XOR and byte-reverse and nibble-swap are self-inverse; add/sub mod 256 are inverses; rotate-left and rotate-right are inverses; S-boxes and permutations require building inverse lookup tables.
 - Reading and documenting the forward `encrypt`/`transform` function precisely is the whole battle — once the pipeline is mapped, the decryptor follows mechanically.
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/) — used for the optional remote interaction

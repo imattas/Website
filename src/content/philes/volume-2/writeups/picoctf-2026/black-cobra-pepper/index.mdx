@@ -1,7 +1,7 @@
 ---
 title: "Black Cobra Pepper — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-black-cobra-pepper"
 order: 19
 writeupKind: "challenge"
@@ -448,12 +448,3 @@ if __name__ == "__main__":
 - Three canonical CTF pepper schemes to test: hash pepper `H(pepper||msg)` / `H(msg||pepper)`, XOR pepper `ct = msg XOR repeat(pepper)`, and HMAC pepper.
 - The known flag prefix `picoCTF{` is the oracle: for XOR you brute-force the key and check the decrypted text starts with it; for hashing you brute-force the pepper and match the digest.
 - Iterate over pepper lengths and both prepend/append positions across multiple hash algorithms (md5/sha1/sha256/sha512) since the scheme is unknown.
-
----
-
-## References
-
-- [Salt vs. pepper (cryptography)](https://en.wikipedia.org/wiki/Pepper_(cryptography))
-- [Python hashlib documentation](https://docs.python.org/3/library/hashlib.html)
-- [Python hmac documentation](https://docs.python.org/3/library/hmac.html)
-- [pwntools documentation](https://docs.pwntools.com/)

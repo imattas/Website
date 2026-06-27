@@ -1,7 +1,7 @@
 ---
 title: "bytemancy 1 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-bytemancy-1"
 order: 45
 writeupKind: "challenge"
@@ -599,11 +599,3 @@ if __name__ == '__main__':
 - Endianness and non-printable bytes mean raw-byte delivery (pipe or `echo -ne`) is often required.
 - Parsing the source to extract `expected` arrays and constants lets the solve be fully automated.
 - When unsure of the operation order, try delivering the payload in several formats and watch for the flag.
-
----
-
-## References
-
-- [Python `struct` documentation](https://docs.python.org/3/library/struct.html) — endianness and byte packing
-- [Python bitwise operations](https://docs.python.org/3/reference/expressions.html#binary-bitwise-operations) — XOR, shifts, masks
-- [pwntools documentation](https://docs.pwntools.com/) — `remote`, `sendline`, payload delivery

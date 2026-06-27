@@ -1,7 +1,7 @@
 ---
 title: "Smart Overflow — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-smart-overflow"
 order: 13
 writeupKind: "challenge"
@@ -320,12 +320,3 @@ if __name__ == "__main__":
 - Transferring more than your balance underflows your own balance to a huge value, satisfying win conditions like `isSolved()`.
 - Fixes would use SafeMath (pre-0.8) or simply Solidity >=0.8.0, which reverts on overflow/underflow.
 - Tooling: `web3.py` for scripting the exploit, or foundry's `cast call`/`cast send` for manual interaction with the RPC.
-
----
-
-## References
-
-- [Solidity 0.8.0 Breaking Changes — checked arithmetic](https://docs.soliditylang.org/en/latest/080-breaking-changes.html)
-- [OpenZeppelin SafeMath](https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath)
-- [Foundry Book — cast](https://book.getfoundry.sh/cast/)
-- [web3.py documentation](https://web3py.readthedocs.io/)

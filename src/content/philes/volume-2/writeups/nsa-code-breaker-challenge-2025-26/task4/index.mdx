@@ -1,7 +1,7 @@
 ---
 title: "Task 4: Unpacking Insight — NSA Codebreaker Challenge 2025-26"
 date: 2025-09-28
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "nsa-code-breaker-challenge-2025-26-task4"
 order: 77
 writeupKind: "challenge"
@@ -237,12 +237,3 @@ The RC4 key `"skibidi"` became a running joke from NSA Jack. The meme packer's a
 - **Meme strings can be functional.** The "skibidi toilet code review" buffer wasn't just comic relief – it stored offsets and function pointers. Always check cross-references on suspicious strings.
 - **`memfd_create` + `dlopen` is a pattern.** Both the outer packer and the Task 3 malware use anonymous in-memory execution to avoid leaving artifacts on disk. If you see `memfd_create` in a binary's imports, it's almost certainly a loader/packer.
 - **Validation checks reveal targeting.** The specific file path, environment variable, and hardware checks tell you exactly who the malware was built for – intelligence that's often as valuable as the payload itself.
-
----
-
-## References
-
-- [`memfd_create(2)`](https://man7.org/linux/man-pages/man2/memfd_create.2.html) / [`dlopen(3)`](https://man7.org/linux/man-pages/man3/dlopen.3.html) — the in-memory loading pattern used by the packer
-- [`ptrace(2)`](https://man7.org/linux/man-pages/man2/ptrace.2.html) — the anti-debug primitive (`PTRACE_TRACEME`, `TracerPid`)
-- [Ghidra](https://ghidra-sre.org/) / [GDB](https://www.sourceware.org/gdb/) — static patching analysis and dynamic dump/breakpoint workflow
-- [RC4](https://en.wikipedia.org/wiki/RC4) — the streaming cipher whose sequential state forced the patch-jumps-not-calls strategy

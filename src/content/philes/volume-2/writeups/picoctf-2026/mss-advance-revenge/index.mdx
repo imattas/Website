@@ -1,7 +1,7 @@
 ---
 title: "MSS ADVANCE Revenge — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-mss-advance-revenge"
 order: 16
 writeupKind: "challenge"
@@ -404,12 +404,3 @@ if __name__ == "__main__":
 - Collecting residues modulo enough distinct primes lets the **Chinese Remainder Theorem** reconstruct the full key, provided the product of primes exceeds the key (e.g. ~19 primes of ~15 bits for a 256-bit key).
 - The recovered key is typically SHA-256 hashed into an AES key to decrypt the flag (AES-CBC with a provided IV).
 - Tools used: pwntools/sockets for the JSON protocol, sympy (or a manual CRT), and pycryptodome for AES decryption.
-
----
-
-## References
-
-- [Mignotte's threshold secret sharing scheme (Wikipedia)](https://en.wikipedia.org/wiki/Secret_sharing_using_the_Chinese_remainder_theorem)
-- [Chinese Remainder Theorem (Wikipedia)](https://en.wikipedia.org/wiki/Chinese_remainder_theorem)
-- [SymPy ntheory.modular.crt](https://docs.sympy.org/latest/modules/ntheory.html)
-- [PyCryptodome documentation](https://pycryptodome.readthedocs.io/)

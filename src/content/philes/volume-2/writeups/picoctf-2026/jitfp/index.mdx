@@ -1,7 +1,7 @@
 ---
 title: "JITFP — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-jitfp"
 order: 52
 writeupKind: "challenge"
@@ -471,14 +471,3 @@ if __name__ == '__main__':
 - If the checker short-circuits on the first wrong byte, a **timing side-channel** can brute-force the password one character at a time.
 - Watch for anti-debugging (`rdtsc` timing, `ptrace` self-attach) that must be patched or bypassed.
 - Tools used: GDB, Capstone, Z3, pwntools, and optionally angr.
-
----
-
-## References
-
-- [GDB documentation](https://sourceware.org/gdb/documentation/)
-- [Capstone disassembly framework](https://www.capstone-engine.org/)
-- [Z3 theorem prover](https://github.com/Z3Prover/z3)
-- [angr](https://angr.io/)
-- [pwntools documentation](https://docs.pwntools.com/)
-- [mmap(2) man page](https://man7.org/linux/man-pages/man2/mmap.2.html)

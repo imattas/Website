@@ -1,7 +1,7 @@
 ---
 title: "Secure Dot Product — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-secure-dot-product"
 order: 18
 writeupKind: "challenge"
@@ -293,11 +293,3 @@ if __name__ == "__main__":
 - A **dot-product oracle** can be turned into a per-element leak: a unit vector `e_i = [0,...,1,...,0]` makes the result equal exactly `secret[i]`.
 - If the oracle returns ciphertext rather than plaintext, build a 0-255 **lookup table** (encrypt each candidate byte once) and match — the determinism of ECB makes this a clean dictionary attack.
 - Tooling: `pwntools` (`remote`, `recvuntil`, `sendline`) handles the networked oracle interaction; the script tries both a persistent connection and per-query reconnects.
-
----
-
-## References
-
-- [Block cipher mode of operation — ECB (Wikipedia)](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_codebook_(ECB))
-- [Cryptopals — ECB/CBC detection & byte-at-a-time ECB decryption](https://cryptopals.com/sets/2)
-- [pwntools documentation](https://docs.pwntools.com/)

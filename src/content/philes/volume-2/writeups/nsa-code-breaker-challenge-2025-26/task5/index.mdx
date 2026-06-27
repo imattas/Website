@@ -1,7 +1,7 @@
 ---
 title: "Task 5: Going on the Offensive — NSA Codebreaker Challenge 2025-26"
 date: 2025-09-29
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "nsa-code-breaker-challenge-2025-26-task5"
 order: 78
 writeupKind: "challenge"
@@ -207,12 +207,3 @@ def dec_all(ct_hex):
 - **Double encryption doesn't double the security.** Double AES with independent keys should provide 2^256 security. MITM reduces it to 2×2^128. But when each key only has 26 bits, MITM turns it into 2×2^26 – trivially brute-forceable.
 - **ECB mode enables block-wise attacks.** Each 16-byte block encrypts independently, so you can attack one block at a time with known plaintext. CBC or GCM would have made this significantly harder.
 - **Protocol framing gives you known plaintext.** The `de c0 de c0 ff ee` magic header + `REQCONN_OK` string are predictable. Real protocols should avoid fixed plaintext in encrypted streams, or at minimum use authenticated encryption modes.
-
----
-
-## References
-
-- [Meet-in-the-middle attack](https://en.wikipedia.org/wiki/Meet-in-the-middle_attack) — the core technique against double encryption
-- [ECB mode weaknesses](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_codebook_(ECB)) — why block-wise known-plaintext attacks work here
-- [OpenSSL `libcrypto` EVP](https://docs.openssl.org/master/man7/ossl-guide-libcrypto-introduction/) — the AES-128-ECB primitives the `Comms` class is built on
-- [PyCryptodome](https://www.pycryptodome.readthedocs.io/) — the AES implementation used in the verification script

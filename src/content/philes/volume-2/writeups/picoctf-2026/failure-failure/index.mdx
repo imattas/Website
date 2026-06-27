@@ -1,7 +1,7 @@
 ---
 title: "Failure Failure — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-failure-failure"
 order: 38
 writeupKind: "challenge"
@@ -431,11 +431,3 @@ if __name__ == "__main__":
 - Triggering the failover itself (stopping/killing the primary service) can be the action that surfaces the flag.
 - A broad `grep -r "picoCTF"` across `/etc`, `/var`, `/opt`, `/home`, `/tmp`, plus `/proc/*/environ`, catches flags stashed in config files or process environments.
 - `paramiko` lets you script the entire SSH enumeration-and-trigger workflow end to end.
-
----
-
-## References
-
-- [systemd / systemctl documentation](https://www.freedesktop.org/software/systemd/man/systemctl.html) — service and unit management
-- [Paramiko documentation](https://docs.paramiko.org/) — Python SSH automation
-- [journalctl documentation](https://www.freedesktop.org/software/systemd/man/journalctl.html) — querying systemd logs

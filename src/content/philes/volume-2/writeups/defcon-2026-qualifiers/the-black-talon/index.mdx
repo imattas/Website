@@ -1,0 +1,99 @@
+---
+title: "The Black Talon — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-the-black-talon"
+order: 93
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# The Black Talon — DEF CON CTF Qualifier 2026
+
+> **Category:** `Cryptography`  
+> **Difficulty:** Medium  
+> **Points:** 222  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name, category, and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. Medium crypto challenges often rely on nonce/key reuse, insufficient modulus size, padding oracles, or a homegrown construction with a small-state leak.
+
+Start from the artifact type: ciphertext, oracle, or source. Identify the primitive, then test for parameter reuse, weak randomness, or implementation mistakes before attacking the math.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Classify the scheme from constants, block sizes, and public parameters.
+2. Check repeated values across samples: IVs, nonces, moduli, exponents, and salts.
+3. Re-implement encryption/decryption exactly from source when available.
+4. Write property tests against provided samples.
+5. Exploit the confirmed weakness to recover the plaintext flag.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pathlib import Path
+
+samples = Path('samples.txt').read_text().splitlines()
+
+def main():
+    print(f'loaded {len(samples)} samples')
+    # 1. Parse public parameters.
+    # 2. Check for reused nonce/IV/modulus values.
+    # 3. Re-implement the exact scheme.
+    # 4. Recover plaintext once the weakness is confirmed.
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- Crypto writeups should name the primitive before naming the attack.
+- Sample comparison catches many bugs before heavier math is needed.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

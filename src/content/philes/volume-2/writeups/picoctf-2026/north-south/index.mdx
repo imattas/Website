@@ -1,7 +1,7 @@
 ---
 title: "North-South — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-north-south"
 order: 71
 writeupKind: "challenge"
@@ -471,11 +471,3 @@ if __name__ == '__main__':
 - The challenge name often encodes the required value: "North-South" points to a hemisphere/latitude or directional country choice.
 - Use server error messages to fingerprint which header and value the application actually checks, then narrow from a shotgun of headers to the specific one.
 - `curl -H` is the fastest way to test individual headers; an intercepting proxy helps when the flow is more complex.
-
----
-
-## References
-
-- [PortSwigger: HTTP request smuggling / header manipulation](https://portswigger.net/web-security)
-- [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
-- [MDN: X-Forwarded-For header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For)

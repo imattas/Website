@@ -1,7 +1,7 @@
 ---
 title: "Pizza Router — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-pizza-router"
 order: 3
 writeupKind: "challenge"
@@ -617,13 +617,3 @@ if __name__ == "__main__":
 - Use a cyclic pattern (`cyclic`/`cyclic_find`) to find the exact overflow offset to the saved return address.
 - Pick a strategy based on protections: ret2win (no canary/PIE), canary-leak-then-ret2win, PIE base leak, or ret2libc via a `puts@GOT` leak.
 - On modern glibc/Ubuntu, add a bare `ret` gadget before the function call to keep the stack 16-byte aligned.
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/)
-- [Ghidra](https://ghidra-sre.org/)
-- [checksec](https://github.com/slimm609/checksec.sh)
-- [libc database (libc.rip)](https://libc.rip/)
-- [libc.blukat.me](https://libc.blukat.me/)

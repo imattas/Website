@@ -1,7 +1,7 @@
 ---
 title: "MultiCode — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-multicode"
 order: 39
 writeupKind: "challenge"
@@ -515,11 +515,3 @@ if __name__ == "__main__":
 - Peel from the outermost layer inward, re-inspecting the result after each decode.
 - Automate with a decoder loop that tries each scheme in order of specificity, leaving ambiguous transforms (ROT13/Atbash) for last.
 - CyberChef is ideal for interactive, chainable decoding when you want to experiment by hand.
-
----
-
-## References
-
-- [CyberChef](https://gchq.github.io/CyberChef/) — interactive recipe-based encoding/decoding tool
-- [Python `base64` module](https://docs.python.org/3/library/base64.html)
-- [Python `urllib.parse` module](https://docs.python.org/3/library/urllib.parse.html)

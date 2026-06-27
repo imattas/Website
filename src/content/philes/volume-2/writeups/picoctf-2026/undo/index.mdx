@@ -1,7 +1,7 @@
 ---
 title: "Undo — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-undo"
 order: 44
 writeupKind: "challenge"
@@ -502,11 +502,3 @@ if __name__ == "__main__":
 - When the pipeline is unknown, a bounded brute-force over common inverse combinations, checking for the `picoCTF{...}` pattern, reliably recovers the flag.
 - `cut`/`sort` are lossy and cannot be undone, so a solvable challenge avoids them.
 - Verify intermediate results look reasonable (valid base64/readable ASCII) at each peel step.
-
----
-
-## References
-
-- [GNU Coreutils manual](https://www.gnu.org/software/coreutils/manual/coreutils.html) — `base64`, `tr`, `rev`, `tac`, `fold`, `cut`, `sort`
-- [CyberChef](https://gchq.github.io/CyberChef/) — interactive encoding/decoding for layered transformations
-- [xxd man page](https://linux.die.net/man/1/xxd) — hex dump and reverse (`xxd -r`)

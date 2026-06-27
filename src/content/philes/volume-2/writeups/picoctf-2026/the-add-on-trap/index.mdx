@@ -1,7 +1,7 @@
 ---
 title: "The Add-On Trap — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-the-add-on-trap"
 order: 58
 writeupKind: "challenge"
@@ -563,11 +563,3 @@ if __name__ == "__main__":
 - The flag is often hidden via base64, hex, `String.fromCharCode`/char arrays, or XOR — decode suspicious string literals and re-scan for the flag pattern.
 - Exfiltration clues live in `fetch`/`XMLHttpRequest`/`sendBeacon`/`new Image().src`/WebSocket calls and `document.cookie`/`chrome.storage` access; the flag may travel in the request URL or body.
 - `.crx` files carry a CRX2/CRX3 header before the ZIP data that must be stripped (or seek to the `PK\x03\x04` magic) before unzipping.
-
----
-
-## References
-
-- [Chrome Extensions — manifest.json reference](https://developer.chrome.com/docs/extensions/reference/manifest)
-- [MDN — Browser extensions (Anatomy of an extension)](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Anatomy_of_a_WebExtension)
-- [CRX package format](https://developer.chrome.com/docs/extensions/how-to/distribute/host-on-linux)

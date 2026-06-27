@@ -1,7 +1,7 @@
 ---
 title: "Small Trouble — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-small-trouble"
 order: 21
 writeupKind: "challenge"
@@ -405,12 +405,3 @@ if __name__ == "__main__":
 - `gmpy2.iroot` gives both the integer root and whether it's exact — ideal for testing perfect-power candidates.
 - Fallback attacks: trial-division for a small prime factor (then standard `d = e^-1 mod phi`), and Wiener's attack (continued fractions of `e/n`) for small `d`.
 - factordb.com is worth a quick check whenever `n` might already be factored.
-
----
-
-## References
-
-- [gmpy2 documentation](https://gmpy2.readthedocs.io/)
-- [factordb.com](http://factordb.com/)
-- [Wikipedia: Wiener's attack](https://en.wikipedia.org/wiki/Wiener%27s_attack)
-- [pycryptodome documentation](https://pycryptodome.readthedocs.io/)

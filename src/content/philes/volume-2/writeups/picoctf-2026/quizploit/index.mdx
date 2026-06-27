@@ -1,7 +1,7 @@
 ---
 title: "Quizploit — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-quizploit"
 order: 10
 writeupKind: "challenge"
@@ -221,9 +221,3 @@ if __name__ == "__main__":
 - The answers live in the C source: `#define` macros, array sizes, function names (`win`/`print_flag`), and constants.
 - pwntools (`process`/`remote` + `recvuntil`/`sendline`) makes automating the prompt-response loop trivial once the answers are known.
 - A `--read-source` helper that dumps local `.c`/`.h` files speeds up finding the answers.
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/)

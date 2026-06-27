@@ -1,7 +1,7 @@
 ---
 title: "ORDER ORDER — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-order-order"
 order: 64
 writeupKind: "challenge"
@@ -373,11 +373,3 @@ if __name__ == "__main__":
 - SQLite primitives `substr()`, `unicode()`, `length()`, and `sqlite_master` enable flag length discovery, table enumeration, and character extraction.
 - Binary search on ASCII values cuts each character from ~95 requests down to ~7, a major speedup over linear scanning.
 - "I parameterized everywhere" is a classic false sense of security — ORDER BY is the usual blind spot.
-
----
-
-## References
-
-- [PortSwigger: SQL injection (incl. ORDER BY)](https://portswigger.net/web-security/sql-injection)
-- [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
-- [SQLite core functions (`substr`, `unicode`, `length`)](https://www.sqlite.org/lang_corefunc.html)

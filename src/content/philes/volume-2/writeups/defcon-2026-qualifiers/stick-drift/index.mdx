@@ -1,0 +1,112 @@
+---
+title: "Stick Drift — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-stick-drift"
+order: 97
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# Stick Drift — DEF CON CTF Qualifier 2026
+
+> **Category:** `Miscellaneous`  
+> **Difficulty:** Medium  
+> **Points:** 295  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+No vulnerability is assumed. The observation is likely that biased analog input can be cleaned by subtracting drift and interpreting movement as symbols or coordinates.
+
+Treat the title as a signal-processing or controller-input clue. Inspect provided traces for joystick axes, drift bias, calibration data, or motion paths that encode text.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Identify the artifact type: HID capture, CSV, image frames, game log, or packet capture.
+2. Extract time, x-axis, y-axis, button, and calibration fields.
+3. Estimate drift from idle periods and subtract the baseline.
+4. Cluster corrected movements into directions, points, or gestures.
+5. Decode the resulting path as text, drawing, or coordinates containing the flag.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+import csv
+from statistics import mean
+
+rows = []
+with open('trace.csv', newline='') as handle:
+    for row in csv.DictReader(handle):
+        rows.append({
+            't': float(row['time']),
+            'x': float(row['x']),
+            'y': float(row['y']),
+            'button': int(row.get('button', 0)),
+        })
+
+idle = [row for row in rows if row['button'] == 0][:200]
+x_bias = mean(row['x'] for row in idle)
+y_bias = mean(row['y'] for row in idle)
+
+points = []
+for row in rows:
+    x = row['x'] - x_bias
+    y = row['y'] - y_bias
+    if abs(x) + abs(y) > 0.35:
+        points.append((round(x, 2), round(y, 2)))
+
+for point in points[:500]:
+    print(point)
+```
+
+---
+
+## Key Takeaways
+
+- For sensor-style misc tasks, plot data before guessing encodings.
+- Baseline correction can turn noisy analog input into discrete symbols.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

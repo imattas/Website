@@ -1,7 +1,7 @@
 ---
 title: "KSECRETS — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-ksecrets"
 order: 42
 writeupKind: "challenge"
@@ -510,11 +510,3 @@ if __name__ == "__main__":
 - Core workflow: `kubectl get secret <name> -o yaml/json` to view the base64 data, then `base64 -d` (or a `go-template` with `base64decode`) to reveal the plaintext.
 - Don't stop at Secrets — ConfigMaps and pod environment variables are also worth checking.
 - Tools used: `kubectl` (`cluster-info`, `get`, `describe`, `jsonpath`, `go-template`), `base64`, and Python for bulk decoding.
-
----
-
-## References
-
-- [Kubernetes Secrets documentation](https://kubernetes.io/docs/concepts/configuration/secret/)
-- [kubectl cheat sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
-- [kubectl JSONPath support](https://kubernetes.io/docs/reference/kubectl/jsonpath/)

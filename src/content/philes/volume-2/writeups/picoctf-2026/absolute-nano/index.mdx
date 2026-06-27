@@ -1,7 +1,7 @@
 ---
 title: "ABSOLUTE NANO — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-absolute-nano"
 order: 37
 writeupKind: "challenge"
@@ -396,10 +396,3 @@ if __name__ == "__main__":
 - Knowing common flag locations (`/flag.txt`, `/flag`, `/home/*/flag.txt`, `/root/flag.txt`) speeds up the search; otherwise `find / -name "flag*"` locates it.
 - `reset; bash 1>&0 2>&0` upgrades the breakout into a full interactive shell.
 - GTFOBins is the reference for what restricted binaries can be abused to do.
-
----
-
-## References
-
-- [GTFOBins — nano](https://gtfobins.github.io/gtfobins/nano/)
-- [pwntools documentation](https://docs.pwntools.com/)

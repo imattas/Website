@@ -1,7 +1,7 @@
 ---
 title: "bytemancy 2 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-bytemancy-2"
 order: 41
 writeupKind: "challenge"
@@ -409,11 +409,3 @@ if __name__ == '__main__':
 - Solutions frequently contain non-printable bytes — write raw bytes to stdout and pipe to the program or `nc`, never paste as text.
 - `struct.pack` handles endianness when values are packed as multi-byte integers.
 - Auto-parsing the source for `expected`/`keys` arrays makes the solver reusable across the series.
-
----
-
-## References
-
-- [Python `struct` documentation](https://docs.python.org/3/library/struct.html) — `pack`/`unpack`, endianness
-- [Python bitwise operations](https://docs.python.org/3/reference/expressions.html#binary-bitwise-operations) — XOR, shifts, masks
-- [Python `bytes` documentation](https://docs.python.org/3/library/stdtypes.html#bytes) — raw byte handling and `sys.stdout.buffer`

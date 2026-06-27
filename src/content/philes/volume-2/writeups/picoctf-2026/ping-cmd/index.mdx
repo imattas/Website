@@ -1,7 +1,7 @@
 ---
 title: "ping-cmd — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-ping-cmd"
 order: 46
 writeupKind: "challenge"
@@ -514,10 +514,3 @@ if __name__ == "__main__":
 - The fastest win is appending a second command with `;`, `&&`, `||`, `|`, backticks, or `$()` — e.g. `8.8.8.8; cat /flag.txt`.
 - When `;`/`&`/`|` are filtered, fall back to newline injection (`%0a`), brace expansion (`{cat,/flag.txt}`), quote/backslash splitting (`c''at`), or base64-decode-pipe-to-sh.
 - Confirm injection with `id`, enumerate with `ls /` and `find / -name 'flag*'`, then read the flag from common paths.
-
----
-
-## References
-
-- [PayloadsAllTheThings — Command Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Command%20Injection)
-- [OWASP — Command Injection](https://owasp.org/www-community/attacks/Command_Injection)

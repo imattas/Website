@@ -1,7 +1,7 @@
 ---
 title: "Forensics Git 2 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-forensics-git-2"
 order: 27
 writeupKind: "challenge"
@@ -537,13 +537,3 @@ if __name__ == "__main__":
 - `git fsck --lost-found` and `git fsck --unreachable` resurrect dangling commits that no branch points to; `git cat-file -p` then dumps their contents.
 - When git tooling can't rebuild refs, decompress `.git/objects/` entries directly with zlib and grep the result; for pack files use `git unpack-objects` / `git verify-pack`.
 - File-recovery tooling (`tsk_recover`, `photorec`, `extundelete`) bridges the gap between a damaged filesystem and a working `.git` directory.
-
----
-
-## References
-
-- [Pro Git — Git Internals (Plumbing and Porcelain)](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain)
-- [git fsck documentation](https://git-scm.com/docs/git-fsck)
-- [The Sleuth Kit](https://www.sleuthkit.org/)
-- [PhotoRec — file carving](https://www.cgsecurity.org/wiki/PhotoRec)
-- [extundelete](https://extundelete.sourceforge.net/)

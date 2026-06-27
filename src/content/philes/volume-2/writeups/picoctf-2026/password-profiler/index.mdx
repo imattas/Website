@@ -1,7 +1,7 @@
 ---
 title: "Password Profiler — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-password-profiler"
 order: 43
 writeupKind: "challenge"
@@ -418,12 +418,3 @@ if __name__ == "__main__":
 - CrackStation and similar online services provide instant reverse lookups for common hashes.
 - Offline cracking with `hashcat -m 100` (raw SHA-1) or John the Ripper against `rockyou.txt` is the fallback when online lookups miss.
 - The recovered plaintext is the flag content -- wrap it in `picoCTF{}`.
-
----
-
-## References
-
-- [Have I Been Pwned - Pwned Passwords API](https://haveibeenpwned.com/API/v3#PwnedPasswords)
-- [CrackStation](https://crackstation.net/)
-- [hashcat](https://hashcat.net/hashcat/)
-- [John the Ripper](https://www.openwall.com/john/)

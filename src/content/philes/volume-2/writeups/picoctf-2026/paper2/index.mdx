@@ -1,7 +1,7 @@
 ---
 title: "Paper 2 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-paper2"
 order: 63
 writeupKind: "challenge"
@@ -585,12 +585,3 @@ if __name__ == "__main__":
 - `getdel` on the `/flag` endpoint gives a single guess, so the decode must be correct first try — solved here with 10 replicas and majority voting for 128/128 bit accuracy, plus ranked candidate flipping for any weak bits.
 - Careful memory budgeting matters: a prefill age buffer protects the `secret` key from premature eviction, while sized postfill triggers eviction of untouched markers without killing the secret.
 - The whole chain must fit in the secret's 60-second TTL, so the solver auto-calibrates upload/probe speeds and computes timing parameters dynamically.
-
----
-
-## References
-
-- [MDN: XSLT / XSLTProcessor](https://developer.mozilla.org/en-US/docs/Web/XSLT)
-- [Redis maxmemory & eviction policies](https://redis.io/docs/latest/develop/reference/eviction/)
-- [MDN: Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
-- [aiohttp documentation](https://docs.aiohttp.org/)

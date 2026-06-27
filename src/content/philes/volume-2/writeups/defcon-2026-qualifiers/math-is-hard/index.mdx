@@ -1,0 +1,104 @@
+---
+title: "Math Is Hard — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-math-is-hard"
+order: 89
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# Math Is Hard — DEF CON CTF Qualifier 2026
+
+> **Category:** `Reverse Engineering`  
+> **Difficulty:** Hard  
+> **Points:** 1143  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name, category, and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+No bug is assumed. The key observation should be the mathematical relation checked by the program and how it maps bytes of input to constraints.
+
+Treat the target as a hard reversing/math hybrid. Recover the exact constraints from the binary, then solve them with symbolic execution or an SMT model instead of guessing inputs.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Locate flag/input validation and isolate the pure check function.
+2. Lift arithmetic into Python carefully, preserving integer widths and modular behavior.
+3. Replace brute force with Z3 constraints once the relation is understood.
+4. Validate the candidate input locally before remote submission.
+5. Document every recovered constant and transformation.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from z3 import BitVec, Solver, sat
+
+FLAG_LEN = 0  # Fill in after reversing the check function.
+chars = [BitVec(f'c{i}', 8) for i in range(FLAG_LEN)]
+solver = Solver()
+
+for c in chars:
+    solver.add(c >= 0x20, c <= 0x7e)
+
+# Translate the recovered validation logic here, preserving bit widths.
+# Example:
+# solver.add(((chars[0] * 7) + chars[1]) & 0xff == 0x42)
+
+if solver.check() != sat:
+    raise SystemExit('no solution')
+
+model = solver.model()
+print(bytes(model[c].as_long() for c in chars))
+```
+
+---
+
+## Key Takeaways
+
+- Math-heavy rev challenges are easiest after translating semantics, not syntax.
+- Preserve overflow behavior when porting from C/assembly to Python.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

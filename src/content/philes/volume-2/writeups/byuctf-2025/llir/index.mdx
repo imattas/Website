@@ -1,0 +1,142 @@
+---
+title: "LLIR — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-llir"
+order: 275
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# LLIR — BYUCTF 2025
+
+> **Category:** `Reverse Engineering`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{lL1r_not_str41ght_to_4sm_458d}`  
+> **Source Path:** `rev/llir`
+
+---
+
+## Challenge Description
+
+```text
+Checker? I hardly know her!
+
+[checker?.ll]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/rev/llir)
+- [rev/llir/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/rev/llir/README.md)
+- [rev/llir/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/rev/llir/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Reverse Engineering challenge **LLIR**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [rev/llir/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/rev/llir/README.md)
+
+There are a few ways to solve this. Either you can reverse the LLIR to determine what is happening or use that file to then compile it to C code with `llvm` command line and reverse it from there.
+
+The challenge is one big flag checker with a MASSIVE check statement with all kinds of conditions to determine whether or not your flag is correct. It should be deterministic and solvable pretty simply with z3 👍 (see `solve.py`).
+
+LLVM commands to compile:
+```bash
+llvm-as checker\?.ll -o tmp.bc
+clang tmp.bc -o prog
+```
+
+**Flag** - `byuctf{lL1r_not_str41ght_to_4sm_458d}`
+
+---
+
+## Full Exploit Script
+
+Source: [rev/llir/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/rev/llir/solve.py)
+
+```python
+from z3 import *
+
+# Initialize 37 symbolic bytes for the flag
+flag = [BitVec(f'flag_{i}', 8) for i in range(0x25)]
+
+s = Solver()
+
+# All characters must be printable ASCII
+for c in flag:
+    s.add(c >= 0x20, c <= 0x7d)
+
+
+s.add(flag[4]==flag[0xe])
+s.add(flag[0xe]==flag[0x11])
+s.add(flag[0x11]==flag[0x17])
+s.add(flag[0x17]==flag[0x19])
+s.add(flag[9]==flag[0x14])
+s.add(flag[10]==flag[0x12])
+s.add(flag[0xb]==flag[0xf])
+s.add(flag[0xf]==flag[0x18])
+s.add(flag[0x18]==flag[0x1f])
+s.add(flag[0x1f]==flag[0x1b])
+s.add(flag[0xd]==flag[0x1a])
+s.add(flag[0x10]==flag[0x1d])
+s.add(flag[0x13]==flag[0x1c])
+s.add(flag[0x1c]==flag[0x20])
+s.add(flag[0x24]==ord('}'))
+s.add(flag[6]==ord('{'))
+s.add(flag[8]==flag[7]+-0x20)
+s.add(flag[0]==ord('b'))
+s.add(flag[1]==ord('y'))
+s.add(flag[2]==ord('u'))
+s.add(flag[3]==ord('c'))
+s.add(flag[4]==ord('t'))
+s.add(flag[5]==ord('f'))
+s.add(flag[9] +flag[0x14] == flag[0x1f] + 3)
+s.add(flag[0x1f] + 3 == flag[0])
+s.add(flag[10] == flag[7] + 6)
+s.add(flag[8] == flag[9] + 0x1b)
+s.add(flag[0xc] == flag[0xd] + -1)
+s.add(flag[0xd] == flag[10] + -3)
+s.add(flag[10] == flag[0x10] + -1)
+s.add(flag[0x10] == flag[0xe] + -1)
+s.add(flag[0x23] == flag[5] + -2)
+s.add(flag[5] == flag[0x15] + -1)
+s.add(flag[0x15] == flag[0x16] + -1)
+s.add(flag[0x16] == flag[0x1c] * 2)
+s.add(flag[0x21] == flag[0x20] + 1)
+s.add(flag[0x20] + 1 == flag[0x22] + -3)
+s.add(flag[0x1e] == flag[7] + 1)
+
+
+
+if s.check() == sat:
+    print('SAT')
+    m = s.model()
+    result = ''.join([chr(m[c].as_long()) for c in flag])
+    print(f"Flag: {result}")
+else:
+    print("No solution found.")
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

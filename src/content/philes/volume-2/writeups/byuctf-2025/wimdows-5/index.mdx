@@ -1,0 +1,70 @@
+---
+title: "Wimdows 5 — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-wimdows-5"
+order: 289
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Wimdows 5 — BYUCTF 2025
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{00p5_4ll_b4ckd00r5_139874}`  
+> **Source Path:** `forensics/wimdows/README.md#wimdows-5`
+
+---
+
+## Challenge Description
+
+```text
+This challenge uses the same files as for Wimdows 1.
+
+Last but not least, the attacker put another backdoor in the machine to give themself SYSTEM privileges... what was it? (your answer will be found directly in `byuctf{}` format)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/forensics/wimdows)
+- [forensics/wimdows/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/wimdows/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Forensics challenge **Wimdows 5**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/wimdows/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/wimdows/README.md#wimdows-5)
+
+The backdoor is in the sticky keys feature. In Sysmon logs, there's a registry modification event where you can see that the sticky keys registry key is modified to spawn `cmd.exe` with a comment at the end containing the flag.
+
+**Flag** - `byuctf{00p5_4ll_b4ckd00r5_139874}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

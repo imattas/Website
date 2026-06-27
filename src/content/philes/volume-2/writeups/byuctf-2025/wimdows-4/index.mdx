@@ -1,0 +1,70 @@
+---
+title: "Wimdows 4 — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-wimdows-4"
+order: 286
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Wimdows 4 — BYUCTF 2025
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{sliver_192.168.1.224}`  
+> **Source Path:** `forensics/wimdows/README.md#wimdows-4`
+
+---
+
+## Challenge Description
+
+```text
+This challenge uses the same files as for Wimdows 1.
+
+Using their access, the attacker also deployed a C2 binary on the machine - what C2 framework was it, and what IP address was the C2 attempting to connect to? Format your answer like so: `byuctf{<c2 framework>_<ip address>}`. E.g. `byuctf{evilosx_10.1.1.1}`
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/forensics/wimdows)
+- [forensics/wimdows/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/wimdows/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Forensics challenge **Wimdows 4**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/wimdows/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/wimdows/README.md#wimdows-4)
+
+There are multiple ways to do this. One method is to upload the malicious binary (`C:\Windows\System32\update.exe`) to VirusTotal to determine what C2 it is, then run it and use netstat to find what it's trying to connect to.
+
+**Flag** - `byuctf{sliver_192.168.1.224}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

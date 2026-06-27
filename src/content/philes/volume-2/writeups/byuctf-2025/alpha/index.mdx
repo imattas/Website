@@ -1,0 +1,238 @@
+---
+title: "Alpha — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-alpha"
+order: 264
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Alpha — BYUCTF 2025
+
+> **Category:** `Miscellaneous`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{4r3n7_h4rdw4r3_pr070c0l5_c00l?}`  
+> **Source Path:** `misc/alpha`
+
+---
+
+## Challenge Description
+
+```text
+I made a little Arduino program that displays a flag on a [14-segment display](https://www.adafruit.com/product/2157)! I captured the I2C data sent to the screen using my Saleae logic analyzer... can you decipher it and extract the flag?
+
+[alpha_REDACTED.ino] [flag.sal]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/misc/alpha)
+- [misc/alpha/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/README.md)
+- [misc/alpha/flag.sal](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/flag.sal)
+- [misc/alpha/writeup/bytes1.png](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/bytes1.png)
+- [misc/alpha/writeup/bytes2.png](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/bytes2.png)
+- [misc/alpha/writeup/sal.png](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/sal.png)
+- [misc/alpha/writeup/alpha.ino](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/alpha.ino)
+- [misc/alpha/writeup/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Miscellaneous challenge **Alpha**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [misc/alpha/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/README.md)
+
+I2C is a hardware data transfer protocol. There are two important signals: SDA (Serial Data Line) transfers data while SCL (Serial Clock Line) serves as the clock to synchronize communication.
+
+The `.sal` file is a data capture from the logic analyzer that can be opened using the [Logic 2](https://www.saleae.com/pages/downloads) software. Doing this will show you the SCL and SDA data:
+![image](https://raw.githubusercontent.com/BYU-CSA/BYUCTF-2025/main/misc/alpha/writeup/sal.png)
+Each of the vertical "lines" on the SDA channel is a stream of data being sent to the screen (if you zoom in, you'll see that it's actually the signal going up and down to represent 1s and 0s). If you hover on the number above it or zoom in, you can see the bytes of data:
+![image](https://raw.githubusercontent.com/BYU-CSA/BYUCTF-2025/main/misc/alpha/writeup/bytes1.png)
+![image](https://raw.githubusercontent.com/BYU-CSA/BYUCTF-2025/main/misc/alpha/writeup/bytes2.png)
+If you look at the [datasheet](https://cdn-shop.adafruit.com/datasheets/2153datasheet.pdf) for the display (linked on the Adafruit product page), you'll see that there are 14 segments on each digit, and each segment has its own associated letter. If you look it up, you'll find that this kind of segment display is typically controlled by setting a bit corresponding to that segment to 1 to turn it on ([example](https://www.jameco.com/Jameco/workshop/TechTip/working-with-seven-segment-displays.html)).
+
+Looking at the source code for the libraries referenced in the program further confirms this ([LED backpack](https://github.com/adafruit/Adafruit_LED_Backpack/blob/master/Adafruit_LEDBackpack.cpp#L337) and [I2C](https://github.com/adafruit/Adafruit_BusIO/blob/master/Adafruit_I2CDevice.cpp#L102)). In the I2C library, you'll also find the corresponding binary encodings of each character in the `alphafonttable` array. You can use this array to figure out which bit goes to which segment (hint: it's alphabetical).
+
+```
+A:  0000000000000001
+B:  0000000000000010
+C:  0000000000000100
+D:  0000000000001000
+E:  0000000000010000
+F:  0000000000100000
+G1: 0000000001000000
+G2: 0000000010000000
+H:  0000000100000000
+J:  0000001000000000
+K:  0000010000000000
+L:  0000100000000000
+M:  0001000000000000
+N:  0010000000000000
+DP: 0100000000000000
+```
+
+Looking back at the data, you can see that each I2C communication sends 18 bytes of data. The first two bytes are consistent with each communication and are related to the I2C protocol itself. The last sixteen bytes are the actual data we care about. You'll notice that only eight of those bytes ever have any data besides 0x00- that's because our display only has four digits (two bytes of data each), but the library supports larger displays.
+
+Using the segment to bit conversion table, we can reverse the data from the sal file to determine what character was displayed on the screen. You can do this by hand, or write a script to do it for you (see [solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/solve.py)).
+
+**Flag** - `byuctf{4r3n7_h4rdw4r3_pr070c0l5_c00l?}`
+
+---
+
+## Full Exploit Script
+
+Source: [misc/alpha/writeup/alpha.ino](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/alpha.ino)
+
+```cpp
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+
+Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4();
+
+String flag = "byuctf{4r3n7_h4rdw4r3_pr070c0l5_c00l?}";
+
+void setup() {
+  Serial.begin(9600);
+  alpha4.begin(0x70);
+  alpha4.writeDigitRaw(0, 0x0);
+  alpha4.writeDigitRaw(1, 0x0);
+  alpha4.writeDigitRaw(2, 0x0);
+  alpha4.writeDigitRaw(3, 0x0);
+  alpha4.writeDisplay();
+}
+
+void loop() {
+  delay(1000);
+  for (uint8_t i = 0; i < (flag.length() - 3); i++) {
+    alpha4.writeDigitAscii(0, flag[i]);
+    alpha4.writeDigitAscii(1, flag[i+1]);
+    alpha4.writeDigitAscii(2, flag[i+2]);
+    alpha4.writeDigitAscii(3, flag[i+3]);
+    alpha4.writeDisplay();
+    delay(500);
+  }
+}
+```
+
+---
+
+Source: [misc/alpha/writeup/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/misc/alpha/writeup/solve.py)
+
+```python
+bytes = [
+    0x78, 0x20,
+    0x0c, 0x20,
+    0x1c, 0x00,
+    0xd8, 0x00,
+    0x78, 0x00,
+    0x71, 0x00,
+    0x49, 0x09,
+    0xE6, 0x00,
+    0x50, 0x00,
+    0x8F, 0x00,
+    0x50, 0x10,
+    0x07, 0x00,
+    0x08, 0x00,
+    0x70, 0x10,
+    0xE6, 0x00,
+    0x50, 0x00,
+    0x8E, 0x08,
+    0x14, 0x28,
+    0xE6, 0x00,
+    0x50, 0x00,
+    0x8F, 0x00,
+    0X08, 0X00,
+    0X70, 0X01,
+    0X50, 0X00,
+    0X3F, 0X0C,
+    0X07, 0X00,
+    0X3F, 0X0C,
+    0XD8, 0X00,
+    0X3F, 0X0C,
+    0X30, 0X00,
+    0X69, 0X20,
+    0X08, 0X00,
+    0XD8, 0X00,
+    0X3F, 0X0C,
+    0X3F, 0X0C,
+    0X30, 0X00,
+    0X83, 0X10,
+    0X89, 0X24,
+]
+
+segments = {
+    'A':  0b0000000000000001,
+    'B':  0b0000000000000010,
+    'C':  0b0000000000000100,
+    'D':  0b0000000000001000,
+    'E':  0b0000000000010000,
+    'F':  0b0000000000100000,
+    'G1': 0b0000000001000000,
+    'G2': 0b0000000010000000,
+    'H':  0b0000000100000000,
+    'J':  0b0000001000000000,
+    'K':  0b0000010000000000,
+    'L':  0b0000100000000000,
+    'M':  0b0001000000000000,
+    'N':  0b0010000000000000,
+    'DP': 0b0100000000000000,
+}
+
+def print_digit(A, B, C, D, E, F, G1, G2, H, J, K, L, M, N, DP):
+
+    print(' ___ ') if A else print('     ')
+
+    print('|', end='') if F else print(' ', end='')
+    print('\\', end='') if H else print(' ', end='')
+    print('|', end='') if J else print(' ', end='')
+    print('/', end='') if K else print(' ', end='')
+    print('|') if B else print(' ')
+
+    print(' _', end='') if G1 else print('  ', end='')
+    print('__ ') if G2 else print('   ')
+
+    print('|', end='') if E else print(' ', end='')
+    print('/', end='') if L else print(' ', end='')
+    print('|', end='') if M else print(' ', end='')
+    print('\\', end='') if N else print(' ', end='')
+    print('|') if C else print(' ')
+
+    print(' ___ ') if D else print('     ')
+
+
+for i in range(0, len(bytes), 2):
+    digit = (bytes[i + 1] << 8) + bytes[i]
+    matching_segments = {'A': False, 'B': False, 'C': False, 'D': False, 'E': False, 'F': False, 'G1': False, 'G2': False, 'H': False, 'J': False, 'K': False, 'L': False, 'M': False, 'N': False, 'DP': False}
+    for segment, mask in segments.items():
+        if digit & mask:
+            matching_segments[segment] = True
+    print()
+    print(int(i/2)+1)
+    print('#'*8)
+    print_digit(**matching_segments)
+    print('#'*8)
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

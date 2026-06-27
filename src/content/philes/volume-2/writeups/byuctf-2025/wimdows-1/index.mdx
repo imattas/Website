@@ -1,0 +1,74 @@
+---
+title: "Wimdows 1 — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-wimdows-1"
+order: 283
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Wimdows 1 — BYUCTF 2025
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{CVE-2014-3120}`  
+> **Source Path:** `forensics/wimdows/README.md#wimdows-1`
+
+---
+
+## Challenge Description
+
+```text
+Earlier this week, an attacker managed to get into one of our Windows servers... can you help us figure out what happened? The VM files for this challenge are located below (the credentials are `vagrant`/`vagrant`):
+
+* https://byu.box.com/v/byuctf-wimdows
+
+What CVE did the attacker exploit to get a shell on the machine? Wrap your answer in `byuctf{}`. E.g. `byuctf{CVE-2021-38759}`
+
+Hint: Figure out what process the attacker exploited and look up vulnerabilities associated with it.
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/forensics/wimdows)
+- [forensics/wimdows/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/wimdows/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Forensics challenge **Wimdows 1**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/wimdows/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/wimdows/README.md#wimdows-1)
+
+They exploited ElasticSearch using CVE-2014-3120. In Windows Event Log, there are a variety of suspicious Sysmon logs spawned as `SYSTEM` with a parent process of `elasticsearch-service-x64.exe` process. Looking up this version of ElasticSearch (1.1.1) reveals a few CVEs, but only one is an RCE vulnerability, making it the only correct choice.
+
+**Flag** - `byuctf{CVE-2014-3120}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

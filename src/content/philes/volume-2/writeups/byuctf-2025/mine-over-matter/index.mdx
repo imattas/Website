@@ -1,0 +1,117 @@
+---
+title: "Mine Over Matter — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-mine-over-matter"
+order: 288
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Mine Over Matter — BYUCTF 2025
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{172.16.0.10,172.16.0.5}`  
+> **Source Path:** `forensics/Mine-Over-Matter.md`
+
+---
+
+## Challenge Description
+
+```text
+Your SOC has flagged unusual outbound traffic on a segment of your network. After capturing logs from the router during the anomaly, they handed it over to you—the network analyst.
+
+Somewhere in this mess, two compromised hosts are secretly mining cryptocurrency and draining resources. Analyze the traffic, identify the two rogue IP addresses running miners, and report them to the Incident Response team before your network becomes a crypto farm.
+
+Use the log file found [here](https://byu.box.com/s/2rong02xtfx7sfo52nos3ra2waifogv2)
+
+Flag format: `byuctf{IP1,IP2}` (*it doesn't which order the IPs are in*)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/forensics)
+- [forensics/Mine-Over-Matter.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/Mine-Over-Matter.md)
+- [forensics/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Forensics challenge **Mine Over Matter**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/Mine-Over-Matter.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/Mine-Over-Matter.md)
+
+Create a solve script that does a reverse DNS lookup on all the destination IP addresses in the log file. 
+
+See [`solve.py`](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/solve.py).
+
+**Flag** - `byuctf{172.16.0.5,172.16.0.10}` or `byuctf{172.16.0.10,172.16.0.5}`
+
+---
+
+## Full Exploit Script
+
+Source: [forensics/solve.py](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/forensics/solve.py)
+
+```python
+import subprocess, re
+
+inputFile = "logs.txt" 
+uniqueIPsDest = set()
+uniqueIPsSrc = set()
+ipDomainMap = {}
+
+with open(inputFile, 'r') as file:
+    for line in file:
+        fields = line.strip().split(',')
+        if len(fields) >= 20:
+            destIP = fields[19]
+            uniqueIPsDest.add(destIP)
+
+for ip in sorted(uniqueIPsDest):
+    try:
+        result = subprocess.run(["nslookup", ip], capture_output=True, text=True, check=True)
+        if 'mine' in result.stdout.strip():
+            match = re.search(r'name\s*=\s*(.+)\.', result.stdout)
+            domain = match.group(1)
+            ipDomainMap[ip] = domain
+            print(f"{ip} -> {domain}")
+    except subprocess.CalledProcessError as e:
+        pass
+
+with open(inputFile, 'r') as file:
+    for line in file:
+        fields = line.strip().split(',')
+        if len(fields) >= 20:
+            srcIP = fields[19]
+            for ip, domain in ipDomainMap.items():
+                if ip == srcIP:
+                    uniqueIPsSrc.add(fields[18])
+
+print("Source Addresses For Miners")
+for ip in uniqueIPsSrc:
+    print(ip)
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

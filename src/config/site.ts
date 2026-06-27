@@ -66,19 +66,6 @@ export const siteConfig: SiteConfig = {
       }
     },
     {
-      title: "Projects",
-      items: [
-        {
-          label: "All public GitHub repos rendered from their README files.",
-          href: "/volume/1/"
-        },
-        {
-          label: "Writeups - CTF and cybersecurity notes.",
-          href: "/volume/2/"
-        }
-      ]
-    },
-    {
       title: "Contact",
       items: [
         {

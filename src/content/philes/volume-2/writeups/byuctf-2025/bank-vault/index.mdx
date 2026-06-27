@@ -1,0 +1,70 @@
+---
+title: "Bank Vault — BYUCTF 2025"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2025-bank-vault"
+order: 274
+writeupKind: "challenge"
+ctfSlug: "byuctf-2025"
+ctfTitle: "BYUCTF 2025"
+---
+
+# Bank Vault — BYUCTF 2025
+
+> **Category:** `Reverse Engineering`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{3v3n_v3ct0rs_4pp34r_1n_m3m0ry}`  
+> **Source Path:** `rev/bank_vault`
+
+---
+
+## Challenge Description
+
+```text
+This bank is totally secure. No way you can break your way into the vault or recover the password. We have a special key system that is unbreakable.
+
+[bank]
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2025/tree/main/rev/bank_vault)
+- [rev/bank_vault/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/rev/bank_vault/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2025 source material for the Reverse Engineering challenge **Bank Vault**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [rev/bank_vault/README.md](https://github.com/BYU-CSA/BYUCTF-2025/blob/main/rev/bank_vault/README.md)
+
+When reversing the challenge, you'll see an array of boolean values and an array of 32 bit integers (these are stored initially in the data section). The logic of checking the flag against these integers is reversible, and that generates a bool array. When finished, that array is reversed and checked against the original array used. You just need to pass the checks that correlate with the original array to get the flag. This just means whenever you're stepping through the binary and you run into a `1` from the bool array, that comparison actually matters.
+
+**Flag** - `byuctf{3v3n_v3ct0rs_4pp34r_1n_m3m0ry}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2025 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

@@ -1,0 +1,78 @@
+---
+title: "Chromatic — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-chromatic"
+order: 253
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Chromatic — BYUCTF 2026
+
+> **Category:** `Miscellaneous`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{It's_all_red_I_really_thought_it_would_be_more}`  
+> **Source Path:** `misc/chromatic`
+
+---
+
+## Challenge Description
+
+```text
+Title: Chromatic
+Description: Red.
+
+Files: chromatic.mp4
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/misc/chromatic)
+- [misc/chromatic/challenge.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/chromatic/challenge.md)
+- [misc/chromatic/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/chromatic/writeup.md)
+- [misc/chromatic/chromatic.mp4](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/chromatic/chromatic.mp4)
+- [misc/chromatic/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/chromatic/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Miscellaneous challenge **Chromatic**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [misc/chromatic/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/chromatic/writeup.md)
+
+Ok, so this challenge is actually kinda fun in my opinion. It's a real way that I have sent data to other people, and figured I'd give up the ghost. 
+
+At first, the challenge looks like a video of shades of red. Well, it is. However, you might notice that each shade has exactly 30 frames of video time. The only real data to be seen here are the frames themselves. Looking at each frame using something like LSB or similar will not return any data. Each frame is a single color. But, the colors codes are all interesting. Each color is a color code that only has a value for red (i.e. #620000 or #780000). 
+
+By taking the color code from each 30 frame section, you can find the pattern with a little work. By taking the red value of each color code, and mapping it's hex value to an ASCII character, you can spell out a message. Automate it. Please. Doing this across all 54 seconds of the video reconstructs the flag character by character.
+
+Flag: byuctf{It's_all_red_I_really_thought_it_would_be_more}
+
+---
+
+## Full Exploit Script
+
+- [misc/chromatic/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/misc/chromatic/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

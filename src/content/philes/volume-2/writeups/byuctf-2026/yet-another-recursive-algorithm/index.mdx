@@ -1,0 +1,76 @@
+---
+title: "Yet Another Recursive Algorithm — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-yet-another-recursive-algorithm"
+order: 216
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Yet Another Recursive Algorithm — BYUCTF 2026
+
+> **Category:** `Reverse Engineering`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{why_do3s_yara_st4nd_f0r_th4t???}`  
+> **Source Path:** `rev/yara`
+
+---
+
+## Challenge Description
+
+```text
+# Yet Another Recursive Acronym
+
+Maybe use `--no-warnings` for quality of life.
+
+Note: there should not be an unintended, but if you find one let the admins know
+
+Files:
+- [rule.yar](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/yara/rule.yar)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/rev/yara)
+- [rev/yara/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/yara/README.md)
+- [rev/yara/rule.yar](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/yara/rule.yar)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Reverse Engineering challenge **Yet Another Recursive Algorithm**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [rev/yara/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/yara/README.md)
+
+This is a yara rule that does matching on a file to check whether or not the flag is contained within it. Many people did this manually to solve it, but it could also be done with a sat solver if you want to be fancy, just make all the conditions be met. Goal here is just to introduce you to yara and all the fun stuff that comes with it.
+
+Flag: `byuctf{why_do3s_yara_st4nd_f0r_th4t???}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

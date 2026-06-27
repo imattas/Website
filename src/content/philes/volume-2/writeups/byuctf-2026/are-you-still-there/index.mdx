@@ -1,0 +1,208 @@
+---
+title: "Are You Still There? — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-are-you-still-there"
+order: 240
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Are You Still There? — BYUCTF 2026
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{Turr3t_R3d3mpt!0n_L!n3s_4r3_N0t_R!d3s}`  
+> **Source Path:** `forensics/are_you_still_there/AreYouStillThere.md`
+
+---
+
+## Challenge Description
+
+```text
+Forms FORM-55551-6:
+Personnel File Addendum Addendum:
+
+One last thing:
+
+Go ahead and leave me.
+I think I prefer to stay inside.
+Maybe you'll find someone else
+to help you.
+Maybe Black Mesa...
+THAT WAS A JOKE. HA HA. FAT CHANCE.
+Anyway, this cake is great.
+It's so delicious and moist.
+Look at me still talking
+when there's Science to do.
+When I look out there,
+it makes me GLaD I'm not you.
+I've experiments to run.
+There is research to be done.
+On the people who are
+still alive.
+
+PS: And believe me I am
+still alive.
+PPS: I'm doing Science and I'm
+still alive.
+PPPS: I feel FANTASTIC and I'm
+still alive.
+
+FINAL THOUGHT:
+While you're dying I'll be
+still alive.
+
+FINAL THOUGHT PS:
+And when you're dead I will be
+still alive.
+
+STILL ALIVE
+
+Still alive.
+
+
+*The pcap file contains a flag for each of the following challenges: "There will be cake", "Are you still there?", "Alright. Paradox time", and "Corrupted Cores". 
+
+If the flag you found doesn't work, then it most likely belongs to one of the other 3 challenges.
+
+
+Hint: how would you remotely check if a server is online?
+---
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/forensics/are_you_still_there)
+- [forensics/are_you_still_there/AreYouStillThere.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/forensics/are_you_still_there/AreYouStillThere.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Forensics challenge **Are You Still There?**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/are_you_still_there/AreYouStillThere.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/forensics/are_you_still_there/AreYouStillThere.md)
+
+While the challenge title and "Still Alive" lyrics don't directly tell us anything, it hints that the player is to 
+look at packets with a repetitive nature that are checking if something is still alive or running. This should lead 
+them to the ICMP packets that are pinging the server.
+
+![screenshot of the first ping packet](https://raw.githubusercontent.com/BYU-CSA/BYUCTF-2026/main/forensics/are_you_still_there/images/PINGData.png)
+
+After searching through the ping packets for a bit, you should notice that the very end of the first packet contains
+the ascii values for the characters "byuc". Additionally, you should notice that the next ping requests contains 
+"tf{T" at the end of it's packet as well. After looking around for a bit, you notice that almost all of the ping 
+packets have 4 ascii characters at the end of the packets. This indicates that the flag was broken up and sent across
+multiple different packets in sequence.
+
+From this point, there are 2 approaches one could take. You could either manually write down the characters found at 
+the end of the packets and piece them together, or you could write a script to do it for you. Below is the script that
+can be used to solve this challenge. (code can also be found in pingDataSolver.py)
+
+```python
+import struct
+
+PCAP_FILE = "GLaDOS_Network.pcapng"
+
+
+def parse_pcapng(filepath):
+    """Parse pcapng and return raw packet bytes."""
+    with open(filepath, 'rb') as f:
+        data = f.read()
+
+    packets = []
+    offset = 0
+    while offset < len(data):
+        if offset + 8 > len(data):
+            break
+        block_type = struct.unpack_from('<I', data, offset)[0]
+        block_len  = struct.unpack_from('<I', data, offset + 4)[0]
+        if block_len == 0 or offset + block_len > len(data):
+            break
+        block_data = data[offset:offset + block_len]
+        if block_type == 0x00000006:  # Enhanced Packet Block
+            cap_len  = struct.unpack_from('<I', block_data, 20)[0]
+            pkt_data = block_data[28:28 + cap_len]
+            packets.append(pkt_data)
+        offset += block_len
+    return packets
+
+
+def parse_ip(pkt):
+    """Extract IP protocol and payload from an Ethernet frame."""
+    if len(pkt) < 14:
+        return None
+    eth_proto = struct.unpack_from('>H', pkt, 12)[0]
+    if eth_proto != 0x0800:
+        return None
+    ip_start = 14
+    ihl      = (pkt[ip_start] & 0x0F) * 4
+    proto    = pkt[ip_start + 9]
+    payload  = pkt[ip_start + ihl:]
+    return proto, payload
+
+
+def solve(filepath):
+    packets = parse_pcapng(filepath)
+
+    chunks = {}  # seq -> raw ASCII payload bytes
+
+    for pkt in packets:
+        result = parse_ip(pkt)
+        if not result:
+            continue
+        proto, payload = result
+
+        if proto != 1 or len(payload) < 8:  # ICMP
+            continue
+        if payload[0] != 8:                  # only echo requests
+            continue
+
+        seq      = struct.unpack_from('>I', payload, 4)[0]
+        raw_data = payload[8:]               # bytes after ICMP header
+
+        # Each packet carries a plain ASCII chunk of the flag
+        chunks[seq] = raw_data
+
+    if not chunks:
+        print("No ICMP echo request packets found.")
+        return
+
+    flag = b"".join(chunks[k] for k in sorted(chunks.keys()))
+
+    print(f"Flag 2 (ICMP Payload): {flag.rstrip(b'\\x00').decode(errors='replace')}")
+
+
+if __name__ == "__main__":
+    solve(PCAP_FILE)
+```
+
+after running this script, you should get the following flag:  byuctf{Turr3t_R3d3mpt!0n_L!n3s_4r3_N0t_R!d3s}
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

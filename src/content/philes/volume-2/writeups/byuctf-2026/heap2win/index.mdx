@@ -1,0 +1,83 @@
+---
+title: "Heap2Win — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-heap2win"
+order: 224
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Heap2Win — BYUCTF 2026
+
+> **Category:** `Pwn`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{y34h,..._you're_a_pro}`  
+> **Source Path:** `pwn/heap2win`
+
+---
+
+## Challenge Description
+
+```text
+# Heap 2 Win
+
+Remember me? No one solved me during kickstart, so I'm back for revenge
+
+Files:
+- [heap2win.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/heap2win.zip)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/pwn/heap2win)
+- [pwn/heap2win/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/README.md)
+- [pwn/heap2win/heap2win.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/heap2win.zip)
+- [pwn/heap2win/main.cpp](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/main.cpp)
+- [pwn/heap2win/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Pwn challenge **Heap2Win**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/heap2win/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/README.md)
+
+This is a fun challenge because it's *very* specific to C++ as far as the vulnerability goes. It involves an overwrite in the heap (line 32: `scanf("%s", name);`) combined with the fact that the whole binary is using classes with virtual functions.
+
+In C++, a virtual function uses what is called a vtable, which contains pointers to all of the relevant functions. This way, the heap stores a base object that looks something like vtable pointer followed by all the other members, then to actually call functions it dereferences the vtable. So all you need to do is change what the vtable is pointing to and voila, you have function call capability.
+
+This one is pretty easy because I give a `WinnerButton`, which has all of the same functions as a normal buttons but `push` calls `/bin/sh` for them. They just need to use their overwrite to overwrite an old button's vtable pointer with that of a `WinnerButton` and then push it. 
+
+[solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/solve.py) has a working, automatic solve. Turns out, when you use vectors, it'll store temporary data on the heap at just the right size for our object to inject itself at an old index, which I discovered through debugging. Works like a charm
+
+Flag: `byuctf{y34h,..._you're_a_pro}`
+
+---
+
+## Full Exploit Script
+
+- [pwn/heap2win/main.cpp](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/main.cpp)
+- [pwn/heap2win/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/heap2win/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

@@ -1,0 +1,75 @@
+---
+title: "Power Tower — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-power-tower"
+order: 230
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Power Tower — BYUCTF 2026
+
+> **Category:** `Cryptography`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{eulers_phi_phunction_is_a_phun_phunction}`  
+> **Source Path:** `crypto/power_tower`
+
+---
+
+## Challenge Description
+
+```text
+No standalone challenge prompt was present in the source repository for this entry.
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/crypto/power_tower)
+- [crypto/power_tower/solve_files/Writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/power_tower/solve_files/Writeup.md)
+- [crypto/power_tower/solve_files/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/power_tower/solve_files/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Cryptography challenge **Power Tower**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [crypto/power_tower/solve_files/Writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/power_tower/solve_files/Writeup.md)
+
+To solve the challenge, we apply Euler's Theorem recursively to the encryption exponent. That is,
+
+$$e_1^{e_2}\pmod{\phi(n)}=e_1^{e_2\pmod{\phi(\phi(n))}}\pmod{\phi(n)}$$
+
+Applying this iteratively gives us a fast method to compute the power tower (mod $\phi(n)$) if we can compute
+
+$$\phi(n),\phi^2(n),\phi^3(n),\dots,\phi^{25}(n)$$
+
+efficiently. Because the known factors of $n$ are already small, we can get factorizations for each $\phi^{k}(n)$ using trial division.
+
+---
+
+## Full Exploit Script
+
+- [crypto/power_tower/solve_files/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/power_tower/solve_files/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

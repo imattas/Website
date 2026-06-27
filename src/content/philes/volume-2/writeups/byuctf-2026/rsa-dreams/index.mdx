@@ -1,0 +1,86 @@
+---
+title: "RSA Dreams — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-rsa-dreams"
+order: 229
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# RSA Dreams — BYUCTF 2026
+
+> **Category:** `Cryptography`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{great_job_recovering_the_flag}`  
+> **Source Path:** `crypto/rsa_dreams`
+
+---
+
+## Challenge Description
+
+```text
+Did I give one too many hints????
+
+Files:
+- [rsa_dreams_dist.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/rsa_dreams/rsa_dreams_dist.zip)
+
+### Writeup
+
+In this challenge we know p*q and p + q. This is enough to recover p and q using the quadratic formula; see the solve script for details.
+
+Flag: `byuctf{great_job_recovering_the_flag}`
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/crypto/rsa_dreams)
+- [crypto/rsa_dreams/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/rsa_dreams/README.md)
+- [crypto/rsa_dreams/rsa_dreams_dist.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/rsa_dreams/rsa_dreams_dist.zip)
+- [crypto/rsa_dreams/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/rsa_dreams/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Cryptography challenge **RSA Dreams**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [crypto/rsa_dreams/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/rsa_dreams/README.md)
+
+Did I give one too many hints????
+
+Files:
+- [rsa_dreams_dist.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/rsa_dreams/rsa_dreams_dist.zip)
+
+### Writeup
+
+In this challenge we know p*q and p + q. This is enough to recover p and q using the quadratic formula; see the solve script for details.
+
+Flag: `byuctf{great_job_recovering_the_flag}`
+
+---
+
+## Full Exploit Script
+
+- [crypto/rsa_dreams/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/rsa_dreams/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

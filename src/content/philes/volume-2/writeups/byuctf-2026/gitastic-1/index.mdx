@@ -1,0 +1,75 @@
+---
+title: "Gitastic 1 — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-gitastic-1"
+order: 234
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Gitastic 1 — BYUCTF 2026
+
+> **Category:** `Git`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{I_hop3_y0u_didnt_s3@rch_manually}`  
+> **Source Path:** `Gitastic-Containerized/Gitastic-Solutions/Gitastic1`
+
+---
+
+## Challenge Description
+
+````text
+Description:
+```markdown
+We've recently found out that one of our employees has been exfiltrating information to a competitor. They did it via messages attached to each code change he made. Find the secret that was exfiltrated!
+
+git clone git://gitastic.csa.cyberjousting.com/challenge
+```
+````
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic1)
+- [Gitastic-Containerized/Gitastic-Solutions/Gitastic1/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic1/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Git challenge **Gitastic 1**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [Gitastic-Containerized/Gitastic-Solutions/Gitastic1/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic1/README.md)
+
+Players are supposed to deduce that "messages attached to each code change" means a commit message. They then need to figure out how to search the commit history.
+
+They can run `git log --grep byu` to find the flag.
+
+**Flag** - `byuctf{I_hop3_y0u_didnt_s3@rch_manually}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

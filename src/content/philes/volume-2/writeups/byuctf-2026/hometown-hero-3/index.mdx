@@ -1,0 +1,80 @@
+---
+title: "Hometown Hero 3 — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-hometown-hero-3"
+order: 248
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Hometown Hero 3 — BYUCTF 2026
+
+> **Category:** `OSINT`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{$199,500}`  
+> **Source Path:** `OSINT/Hometown_Hero/Hometown_Hero_3`
+
+---
+
+## Challenge Description
+
+```text
+Title: Hometown Hero 3
+Description: Ok, maybe that one was still easy. Some of the more observant Cameron Snider enthusiasts might know that he moved across the US when he was in high school (https://en.wikipedia.org/wiki/Secondary_school). Can you figure out how much his childhood home was sold for?
+
+Format: byuctf{Amount in USD}
+Example: byuctf{$1,000,000}
+NOTE: I will accept additional decimal separators like byuctf{$1.000.000}
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/OSINT/Hometown_Hero/Hometown_Hero_3)
+- [OSINT/Hometown_Hero/Hometown_Hero_3/challenge.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/OSINT/Hometown_Hero/Hometown_Hero_3/challenge.md)
+- [OSINT/Hometown_Hero/Hometown_Hero_3/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/OSINT/Hometown_Hero/Hometown_Hero_3/writeup.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the OSINT challenge **Hometown Hero 3**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [OSINT/Hometown_Hero/Hometown_Hero_3/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/OSINT/Hometown_Hero/Hometown_Hero_3/writeup.md)
+
+To start, this challenge will require digging a bit into my family. You should just need a name of basically any of my immediate family, but we will use my mom "Ann Snider". Because all American's data has been sold to basically everyone, using any tool that finds a person's reported address will lead you to where my parents currently live. I like FastPeopleSearch.com: https://www.fastpeoplesearch.com/ann-snider_id_G370910309592386657  
+
+From there, you can usually find all previous reported addresses. Once you find the one that exists in Kearney Nebraska (https://www.fastpeoplesearch.com/address/4103-fairacres-rd_kearney-ne-68845), you should be able to look for sale data on that address. For example, realtor.com reports this data: https://www.realtor.com/realestateandhomes-detail/4103-Fairacres-Rd_Kearney_NE_68845_M77108-56845  
+
+It clearly lists the sale price as $199,500 USD.
+
+Flag: byuctf{$199,500}
+
+Theres actually two documents that each show a different value. One is $199,500 and one is $200,000. As such, I will accept both. Also accepting the European style of decimal seperation because (although it is vastly superior) I am not a monster.
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

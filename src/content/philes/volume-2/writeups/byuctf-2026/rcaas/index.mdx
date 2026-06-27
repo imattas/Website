@@ -1,0 +1,74 @@
+---
+title: "RCaaS — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-rcaas"
+order: 217
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# RCaaS — BYUCTF 2026
+
+> **Category:** `Reverse Engineering`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{s3rv1c3s_c4n_3_r3v3rs3_3ng1n33r3d_t00}`  
+> **Source Path:** `rev/rcaas`
+
+---
+
+## Challenge Description
+
+```text
+RCaaS (Rev Chall as a Service)
+
+Files:
+- [rcaas](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/rcaas/rcaas)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/rev/rcaas)
+- [rev/rcaas/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/rcaas/README.md)
+- [rev/rcaas/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/rcaas/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Reverse Engineering challenge **RCaaS**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [rev/rcaas/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/rcaas/README.md)
+
+This challenge installs itself as a service and then runs the checks as that service on a specific file on the system. You could probably patch it so that you don't have to do that, but it's not too hard to just let it run as a service. I just ran the installer and then worked from there for my checks. It does the checks in the `run()` function, so just find that and undo it. I used z3 for that, which was chill
+
+Public CTF probably make the checks more complex and maybe even strip the binary?
+
+Flag: `byuctf{s3rv1c3s_c4n_3_r3v3rs3_3ng1n33r3d_t00}`
+
+---
+
+## Full Exploit Script
+
+- [rev/rcaas/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/rcaas/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

@@ -1,0 +1,96 @@
+---
+title: "There Will Be Cake — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-there-will-be-cake"
+order: 239
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# There Will Be Cake — BYUCTF 2026
+
+> **Category:** `Forensics`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{Th3_C4k3_!s_4_L!3_HTC56zeE}`  
+> **Source Path:** `forensics/there_will_be_cake/ThereWillBeCake.md`
+
+---
+
+## Challenge Description
+
+```text
+---
+## Challenge Description
+
+The Enrichment Center is required to remind you that
+all test subject activity will be logged, 
+analyzed, and stored for scientific purposes.
+
+"Cake and grief counseling will be available at the conclusion of the test."
+
+
+*The pcap file contains a flag for each of the following challenges: "There will be cake", "Are you still there?", "Alright. Paradox time", and "Corrupted Cores". 
+
+If the flag you found doesn't work, then it most likely belongs to one of the other 3 challenges.
+
+
+Hint: what is a baked treat similar to a cake that you can find on almost any website?
+---
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/forensics/there_will_be_cake)
+- [forensics/there_will_be_cake/ThereWillBeCake.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/forensics/there_will_be_cake/ThereWillBeCake.md)
+- [forensics/there_will_be_cake/GLaDOS_Network.pcapng](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/forensics/there_will_be_cake/GLaDOS_Network.pcapng)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Forensics challenge **There Will Be Cake**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [forensics/there_will_be_cake/ThereWillBeCake.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/forensics/there_will_be_cake/ThereWillBeCake.md)
+
+This one is fairly straightforward. Since the challenge description is talking about storing data, the
+player should look for any packets that resemble an API request. The only packets that fit this description 
+are the HTTP request and response packets, so we start our search there.
+
+![image of http packet](https://raw.githubusercontent.com/BYU-CSA/BYUCTF-2026/main/forensics/there_will_be_cake/images/HTTPCookie.png)
+
+After looking around in the HTTP request packet, we see that there is a cookie being sent titled cake, which has
+a base64 string associated with it. If we take the base64 string and decode it, we end up with the following flag:
+
+byuctf{Th3_C4k3_!s_4_L!3_HTC56zeE}
+
+
+(also, please forgive me for the vibe-codded api. I only noticed after the fact that it was a POST request and not a 
+GET request lol)
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

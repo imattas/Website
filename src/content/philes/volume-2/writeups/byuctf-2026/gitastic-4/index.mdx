@@ -1,0 +1,80 @@
+---
+title: "Gitastic 4 — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-gitastic-4"
+order: 237
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Gitastic 4 — BYUCTF 2026
+
+> **Category:** `Git`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{But_th3s_was_d3l3t3d?}`  
+> **Source Path:** `Gitastic-Containerized/Gitastic-Solutions/Gitastic4`
+
+---
+
+## Challenge Description
+
+````text
+Description:
+```markdown
+Walker reported that he accidentally pushed an API key to our public repo. Luckily he deleted it afterward so we're completed safe and secure!
+
+git clone git://gitastic.csa.cyberjousting.com/challenge
+```
+````
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic4)
+- [Gitastic-Containerized/Gitastic-Solutions/Gitastic4/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic4/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Git challenge **Gitastic 4**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [Gitastic-Containerized/Gitastic-Solutions/Gitastic4/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic4/README.md)
+
+Players need to find the deleted file and read it. There's a great article on geeksforgeeks about this.
+
+They can run `git log --diff-filter=D --summary` to find the files that were deleted. They can
+They find the apikey.txt was deleted in commit `f3361dcede9b2337bbbf51ff08d6fbb215186bbd`.
+
+Next, checkout the commit right before it was deleted `git checkout f3361dcede9b2337bbbf51ff08d6fbb215186bbd~1`.
+
+Finally, `cat apikey.txt`.
+
+**Flag** - `byuctf{But_th3s_was_d3l3t3d?}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

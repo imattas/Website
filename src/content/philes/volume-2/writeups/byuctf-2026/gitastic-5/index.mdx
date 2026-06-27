@@ -1,0 +1,86 @@
+---
+title: "Gitastic 5 — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-gitastic-5"
+order: 238
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Gitastic 5 — BYUCTF 2026
+
+> **Category:** `Git`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{I_lov3_s3cr3t_files}`  
+> **Source Path:** `Gitastic-Containerized/Gitastic-Solutions/Gitastic5`
+
+---
+
+## Challenge Description
+
+````text
+Description:
+```markdown
+We're certain that someone critical info in the secrets.txt file yet we can't see anything. It's like someone has replaced it with something else! We need you to get to the bottom of this mysterious case
+
+git clone git://gitastic.csa.cyberjousting.com/challenge
+```
+````
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic5)
+- [Gitastic-Containerized/Gitastic-Solutions/Gitastic5/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic5/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Git challenge **Gitastic 5**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [Gitastic-Containerized/Gitastic-Solutions/Gitastic5/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/Gitastic-Containerized/Gitastic-Solutions/Gitastic5/README.md)
+
+This is the hardest challenge of the gitastic series.
+
+1) Run `git log` to find the hash of the first commit is `f88c2adbe25705ad54cabfd0c84826235446ffd0`.
+
+2) They will also find in the commit message a message talking about checking if something has replaced it.
+
+3) Run `git fetch origin 'refs/replace/*:refs/replace/*'`. If they then run git log again they'll notice that the log has changed to say 'replaced' on the commit at the top.
+
+4) If they run `git show-ref` it'll show them replace refs at the top of the output. They're able to see the hash of the last commit.
+
+5) From the last command they can see that there's a tie to the hash of their current git commit. This gives them the hash of `b82f2081365d48f0366d22c07d40b2ae8279de0c`.
+
+6)They can run `git --no-replace-objects show b82f2081365d48f0366d22c07d40b2ae8279de0c` to see what hidden file is actually there.
+
+
+**Flag** - `byuctf{I_lov3_s3cr3t_files}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

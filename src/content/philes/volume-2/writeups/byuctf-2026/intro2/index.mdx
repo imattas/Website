@@ -1,0 +1,77 @@
+---
+title: "Intro2 — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-intro2"
+order: 222
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Intro2 — BYUCTF 2026
+
+> **Category:** `Pwn`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{%p_yourself}`  
+> **Source Path:** `pwn/intro2`
+
+---
+
+## Challenge Description
+
+```text
+# Intro
+
+This uses the same binary as `intro`. Why do you think that had a win function in it ;)
+
+Files:
+- [intro](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/intro2/intro)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/pwn/intro2)
+- [pwn/intro2/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/intro2/README.md)
+- [pwn/intro2/dist.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/intro2/dist.zip)
+- [pwn/intro2/solve/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/intro2/solve/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Pwn challenge **Intro2**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/intro2/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/intro2/README.md)
+
+Just format string it up. You should be able to either overwrite a got entry or the stack pointer pretty easily. I'm almost positive you can leak anything you need, too
+
+(Solve script in progress probably)
+
+Flag: `byuctf{%p_yourself}`
+
+---
+
+## Full Exploit Script
+
+- [pwn/intro2/solve/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/intro2/solve/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

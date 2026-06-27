@@ -1,0 +1,76 @@
+---
+title: "Mixed Signals — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-mixed-signals"
+order: 219
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Mixed Signals — BYUCTF 2026
+
+> **Category:** `Reverse Engineering`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{l3ft_bl1nk3r_5c9125be}`  
+> **Source Path:** `rev/mixed_signals`
+
+---
+
+## Challenge Description
+
+```text
+### Description
+
+Legend has it, this checks a flag
+
+Files:
+- [mixed_signals](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/mixed_signals/mixed_signals)
+- [program](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/mixed_signals/program)
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/rev/mixed_signals)
+- [rev/mixed_signals/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/mixed_signals/README.md)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Reverse Engineering challenge **Mixed Signals**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [rev/mixed_signals/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/rev/mixed_signals/README.md)
+
+`mixed_signals` is a VM that is based on signals sent to the program. `program` has a number of signals that it throws at `mixed_signals` that triggers actions in the VM that checks the inputted flag *in constant time* (that's important lol). Basically we put the flag in a data section in `mixed_signals`, then the opcodes sent by `program` actually go through and do stuff to it. If you reverse it, you can verify that you have the right flag by running `./mixed_signals <flag>` then running `./program` in a separate tab (they interact).
+
+There is no solve script for this one
+
+Flag: `byuctf{l3ft_bl1nk3r_5c9125be}`
+
+---
+
+## Full Exploit Script
+
+No standalone exploit script was present in the selected source material.
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

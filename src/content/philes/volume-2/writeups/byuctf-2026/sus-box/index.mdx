@@ -1,0 +1,83 @@
+---
+title: "Sus Box — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-sus-box"
+order: 233
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# Sus Box — BYUCTF 2026
+
+> **Category:** `Cryptography`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{if_you_used_a_llm_youre_missing_out_learning_a_really_cool_attack_!}`  
+> **Source Path:** `crypto/sus-box`
+
+---
+
+## Challenge Description
+
+```text
+## sus-box
+
+Every copy of my cryptosystem is personalized :D
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/crypto/sus-box)
+- [crypto/sus-box/description.txt](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/sus-box/description.txt)
+- [crypto/sus-box/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/sus-box/writeup.md)
+- [crypto/sus-box/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/sus-box/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Cryptography challenge **Sus Box**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [crypto/sus-box/writeup.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/sus-box/writeup.md)
+
+## sus-box
+
+This cryptosystem uses a randomized SBox; other than that, it's like one round of AES but even simpler.
+
+Techniques from differential cryptanalysis on 1-round AES can be directly translated to breaking the cryptosystem, e.g. see [here](https://merri.cx/adventure-of-aes/).
+
+In a nutshell, the solve script:
+1. Obtains two known plaintext-ciphertext pairs $(m_1, c_1)$ and $(m_2, c_2)$ from the block cipher (note the 16-byte block size)
+2. For each possible byte combination $b_1, b_2$ in the input, compute $b_1 \oplus b_2$ (the input difference) and $SBOX(b_1) \oplus SBOX(b_2)$ (the output difference). Store the pairs $(b_1,b_2)$ that map to each combination of input and output differences in a table.
+3. For each byte $m_{1,i}, m_{2, i}$ in the messages and $c_{1,i}, c_{2, i}$ in the ciphertexts, use the table from step 2 to get the possible input bytes (a multiple of 2). Note these correspond to the input into the SBox, e.g. the *actual* plaintext bytes XORed with the corresponding k0 bytes. Call each of these possible bytes `byte_i_xor_k0_i`, replacing `i` with the actual byte index.
+4. Using the possible `byte_i_xor_k0_i` values, iterate through the possible key pairs $(k_0, k_1)$ and try decrypting one of the known ciphertexts. See if it produces the known plaintext; if so, we have the right key. Note for the challenge's SBox configuration, there are 25165824 possible keys.
+5. Use the decryption key to decrypt the provided ciphertext.
+
+**Flag:** `byuctf{if_you_used_a_llm_youre_missing_out_learning_a_really_cool_attack_!}`
+
+---
+
+## Full Exploit Script
+
+- [crypto/sus-box/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/crypto/sus-box/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

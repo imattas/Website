@@ -1,0 +1,139 @@
+---
+title: "bytecoin — BYUCTF 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "byuctf-2026-bytecoin"
+order: 225
+writeupKind: "challenge"
+ctfSlug: "byuctf-2026"
+ctfTitle: "BYUCTF 2026"
+---
+
+# bytecoin — BYUCTF 2026
+
+> **Category:** `Pwn`  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `byuctf{crypt0_buffer_reuse_b4d}`  
+> **Source Path:** `pwn/bytecoin`
+
+---
+
+## Challenge Description
+
+```text
+Would you like some crypto with your vulns?
+```
+
+---
+
+## Provided Materials
+
+- [Repository folder](https://github.com/BYU-CSA/BYUCTF-2026/tree/main/pwn/bytecoin)
+- [pwn/bytecoin/README.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/README.md)
+- [pwn/bytecoin/solve/bytecoin.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/solve/bytecoin.md)
+- [pwn/bytecoin/challenge_files/bytecoin.zip](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/challenge_files/bytecoin.zip)
+- [pwn/bytecoin/solve/challenge.c](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/solve/challenge.c)
+- [pwn/bytecoin/solve/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/solve/solve.py)
+
+---
+
+## Recon / Initial Analysis
+
+This page imports the BYUCTF 2026 source material for the Pwn challenge **bytecoin**. The prompt is kept separate from the solve notes, and upstream artifacts are linked so the challenge can be replayed from the original repository.
+
+---
+
+## Vulnerability / Observation
+
+The useful observation comes from the imported solve notes below. I kept the original technical path intact while normalizing the page metadata, challenge grouping, and author attribution for the Volume 2 writeup archive.
+
+---
+
+## Exploitation / Solution
+
+Source: [pwn/bytecoin/solve/bytecoin.md](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/solve/bytecoin.md)
+
+This challenge requires some code auditing to understand what is going on. As a general overview:
+
+1. The flag is encrypted with ChaCha20-Poly1305 using a known nonce and a private key.
+2. The resulting ciphertext + the Poly1305 authentication tag is hashed via HMAC-SHA256 using another private key.
+3. We gain knowledge of the Poly1305 authentication tag + the HMAC tag.
+4. We are prompted for a message to decrypt with (i) an IV, (ii) a valid Poly1305 tag, and (iii) an HMAC tag.
+5. The provided message and Poly1305 tag are hashed via the HMAC-SHA256 key, and the provided HMAC tag is verified in constant time.
+6. The message is decrypted using ChaCha20-Poly1305. However, the *return value* of the decryption function is not checked...
+7. The first three bytes are checked against the string "ctf". If they do not equal "ctf", the message is decrypted and printed out.
+
+Therefore, our task to obtain the flag is to modify one, or all, of the first three bytes and pass the authentication checks on the ciphertext. Since ChaCha20 is a stream cipher, this is possible by XORing the first three bytes with whatever we want, or even simpler, by just setting them to zero.
+
+```python
+my_ciphertext = b"000000" + data[6:]
+```
+Now suppose, for a moment, we submit `my_ciphertext` with a correct HMAC but incorrect Poly1305 tag. Looking at the WolfSSL documentation, we see that the code will call `wc_ChaCha20Poly1305_Decrypt` on our modified ciphertext, which will return `MAC_CMP_FAILED_E`, but this error is never handled. Unfortunately (or fortunately for us), WolfSSL decrypts the data we pass to `wc_ChaCha20Poly1305_Decrypt` even when the Poly1305 authentication check fails, so the burden is entirely on the developer to handle errors correctly. This is honestly a puzzling design choice by the WolfSSL authors not fully laid out in the documentation, but nonetheless warned against:
+> If a nonzero error code is returned, the output data, outPlaintext, is undefined. However, callers must unconditionally zeroize the output buffer to guard against leakage of cleartext data.
+
+Therefore, the entire security of this code rests on the HMAC tag. If we can recover the HMAC tag for our modified ciphertext, or the HMAC-SHA256 key, then we can successfully forge our message! Since the HMAC tag comparison/verification is done in constant time, we certainly cannot exploit a side-channel to do this.
+
+We observe that some strange design choices were made in this code. Namely, the HMAC key is explicitly copied over from global memory to a buffer on the stack before use:
+
+```c
+extern byte hmacKey[32];
+memcpy(buffer, hmacKey, 32);
+
+wc_HmacSetKey(&hmac1, SHA256, buffer, sizeof(buffer));
+```
+What's the next place this buffer is used?
+```c
+printf(">>> Enter a ciphertext to decrypt:\n");
+int messageLen = scan_hex_array(buffer, sizeof(ciphertext));
+memcpy(ciphertext, buffer, messageLen);
+```
+Very interesting! The ciphertext is scanned into this same buffer! And it's even printed a little bit later:
+```c
+printf("[+] Decrypting message ");
+print_hex_array(ciphertext, messageLen);
+```
+If we can somehow set `messageLen` to be greater than the actual number of bytes scanned into the `buffer`, the print statement will leak stale data remaining after our message, namely bytes of the `hmacKey`. We need to examine the source code for `scan_hex_array` to determine if this is possible.
+
+This function scans in the string given by the user into a `buf` of sufficient length and then converts it to hexadecimal as follows:
+```c
+int n_read = 0;
+for (int i = 0; i < max_len; i++) {
+    if (buf[2*i] == '\0') {
+        break;
+    }
+    if (buf[2*i+1] == '\0') {
+        printf("[!] Extra nibble detected, aborting\n");
+        exit(1);
+    }
+    unsigned int val = 0;
+    n_read++;
+    if (sscanf(&buf[2*i], "%2x", &val) == 1) {
+        result[i] = (unsigned char)val;
+    } else {
+        printf("[!] Invalid hex input detected\n");
+        break;
+    }
+}
+free(buf);
+return n_read;
+```
+What needs to be the case for `n_read` to be incremented? The current character being scanned in cannot be a null terminator (`\0`), and this null terminator cannot fall on an odd-numbered character (since bytes are necessarily represented by two nibbles/characters). If these conditions are met, `n_read` is incremented and the byte-sized contents of `buf` are copied over to `result[i]`. But this only occurs if `sscanf` outputs 1, i.e. something was successfully written to `val`. If not, we conclude the original user input was not valid hex and exit the `for` loop. Therefore, **a 32-byte user input ending in invalid hex will not overwrite the final byte of the `result` buffer, but it will return a `messageLen` of 32**, and the print statement will leak the final bit of the `hmacKey`!
+
+With 32 calls to `bytecoin()`, we can therefore fully recover the `hmacKey` by placing 32-, 31-, ..., 1-byte user inputs, each ending with two non-hexadecimal characters. Once we have done this, we have fully recovered the HMAC key. In our solve script, we validate the key by trying to forge the HMAC tag for the given ciphertext + Poly1305 authentication tag provided in step 2. Then, all that is left is to forge an HMAC for our modified `my_ciphertext`, and we win! 
+
+**Flag:** `byuctf{crypt0_buffer_reuse_b4d}`
+
+---
+
+## Full Exploit Script
+
+- [pwn/bytecoin/solve/challenge.c](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/solve/challenge.c)
+- [pwn/bytecoin/solve/solve.py](https://github.com/BYU-CSA/BYUCTF-2026/blob/main/pwn/bytecoin/solve/solve.py)
+
+---
+
+## Key Takeaways
+
+- The BYUCTF 2026 challenge material is preserved with local archive formatting.
+- The page author is normalized to Imattas aka Zemi.
+- The source repository remains linked for handouts, services, and solve artifacts.

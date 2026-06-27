@@ -1,7 +1,7 @@
 ---
 title: "Task 2: The Hunt Continues — NSA Codebreaker Challenge 2025-26"
 date: 2025-09-25
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "nsa-code-breaker-challenge-2025-26-task2"
 order: 75
 writeupKind: "challenge"
@@ -197,11 +197,3 @@ tshark -r traffic.pcap -Y 'ftp-data' -T fields -e data.text
 - **The malicious device isn't the one talking to C2** – it's the infrastructure device that *redirected* traffic to C2. The hosts on LAN 3 are victims, not attackers.
 - Don't forget loopback addresses. Routers have multiple interfaces, and the challenge specifically asked for *all* IPs assigned to the device.
 - **Look at the data payloads.** The C2 protocol details (magic bytes, key exchange, encryption) foreshadow later tasks. Even if you don't need them now, noting protocol details early pays off.
-
----
-
-## References
-
-- [Wireshark](https://www.wireshark.org/) / [tshark](https://www.wireshark.org/docs/man-pages/tshark.html) — PCAP inspection and field extraction
-- [RFC 5737 — IPv4 Address Blocks Reserved for Documentation](https://datatracker.ietf.org/doc/html/rfc5737) — why `203.0.113.0/24` should never appear in live traffic
-- [DNS cache poisoning / spoofing](https://en.wikipedia.org/wiki/DNS_spoofing) — the attack class identified here

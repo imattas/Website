@@ -1,7 +1,7 @@
 ---
 title: "Forensics Git 0 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-forensics-git-0"
 order: 32
 writeupKind: "challenge"
@@ -663,11 +663,3 @@ if __name__ == '__main__':
 - Mounting a raw filesystem image is `mount -o loop,ro`; if partitioned, compute the byte offset as `start_sector * 512`.
 - The Sleuth Kit (`mmls`, `fls`, `icat`) and `7z` let you extract files without mounting when loop mounting isn't available.
 - `git log --all -p | grep` sweeps every diff across every ref in one shot.
-
----
-
-## References
-
-- [The Sleuth Kit](https://www.sleuthkit.org/)
-- [Pro Git — Git Internals](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain)
-- [git log documentation](https://git-scm.com/docs/git-log)

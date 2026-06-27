@@ -1,7 +1,7 @@
 ---
 title: "Old Sessions — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-old-sessions"
 order: 72
 writeupKind: "challenge"
@@ -617,12 +617,3 @@ if __name__ == "__main__":
 - Flask cookies can be decoded without the secret; with a weak secret recovered via `flask-unsign` and a wordlist, you can forge arbitrary `admin` sessions.
 - JWTs are vulnerable to the `alg: none` attack and to payload tampering when the signature/expiry is not properly validated.
 - Hunt for leaked old tokens in `/.git/`, backup files, logs, HTML comments, and hidden form fields.
-
----
-
-## References
-
-- [flask-unsign](https://github.com/Paradoxis/Flask-Unsign) — decode/brute-force/sign Flask session cookies
-- [jwt.io](https://jwt.io/) — JWT decoder and reference
-- [PyJWT documentation](https://pyjwt.readthedocs.io/)
-- [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)

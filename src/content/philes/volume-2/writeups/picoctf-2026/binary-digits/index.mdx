@@ -1,7 +1,7 @@
 ---
 title: "Binary Digits — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-binary-digits"
 order: 33
 writeupKind: "challenge"
@@ -373,11 +373,3 @@ if __name__ == '__main__':
 - The bit count is the biggest clue: divisible by 8 suggests ASCII; a perfect square (441, 625, 841...) suggests a square QR/bitmap.
 - When rendering as an image, always try both the bits and their inverse, since black/white polarity may be flipped.
 - Tools: Pillow to render the grid (PBM as a no-dependency fallback) and pyzbar to auto-decode QR codes.
-
----
-
-## References
-
-- [Pillow (PIL) documentation](https://pillow.readthedocs.io/)
-- [pyzbar — QR/barcode decoding](https://pypi.org/project/pyzbar/)
-- [List of file signatures (magic bytes)](https://en.wikipedia.org/wiki/List_of_file_signatures)

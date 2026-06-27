@@ -1,7 +1,7 @@
 ---
 title: "Timestamped Secrets — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-timestamped-secrets"
 order: 22
 writeupKind: "challenge"
@@ -564,11 +564,3 @@ if __name__ == '__main__':
 - Try multiple key-derivation hypotheses (MD5, SHA-256[:16], direct pad, `random.seed`, struct-packed) since the exact scheme is rarely stated.
 - AES-ECB's block-repetition weakness is a distraction here; the real flaw is the predictable key.
 - PyCryptodome (`Crypto`/`Cryptodome`) provides the AES-ECB primitive used for trial decryption.
-
----
-
-## References
-
-- [PyCryptodome documentation](https://pycryptodome.readthedocs.io/) — AES, ECB mode, PKCS#7 padding
-- [CryptoHack — AES / ECB](https://cryptohack.org/) — block cipher mode weaknesses
-- [Wikipedia — PKCS#7 padding](https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS#5_and_PKCS#7)

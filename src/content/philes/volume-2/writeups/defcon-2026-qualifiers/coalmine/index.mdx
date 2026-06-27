@@ -1,0 +1,118 @@
+---
+title: "coalmine — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-coalmine"
+order: 82
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# coalmine — DEF CON CTF Qualifier 2026
+
+> **Category:** `Binary Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 275  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. Expected candidates are off-by-one indexing, incorrect signedness on resource counters, or unsafe copy logic in command parsing.
+
+Work the binary like a constrained-service pwn: enumerate commands, trace state changes, and look for unchecked sizes or stale pointers in the path that manipulates the mine model.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. List commands and input grammar with `strings` and dynamic runs.
+2. Trace each command in the decompiler and name the state fields.
+3. Fuzz command length, numeric boundaries, and repeated free/delete paths.
+4. Reduce the crash to a minimal sequence.
+5. Convert the primitive into a flag read or shell depending on service design.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pwn import *
+
+# ── config ──────────────────────────────────────────────
+HOST = args.HOST or 'challenge.host'
+PORT = int(args.PORT or 31337)
+BINARY = './challenge'
+
+context.binary = ELF(BINARY, checksec=False)
+context.log_level = 'info'
+
+# ── helpers ─────────────────────────────────────────────
+def start():
+    if args.REMOTE:
+        return remote(HOST, PORT)
+    return process(BINARY)
+
+def build_payload():
+    # Replace this with the verified primitive from the local handout.
+    offset = 0
+    payload = flat({
+        offset: b'REPLACE_WITH_CONTROLLED_DATA',
+    })
+    return payload
+
+# ── exploit ─────────────────────────────────────────────
+def main():
+    io = start()
+    io.sendlineafter(b'> ', build_payload())
+    io.interactive()
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- State-machine pwn tasks usually reward naming the model before writing payloads.
+- Boundary tests around counters are faster than blind fuzzing for menu services.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

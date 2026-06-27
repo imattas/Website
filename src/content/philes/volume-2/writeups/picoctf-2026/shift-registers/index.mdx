@@ -1,7 +1,7 @@
 ---
 title: "shift registers — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-shift-registers"
 order: 23
 writeupKind: "challenge"
@@ -587,10 +587,3 @@ if __name__ == "__main__":
 - The `picoCTF{` prefix gives 64 known keystream bits — exactly enough to recover the state of a register up to 32 bits via Berlekamp-Massey (which needs ~2n bits).
 - For small registers (≤ 32 bits) you can also brute-force all initial states and keep the one that reproduces the known keystream.
 - Implementation gotchas to watch: keystream bit order (MSB vs LSB per byte), tap positions vs polynomial bitmask, and any extra encoding (hex/base64) layered on the ciphertext.
-
----
-
-## References
-
-- [Berlekamp–Massey algorithm (Wikipedia)](https://en.wikipedia.org/wiki/Berlekamp%E2%80%93Massey_algorithm)
-- [Linear-feedback shift register (Wikipedia)](https://en.wikipedia.org/wiki/Linear-feedback_shift_register)

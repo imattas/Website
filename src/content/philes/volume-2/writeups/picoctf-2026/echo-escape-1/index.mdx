@@ -1,7 +1,7 @@
 ---
 title: "Echo Escape 1 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-echo-escape-1"
 order: 7
 writeupKind: "challenge"
@@ -438,10 +438,3 @@ if __name__ == "__main__":
 - `fmtstr_payload()` from pwntools generates the write-what-where payload; use `write_size="short"` or `"byte"` to keep the payload within the input buffer size.
 - pwntools `FmtStr` can auto-detect the format string offset (where your input lands on the stack) by feeding it an `exec_fmt` callback.
 - This mirrors the 2025 "Echo Valley" pattern: redirect the return into a never-called `print_flag()` by sending "exit" to trigger the return.
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/) — `fmtstr_payload`, `FmtStr`, `ELF`, `remote`/`process`
-- [CTF 101: Format String Vulnerabilities](https://ctf101.org/binary-exploitation/what-is-a-format-string-vulnerability/) — concept primer

@@ -1,7 +1,7 @@
 ---
 title: "Access Control — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-access-control"
 order: 14
 writeupKind: "challenge"
@@ -388,11 +388,3 @@ if __name__ == '__main__':
 - Use `web3.py` to read the current owner, call the unprotected owner-setter with your own address, then call `getFlag()`.
 - **Nothing on-chain is private**: `private` variables are still readable via `eth.getStorageAt()`. Knowing Solidity's storage layout (slot 0 = owner, slot 1 = flag string, short vs. long string encoding) lets you read the flag without ever becoming the owner.
 - Manual ABI encoding (4-byte keccak selector + padded args) is a useful fallback when the exact function name is unknown.
-
----
-
-## References
-
-- [web3.py documentation](https://web3py.readthedocs.io/)
-- [Solidity docs — Layout of State Variables in Storage](https://docs.soliditylang.org/en/latest/internals/layout_in_storage.html)
-- [SWC Registry — Access Control issues](https://swcregistry.io/)

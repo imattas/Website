@@ -1,7 +1,7 @@
 ---
 title: "Hashgate — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-hashgate"
 order: 70
 writeupKind: "challenge"
@@ -679,12 +679,3 @@ if __name__ == '__main__':
 - If the comparison is `hash(email) == hash(password)`, sending the same value for both fields trivially matches.
 - Always inspect client-side source first — comments and JavaScript often reveal the algorithm and comparison style — then intercept/modify with Burp Suite.
 - After any successful bypass, the flag lives on the redirected profile/dashboard page (check body, cookies, headers).
-
----
-
-## References
-
-- [PHP Magic Hashes (PayloadsAllTheThings)](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Type%20Juggling)
-- [OWASP — PHP Type Juggling](https://owasp.org/www-pdf-archive/PHPMagicTricks-TypeJuggling.pdf)
-- [PHP loose comparison tables](https://www.php.net/manual/en/types.comparisons.php)
-- [Burp Suite documentation](https://portswigger.net/burp/documentation)

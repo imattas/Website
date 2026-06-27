@@ -1,7 +1,7 @@
 ---
 title: "Timeline 0 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-timeline-0"
 order: 34
 writeupKind: "challenge"
@@ -504,10 +504,3 @@ if __name__ == "__main__":
 - For low-point forensics, a quick `strings | grep picoCTF` often finds the flag before any timeline work is needed.
 - `icat -o <offset> image <inode>` extracts a specific file by inode once `fls` identifies it.
 - The challenge wording ("wrap what you find") is a reminder that the recovered content may need to be placed inside `picoCTF{...}` manually.
-
----
-
-## References
-
-- [The Sleuth Kit](https://www.sleuthkit.org/sleuthkit/) — `fls`, `mactime`, `icat`, `mmls` documentation
-- [SANS — Filesystem Timeline Analysis](https://www.sans.org/blog/digital-forensics-sifting-cheating-timelines-with-log2timeline/)

@@ -1,7 +1,7 @@
 ---
 title: "Echo Escape 2 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-echo-escape-2"
 order: 8
 writeupKind: "challenge"
@@ -346,10 +346,3 @@ if __name__ == "__main__":
 - Two complementary write targets exist: the **saved return address** on the stack, or a **GOT entry** (e.g., `exit@GOT`) when RELRO is partial/absent.
 - For non-PIE binaries, `win()` and GOT addresses are static; for PIE, leak a code pointer first and compute offsets.
 - Sometimes the simplest win is `%n$s` scanning — the flag may already sit on the stack, dumpable as a string without any overwrite.
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/) — `fmtstr_payload`, `ELF`, `remote`/`process`
-- [CTF 101: Format String Vulnerabilities](https://ctf101.org/binary-exploitation/what-is-a-format-string-vulnerability/) — concept primer

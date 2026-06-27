@@ -1,0 +1,105 @@
+---
+title: "mapllvm — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-mapllvm"
+order: 85
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# mapllvm — DEF CON CTF Qualifier 2026
+
+> **Category:** `Binary Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 222  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. Plausible issues include missing bounds checks in mapped memory, incorrect integer width handling, or unsafe native helper calls exposed to guest code.
+
+Assume a custom LLVM/JIT or IR interpreter until proven otherwise. Dump the accepted IR/input format, then look for verifier gaps between compile-time assumptions and runtime memory accesses.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Identify whether the target consumes LLVM IR, bytecode, or a custom DSL.
+2. Build the smallest accepted program.
+3. Trigger out-of-range loads/stores and signed/unsigned conversion edges.
+4. Inspect helper functions reachable from generated code.
+5. Use the memory primitive to leak or overwrite data needed to print the flag.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+import subprocess
+from pathlib import Path
+
+PROGRAMS = {
+    'empty': 'ret\n',
+    'wide_index': 'store 0xffffffffffffffff, 0\nret\n',
+    'negative_index': 'store -1, 0\nret\n',
+}
+
+BIN = Path('./challenge')
+
+def run_case(name: str, program: str):
+    proc = subprocess.run([str(BIN)], input=program.encode(), capture_output=True, timeout=3)
+    print(f'[{name}] rc={proc.returncode}')
+    print(proc.stdout.decode(errors='replace')[:300])
+    print(proc.stderr.decode(errors='replace')[:300])
+
+for name, program in PROGRAMS.items():
+    run_case(name, program)
+```
+
+---
+
+## Key Takeaways
+
+- For JIT-style tasks, minimize the guest program before trying exploitation.
+- Verifier/runtime mismatches are often easier than classical stack exploitation.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

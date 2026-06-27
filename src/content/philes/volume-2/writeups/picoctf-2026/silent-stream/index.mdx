@@ -1,7 +1,7 @@
 ---
 title: "Silent Stream — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-silent-stream"
 order: 57
 writeupKind: "challenge"
@@ -323,11 +323,3 @@ if __name__ == "__main__":
 - With only 256 possible keys, brute-forcing and checking for `picoCTF{` is faster than recovering the key from the binary.
 - Extracting a transferred file from a PCAP is done via Wireshark's "Follow TCP Stream -> Save as Raw", or programmatically with Scapy/dpkt/tshark.
 - Checking magic bytes (`\x89PNG`, `PK`, `%PDF`) helps identify the recovered file type.
-
----
-
-## References
-
-- [Wireshark User's Guide — Following Protocol Streams](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvFollowStreamSection.html)
-- [Scapy documentation](https://scapy.readthedocs.io/)
-- [tshark manual](https://www.wireshark.org/docs/man-pages/tshark.html)

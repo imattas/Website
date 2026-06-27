@@ -1,7 +1,7 @@
 ---
 title: "Front Running — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-front-running"
 order: 12
 writeupKind: "challenge"
@@ -568,12 +568,3 @@ if __name__ == '__main__':
 - ABI decoding of `unlock(string)` is mechanical: 4-byte selector, then offset, length, and the UTF-8 string padded to 32 bytes.
 - "private" Solidity variables are not secret — `eth_getStorageAt` reads any storage slot, so the flag may be recoverable directly from contract storage.
 - Tooling: web3.py for scripting, or Foundry's `cast` (`txpool_content`, `calldata-decode`, `send`) for quick manual exploitation.
-
----
-
-## References
-
-- [web3.py documentation](https://web3py.readthedocs.io/)
-- [Foundry Book — cast](https://book.getfoundry.sh/cast/)
-- [Solidity ABI specification](https://docs.soliditylang.org/en/latest/abi-spec.html)
-- [Ethereum mempool / transaction pool overview](https://ethereum.org/en/developers/docs/transactions/)

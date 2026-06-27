@@ -1,0 +1,104 @@
+---
+title: "2bird2can — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-2bird2can"
+order: 94
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# 2bird2can — DEF CON CTF Qualifier 2026
+
+> **Category:** `Miscellaneous`  
+> **Difficulty:** Medium  
+> **Points:** 313  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Toucan-themed challenge with a public handout.
+
+---
+
+## Recon / Initial Analysis
+
+Metadata and solve count were recovered from official snippets; the handout content was not archived in indexed sources.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+No vulnerability is assumed. The observation is likely a data-combination trick: split streams, paired images/audio, or dual encodings that only make sense together.
+
+Treat the title as a conversion hint: two birds, two cans, or two channels. Inspect the handout for paired artifacts, repeated encodings, and places where combining two partial views reveals the message.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Run `file`, `exiftool`, `binwalk`, and `strings` on every handout file.
+2. Look for exactly two related artifacts or two streams inside one artifact.
+3. Normalize both streams into comparable bytes/bits/samples.
+4. Try XOR, interleaving, diffing, channel separation, and metadata joins.
+5. Search reconstructed output for `bbb{`.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pathlib import Path
+from itertools import zip_longest
+
+a = Path('stream_a.bin').read_bytes()
+b = Path('stream_b.bin').read_bytes()
+
+candidates = {
+    'xor': bytes(x ^ y for x, y in zip(a, b)),
+    'a_then_b': a + b,
+    'b_then_a': b + a,
+    'interleave_ab': bytes(v for pair in zip_longest(a, b, fillvalue=None) for v in pair if v is not None),
+    'interleave_ba': bytes(v for pair in zip_longest(b, a, fillvalue=None) for v in pair if v is not None),
+}
+
+for name, data in candidates.items():
+    Path(f'out_{name}.bin').write_bytes(data)
+    hit = data.find(b'bbb{')
+    print(name, 'hit=' + str(hit) if hit >= 0 else 'no flag marker')
+```
+
+---
+
+## Key Takeaways
+
+- Misc tasks often hide the method in the title.
+- Automate stream-combination guesses so mistakes are easy to reproduce.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

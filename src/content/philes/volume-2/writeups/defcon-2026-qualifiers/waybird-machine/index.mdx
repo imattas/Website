@@ -1,0 +1,102 @@
+---
+title: "Waybird Machine — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-waybird-machine"
+order: 90
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# Waybird Machine — DEF CON CTF Qualifier 2026
+
+> **Category:** `Web Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 323  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public snippet indicated a web instance/handout and a site that needed to load properly.
+
+---
+
+## Recon / Initial Analysis
+
+Metadata and partial prompt context were recovered from official snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. Likely candidates include client-side trust, prototype pollution, unsafe deserialization, SSRF through a machine URL, or a state-machine transition bug.
+
+Debug the app as a browser-driven web challenge: inspect frontend assets, API calls, and server-side state transitions until the hidden machine behavior is reproducible locally.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Open DevTools and list every API endpoint called by the frontend.
+2. Replay requests with `curl`/`requests` until the flow works without the browser.
+3. Read the handout source and identify where server-side state differs from UI state.
+4. Test malformed transitions, duplicate submissions, and forged JSON properties.
+5. Use the confirmed state bypass to reach the flag endpoint.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+import os
+import requests
+
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:3000')
+
+session = requests.Session()
+
+def api(method: str, path: str, **kwargs):
+    response = session.request(method, f'{BASE_URL}{path}', timeout=10, **kwargs)
+    print(method, path, response.status_code, response.text[:160].replace('\n', ' '))
+    return response
+
+api('GET', '/')
+api('GET', '/api/state')
+api('POST', '/api/transition', json={'state': 'start', 'next': 'flag'})
+api('GET', '/api/flag')
+```
+
+---
+
+## Key Takeaways
+
+- For web tasks with a complex UI, reduce the browser flow to raw HTTP quickly.
+- State-machine bugs become visible once every transition is named.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

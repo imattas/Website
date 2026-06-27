@@ -1,7 +1,7 @@
 ---
 title: "Reentrance — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-reentrance"
 order: 11
 writeupKind: "challenge"
@@ -391,12 +391,3 @@ if __name__ == "__main__":
 - The fix is to follow the checks-effects-interactions pattern (zero the balance before sending) or use a reentrancy guard / mutex.
 - Foundry (`cast`, `forge`) is the practical toolkit for inspecting and interacting with deployed contracts; `web3.py` + `solcx` lets you compile and deploy the attacker contract programmatically.
 - Seed the attack with a small deposit, then let the recursive `receive()` drain the whole balance in a single transaction (mind the gas limit).
-
----
-
-## References
-
-- [SWC-107: Reentrancy](https://swcregistry.io/docs/SWC-107)
-- [Solidity docs — Security Considerations (Reentrancy)](https://docs.soliditylang.org/en/latest/security-considerations.html#reentrancy)
-- [Foundry Book](https://book.getfoundry.sh/)
-- [web3.py documentation](https://web3py.readthedocs.io/)

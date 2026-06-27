@@ -1,7 +1,7 @@
 ---
 title: "Binary Instrumentation 3 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-binary-instrumentation-3"
 order: 54
 writeupKind: "challenge"
@@ -528,12 +528,3 @@ if __name__ == "__main__":
 - Read a generous fixed-length chunk (e.g., 512 bytes) of the buffer regardless of the stated length, since the stated length may be zeroed.
 - Pipe the raw buffer back to Python via `send()` and brute-force common obfuscations (base64, reverse, single-byte XOR) to recover the flag.
 - `frida-trace -i "*File*" -X KERNEL32` is the fast way to discover which APIs to target before writing a custom hook.
-
----
-
-## References
-
-- [Frida documentation](https://frida.re/docs/home/)
-- [frida-trace](https://frida.re/docs/frida-trace/)
-- [Microsoft Docs — CreateFileA](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea)
-- [Microsoft Docs — WriteFile](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-writefile)

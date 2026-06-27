@@ -1,0 +1,107 @@
+---
+title: "gitvfs revenge — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-gitvfs-revenge"
+order: 87
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# gitvfs revenge — DEF CON CTF Qualifier 2026
+
+> **Category:** `Binary Exploitation`  
+> **Difficulty:** Hard  
+> **Points:** 519  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Public challenge prompt was not recoverable from indexed sources.
+
+---
+
+## Recon / Initial Analysis
+
+Challenge name and point value were recovered from official index snippets; full handout was not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. Likely areas include incomplete canonicalization, object replacement through refs, or a parser edge case that was not covered by the first patch.
+
+Use the first gitvfs solution as a regression test, then audit the patch. High-point revenge versions typically require chaining a weaker file primitive with object-store semantics.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Build fixtures for every path/object edge case found during gitvfs.
+2. Confirm the original exploit no longer works and record the exact rejection point.
+3. Check whether the patch protects reads but not writes, metadata, refs, or packed-object paths.
+4. Chain the surviving primitive into a controlled file disclosure or memory corruption.
+5. Keep the final script deterministic because revenge services are often fragile.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pathlib import PurePosixPath
+
+CANDIDATES = [
+    'flag',
+    '/flag',
+    '../flag',
+    '..//flag',
+    '%2e%2e/flag',
+    'refs/heads/../../flag',
+    'objects/../flag',
+]
+
+def normalize(path: str) -> str:
+    return str(PurePosixPath('/', path))
+
+def main():
+    for candidate in CANDIDATES:
+        print(f'{candidate:28} -> {normalize(candidate)}')
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- Regression harnesses pay off immediately on revenge tasks.
+- Patch-focused auditing is more productive than restarting from scratch.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

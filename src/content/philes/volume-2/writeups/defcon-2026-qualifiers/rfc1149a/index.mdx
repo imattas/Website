@@ -1,0 +1,114 @@
+---
+title: "rfc1149a — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-rfc1149a"
+order: 95
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# rfc1149a — DEF CON CTF Qualifier 2026
+
+> **Category:** `Miscellaneous`  
+> **Difficulty:** Medium  
+> **Points:** 365  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Weird strips of paper were abandoned in a park. They look ancient. Can you help me figure out what they say?
+
+---
+
+## Recon / Initial Analysis
+
+Metadata and prompt were recovered from official snippets. A public gzip/deflate analyzer repository states it was built for this challenge, which strongly suggests compressed bitstream reconstruction.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+No vulnerability. The core observation is that the paper strips encode compressed data, and gzip structure gives enough constraints to recover ordering and corruption.
+
+Reconstruct the strips into a byte/bit stream, then inspect it as gzip/deflate. Use header fields, CRC32, and inflate errors to correct ordering or missing bits.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Digitize every strip into a normalized binary/hex representation.
+2. Try all plausible strip orders or use printed alignment marks if present.
+3. Check for gzip magic bytes `1f 8b` and parse the header.
+4. Use a bit-level deflate inspector to locate the first invalid block or Huffman table.
+5. Repair ordering/transcription errors until decompression yields text containing `bbb{`.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+import gzip
+from itertools import permutations
+from pathlib import Path
+
+strips = [p.read_text().strip().replace(' ', '') for p in sorted(Path('strips').glob('*.txt'))]
+
+def bits_to_bytes(bits: str) -> bytes:
+    if len(bits) % 8:
+        return b''
+    return int(bits, 2).to_bytes(len(bits) // 8, 'big')
+
+def try_order(order):
+    bits = ''.join(order)
+    data = bits_to_bytes(bits)
+    if not data.startswith(b'\x1f\x8b'):
+        return None
+    try:
+        return gzip.decompress(data)
+    except Exception:
+        return None
+
+for order in permutations(strips):
+    plain = try_order(order)
+    if plain and b'bbb{' in plain:
+        print(plain.decode(errors='replace'))
+        break
+else:
+    print('no valid ordering found; inspect bit alignment and transcription errors')
+```
+
+---
+
+## Key Takeaways
+
+- Compressed formats are self-checking enough to guide reconstruction.
+- CRC32 and ISIZE are useful end constraints when repairing gzip streams.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

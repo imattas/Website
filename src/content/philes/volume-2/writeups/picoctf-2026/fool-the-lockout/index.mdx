@@ -1,7 +1,7 @@
 ---
 title: "Fool the Lockout — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-fool-the-lockout"
 order: 66
 writeupKind: "challenge"
@@ -346,11 +346,3 @@ if __name__ == "__main__":
 - The server should only trust `X-Forwarded-For` from known/trusted proxy IPs, never from arbitrary clients.
 - Spoofing several header variants at once (`X-Real-IP`, `X-Originating-IP`, `X-Client-IP`) increases the chance of hitting whichever one the app actually reads.
 - Once the lockout is neutralized, a small curated wordlist is usually enough to brute-force weak picoCTF credentials.
-
----
-
-## References
-
-- [OWASP — Testing for Weak Lock Out Mechanism](https://owasp.org/www-project-web-security-testing-guide/)
-- [MDN — X-Forwarded-For header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For)
-- [SecLists password wordlists (rockyou and others)](https://github.com/danielmiessler/SecLists)

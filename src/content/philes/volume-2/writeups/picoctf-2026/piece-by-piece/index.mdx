@@ -1,7 +1,7 @@
 ---
 title: "Piece by Piece — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-piece-by-piece"
 order: 48
 writeupKind: "challenge"
@@ -490,11 +490,3 @@ if __name__ == "__main__":
 - Always run `file` on the reassembled blob to identify the archive format (ZIP, gzip, tar, xz, bzip2) before choosing an extractor.
 - Password-protected ZIPs can be tackled with `unzip -P <password>`; common CTF passwords (`picoCTF`, `flag`, `password`) are worth trying.
 - After extraction, `grep -r 'picoCTF{'` or `strings | grep picoCTF` quickly locates the flag.
-
----
-
-## References
-
-- [GNU coreutils: `split`](https://www.gnu.org/software/coreutils/manual/html_node/split-invocation.html)
-- [Info-ZIP `unzip` manual](https://linux.die.net/man/1/unzip)
-- [paramiko (Python SSH library)](https://www.paramiko.org/)

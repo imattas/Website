@@ -1,7 +1,7 @@
 ---
 title: "Hidden Cipher 2 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-hidden-cipher-2"
 order: 62
 writeupKind: "challenge"
@@ -523,11 +523,3 @@ if __name__ == "__main__":
 - Use the `picoCTF{` prefix as **known plaintext**: the byte-wise difference reveals a constant shift, a `range(0..n)` pattern reveals a positional shift, and a constant XOR reveals an XOR key.
 - A brute-force solver that validates against the `picoCTF{...}` format quickly identifies the right transform without fully reversing the binary.
 - Tools used: Ghidra/IDA, `strings`, `hexdump`, and a multi-cipher Python brute-forcer.
-
----
-
-## References
-
-- [Ghidra](https://ghidra-sre.org/)
-- [Known-plaintext attack (Wikipedia)](https://en.wikipedia.org/wiki/Known-plaintext_attack)
-- [Affine cipher (Wikipedia)](https://en.wikipedia.org/wiki/Affine_cipher)

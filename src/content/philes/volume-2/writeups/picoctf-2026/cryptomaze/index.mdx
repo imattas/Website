@@ -1,7 +1,7 @@
 ---
 title: "cryptomaze — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-cryptomaze"
 order: 26
 writeupKind: "challenge"
@@ -574,10 +574,3 @@ if __name__ == '__main__':
 - With recovered keystream bits, the LFSR can be fully reconstructed via Berlekamp-Massey (needs ~2n bits for an n-bit register), or simply brute-forced if the register is small (e.g., 16 bits = 65536 states).
 - Watch for layered "other techniques" — base64 wrapping, a second XOR key, or byte permutation — which must be peeled off before/after the LFSR layer.
 - The Berlekamp-Massey algorithm over GF(2) is the canonical tool for recovering the minimal LFSR from a bit sequence.
-
----
-
-## References
-
-- [Berlekamp–Massey algorithm (Wikipedia)](https://en.wikipedia.org/wiki/Berlekamp%E2%80%93Massey_algorithm)
-- [Linear-feedback shift register (Wikipedia)](https://en.wikipedia.org/wiki/Linear-feedback_shift_register)

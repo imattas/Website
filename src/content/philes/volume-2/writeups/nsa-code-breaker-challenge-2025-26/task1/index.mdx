@@ -1,7 +1,7 @@
 ---
 title: "Task 1: Getting Started — NSA Codebreaker Challenge 2025-26"
 date: 2025-09-24
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "nsa-code-breaker-challenge-2025-26-task1"
 order: 74
 writeupKind: "challenge"
@@ -125,11 +125,3 @@ sha1sum /mnt/ext2/etc/runlevels/default/eanzovmwru
 - OpenRC stores service symlinks in `/etc/runlevels/default/`. Anything with a random name – especially without a corresponding `/etc/init.d/` script – is immediately suspicious.
 - A quick check of other persistence vectors (crontabs, `.bashrc`, `/etc/init.d/`) turned up nothing else malicious. The 8000-line `.bash_history` in `/root/` is all routine sysadmin activity (nginx config, package updates, network checks).
 - This artifact becomes relevant again in later tasks – the C2 path and the MD5-formatted hash tie into the malware analysis in Tasks 3 and 4.
-
----
-
-## References
-
-- [OpenRC init system](https://github.com/OpenRC/openrc) — how runlevel service symlinks relate to `/etc/init.d/` scripts
-- [Alpine Linux](https://www.alpinelinux.org/) — the distribution used in the disk image
-- `mount(8)` / `sha1sum(1)` — read-only loopback mounting and hashing for forensic integrity

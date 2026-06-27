@@ -1,7 +1,7 @@
 ---
 title: "Autorev 1 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-autorev-1"
 order: 55
 writeupKind: "challenge"
@@ -456,11 +456,3 @@ if __name__ == "__main__":
 - Drive angr with success/failure output strings (`find=`/`avoid=`), falling back from symbolic stdin to symbolic argv to address-based exploration found via `CFGFast()`.
 - Always try the cheap heuristic first: `strings | grep picoCTF` can short-circuit the whole thing if the flag is hardcoded.
 - Wrap the solver in a network loop (pwntools `remote`) that extracts each binary (base64 / raw ELF / download URL), solves it, and replies with `sendline`.
-
----
-
-## References
-
-- [angr documentation](https://docs.angr.io/)
-- [pwntools documentation](https://docs.pwntools.com/)
-- [Ghidra headless analyzer](https://ghidra-sre.org/)

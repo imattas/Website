@@ -1,7 +1,7 @@
 ---
 title: "MY GIT — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-my-git"
 order: 47
 writeupKind: "challenge"
@@ -477,13 +477,3 @@ if __name__ == "__main__":
 - Custom servers may expose refs under non-standard namespaces — fetch with explicit refspecs (`+refs/*:...`, `refs/hidden/*`, `refs/secret/*`) and inspect with `git ls-remote` / `git for-each-ref`.
 - Flags are commonly embedded in commit messages, author/email fields, or commit diffs — grep both metadata and patches.
 - Tools used: `git` (`clone`, `branch`, `log`, `tag`, `notes`, `stash`, `reflog`, `fsck`, `cat-file`, `ls-remote`, `for-each-ref`, `fetch`).
-
----
-
-## References
-
-- [Git documentation](https://git-scm.com/doc)
-- [git-fsck (recovering dangling objects)](https://git-scm.com/docs/git-fsck)
-- [git-reflog](https://git-scm.com/docs/git-reflog)
-- [git-notes](https://git-scm.com/docs/git-notes)
-- [Pro Git book — Git internals](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain)

@@ -1,7 +1,7 @@
 ---
 title: "Heap Havoc — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-heap-havoc"
 order: 6
 writeupKind: "challenge"
@@ -350,12 +350,3 @@ if __name__ == "__main__":
 - Stack canaries are irrelevant for heap corruption — focus on the heap layout instead.
 - Targets to overwrite: a flag-checking comparison variable or a heap-stored function pointer (redirect to `win()`).
 - Tools used: `checksec`, `file`, `objdump`, Ghidra/IDA, GDB, and pwntools.
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/)
-- [GDB documentation](https://sourceware.org/gdb/documentation/)
-- [Ghidra](https://ghidra-sre.org/)
-- [Understanding glibc malloc (sploitfun)](https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/)

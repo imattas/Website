@@ -1,7 +1,7 @@
 ---
 title: "offset-cycle — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-offset-cycle"
 order: 5
 writeupKind: "challenge"
@@ -412,10 +412,3 @@ if __name__ == '__main__':
 - With No-PIE and no canary, a return-to-win is the simplest path: `padding + p64(win_addr)`.
 - On x86-64, a `movaps` crash inside a libc call means the stack is misaligned — prepend a bare `ret` gadget to realign before jumping to the win function.
 - The "race against time" hint signals a short server timeout, so the whole exploit should be scripted with pwntools rather than done by hand.
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/) — `cyclic`, `cyclic_find`, `ELF`, `ROP`, `process`/`remote`
-- [pwntools cyclic / De Bruijn cheatsheet](https://docs.pwntools.com/en/stable/util/cyclic.html)

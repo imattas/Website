@@ -1,7 +1,7 @@
 ---
 title: "offset-cycle V2 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-offset-cyclev2"
 order: 4
 writeupKind: "challenge"
@@ -324,10 +324,3 @@ if __name__ == "__main__":
 - A `jmp rsp` (or `call rax`) gadget at a fixed No-PIE address is the bridge from a corrupted return address to shellcode sitting on the stack.
 - When the overflow buffer is too small for full shellcode, a tiny stager (`sub rsp, 0x300; jmp rsp`) can trampoline back to a larger payload placed in an earlier input field.
 - pwntools `shellcraft.sh()` + `asm()` produce `/bin/sh` shellcode quickly, and the cyclic-pattern workflow still finds the offset (≈24 bytes here).
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/) — `shellcraft`, `asm`, `cyclic`, `ELF.search`
-- [ROPgadget](https://github.com/JonathanSalwan/ROPgadget) — locating `jmp rsp` / `call rax` gadgets

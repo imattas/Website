@@ -1,7 +1,7 @@
 ---
 title: "Hidden Cipher 1 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-hidden-cipher-1"
 order: 61
 writeupKind: "challenge"
@@ -510,11 +510,3 @@ if __name__ == "__main__":
 - The `picoCTF{` prefix is reliable **known plaintext** — diff it against the ciphertext to recover XOR keys or arithmetic offsets directly.
 - Watch for the first N characters (often the 8-byte `picoCTF{` prefix) being left unencrypted.
 - Tools used: `file`, `strings`, `xxd`, Ghidra/IDA, `objdump`, and a brute-force Python decryptor.
-
----
-
-## References
-
-- [Ghidra](https://ghidra-sre.org/)
-- [Known-plaintext attack (Wikipedia)](https://en.wikipedia.org/wiki/Known-plaintext_attack)
-- [XOR cipher (Wikipedia)](https://en.wikipedia.org/wiki/XOR_cipher)

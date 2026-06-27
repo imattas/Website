@@ -1,0 +1,118 @@
+---
+title: "Stork — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-stork"
+order: 81
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# Stork — DEF CON CTF Qualifier 2026
+
+> **Category:** `Binary Exploitation`  
+> **Difficulty:** Medium  
+> **Points:** 299  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Both male and female have yellow eyes.
+
+---
+
+## Recon / Initial Analysis
+
+Only metadata and prompt were publicly recoverable. The handout and final exploit were not publicly archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. The practical path should be derived from the handout binary with `file`, `checksec`, Ghidra/Binary Ninja, and a local crashing input.
+
+Treat this as a medium pwn target: identify architecture/protections, map input paths, then turn the first reliable memory corruption primitive into code execution or an authenticated flag read.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Fingerprint the binary and linked libc.
+2. Run under `gdb` and capture the first controlled crash.
+3. Use cyclic patterns to find the exact overwrite or corrupted field.
+4. Choose the lowest-risk exploit path based on mitigations: ret2win, ROP leak plus ret2libc, heap metadata abuse, or logic bypass.
+5. Move only the final tested payload to the remote service.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from pwn import *
+
+# ── config ──────────────────────────────────────────────
+HOST = args.HOST or 'challenge.host'
+PORT = int(args.PORT or 31337)
+BINARY = './challenge'
+
+context.binary = ELF(BINARY, checksec=False)
+context.log_level = 'info'
+
+# ── helpers ─────────────────────────────────────────────
+def start():
+    if args.REMOTE:
+        return remote(HOST, PORT)
+    return process(BINARY)
+
+def build_payload():
+    # Replace this with the verified primitive from the local handout.
+    offset = 0
+    payload = flat({
+        offset: b'REPLACE_WITH_CONTROLLED_DATA',
+    })
+    return payload
+
+# ── exploit ─────────────────────────────────────────────
+def main():
+    io = start()
+    io.sendlineafter(b'> ', build_payload())
+    io.interactive()
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- Do not assume a pwn bug class from the prompt alone.
+- Start with deterministic local reproduction before touching remote infrastructure.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

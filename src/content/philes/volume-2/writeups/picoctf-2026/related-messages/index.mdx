@@ -1,7 +1,7 @@
 ---
 title: "Related Messages — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-related-messages"
 order: 20
 writeupKind: "challenge"
@@ -367,12 +367,3 @@ if __name__ == "__main__":
 - Small public exponents (especially `e = 3`) make the GCD cheap; large `e` is feasible but slower (SageMath helps).
 - A "typo and resend" scenario is the canonical real-world trigger: the offset between the two messages is the known constant `b`.
 - Tools: `sympy` (`Poly`, `gcd`, `set_modulus`) for the polynomial arithmetic and `pycryptodome`'s `long_to_bytes` to recover the flag.
-
----
-
-## References
-
-- [Franklin-Reiter related-message attack — Wikipedia (Coppersmith's attack)](https://en.wikipedia.org/wiki/Coppersmith%27s_attack#Franklin-Reiter_related-message_attack)
-- [SageMath documentation](https://doc.sagemath.org/)
-- [SymPy Polynomials documentation](https://docs.sympy.org/latest/modules/polys/index.html)
-- [PyCryptodome documentation](https://pycryptodome.readthedocs.io/)

@@ -1,7 +1,7 @@
 ---
 title: "Not TRUe — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-not-true"
 order: 17
 writeupKind: "challenge"
@@ -257,12 +257,3 @@ if __name__ == "__main__":
 - Truncation attacks combine offline brute-forcing (find a message with the right truncated tag) with online interaction (submit it to the server).
 - pwntools `remote()` is the standard tool for scripting netcat-style challenge servers; `hashlib` handles the hash computation.
 - Always use full-length MAC/hash outputs in real systems — never truncate to "save space."
-
----
-
-## References
-
-- [pwntools documentation](https://docs.pwntools.com/)
-- [Python `hashlib` module](https://docs.python.org/3/library/hashlib.html)
-- [Python `hmac` module](https://docs.python.org/3/library/hmac.html)
-- [Birthday attack (Wikipedia)](https://en.wikipedia.org/wiki/Birthday_attack)

@@ -1,0 +1,108 @@
+---
+title: "rfc1149b — DEF CON CTF Qualifier 2026"
+date: 2026-06-27
+author: "Imattas aka Zemi"
+slug: "defcon-2026-qualifiers-rfc1149b"
+order: 92
+writeupKind: "challenge"
+ctfSlug: "defcon-2026-qualifiers"
+ctfTitle: "DEF CON CTF Qualifier 2026"
+---
+# rfc1149b — DEF CON CTF Qualifier 2026
+
+> **Category:** `Cryptography`  
+> **Difficulty:** Hard  
+> **Points:** 1143  
+> **Author:** Imattas aka Zemi  
+> **Flag:** `bbb{REDACTED}`
+
+---
+
+## Challenge Description
+
+> Scored externally by the challenge service. Log in to see your team token.
+
+---
+
+## Recon / Initial Analysis
+
+Metadata and scoring note were recovered from official snippets; full service details were not archived.
+
+The first pass is to avoid guessing from the bird-themed prompt and instead build a small, repeatable workflow around the handout or service. For this file, the public archive did not expose enough verified challenge material to claim a completed solve transcript, so the writeup records the clean solve path I would use once the handout is available.
+
+```bash
+$ mkdir -p work/{handout,notes,scripts}
+$ file handout/* 2>/dev/null || true
+$ strings -a handout/* 2>/dev/null | head -50
+```
+
+---
+
+## Vulnerability / Observation
+
+Unverified. The challenge likely centers on avian-carrier-themed encoding, unreliable transport, or packet reconstruction rather than a conventional web form.
+
+Use RFC 1149 as the theme clue, then inspect the external service protocol. Because scoring is tokenized per team, keep the solver parameterized by token and avoid hard-coding remote responses.
+
+---
+
+## Exploitation / Solution
+
+### Step 1 — Rebuild the challenge context
+
+Keep the local environment close to the remote challenge. Save the original handout, record hashes, and write every probe as a command or script so the path can be repeated.
+
+```bash
+$ sha256sum handout/*
+$ tree -a handout
+```
+
+### Step 2 — Reduce the problem
+
+1. Read RFC 1149 to understand the expected joke/protocol references.
+2. Connect to the service with the team token and capture a transcript.
+3. Identify frame format, checksum, sequencing, retries, and loss model.
+4. Write a parser that reconstructs messages deterministically.
+5. Submit reconstructed payloads or derived plaintext back to the scorer.
+
+### Step 3 — Confirm the flag path
+
+The final check is always local first: the script should either print `bbb{...}` directly or produce one artifact where the flag is visible. Only after that should the same payload or input be sent to the live challenge service.
+
+---
+
+## Full Exploit Script
+
+```python
+#!/usr/bin/env python3
+from dataclasses import dataclass
+from pathlib import Path
+
+@dataclass(frozen=True)
+class Frame:
+    sequence: int
+    payload: bytes
+    checksum: int
+
+def parse_frame(line: bytes) -> Frame:
+    # Replace with the real service frame format.
+    sequence_text, payload_hex, checksum_text = line.strip().split()
+    return Frame(int(sequence_text), bytes.fromhex(payload_hex.decode()), int(checksum_text, 16))
+
+def main():
+    frames = [parse_frame(line) for line in Path('transcript.txt').read_bytes().splitlines() if line.strip()]
+    frames.sort(key=lambda frame: frame.sequence)
+    message = b''.join(frame.payload for frame in frames)
+    print(message.decode(errors='replace'))
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## Key Takeaways
+
+- External scorers need clean transcript logging from the start.
+- Protocol challenges are much easier when parsing and solving are separate modules.
+- Do not submit this generated file as an official qualifying writeup without adding your own verified solve notes, command output, and final flag.

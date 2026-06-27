@@ -1,7 +1,7 @@
 ---
 title: "Gatekeeper — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-gatekeeper"
 order: 60
 writeupKind: "challenge"
@@ -410,11 +410,3 @@ if __name__ == "__main__":
 - The classic trick: the prompt implies a positive value, but the gate actually wants a **negative number** — try `-1` first.
 - Other high-value candidates: `INT_MIN`/`INT_MAX`, signed-overflow values (`2147483648`), `UINT_MAX`, and scanf edge cases (`NaN`, `inf`).
 - Decompile `main()` in Ghidra/IDA to read the comparison directly; when stuck, `angr` symbolic execution can solve for the input automatically.
-
----
-
-## References
-
-- [Ghidra](https://ghidra-sre.org/)
-- [angr — binary analysis & symbolic execution](https://angr.io/)
-- [pwntools documentation](https://docs.pwntools.com/)

@@ -1,7 +1,7 @@
 ---
 title: "Printer Shares — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-printer-shares"
 order: 49
 writeupKind: "challenge"
@@ -351,11 +351,3 @@ if __name__ == "__main__":
 - `smbclient -L //host -p PORT -N` enumerates shares; CTF SMB services often run on a non-standard port instead of 445.
 - Once a readable share is found, connect with `smbclient //host/share -p PORT -N`, then `ls` and `get flag.txt`.
 - impacket's `SMBConnection` is a useful Python-native fallback when system `smbclient` is unavailable.
-
----
-
-## References
-
-- [smbclient manual page](https://www.samba.org/samba/docs/current/man-html/smbclient.1.html)
-- [impacket](https://github.com/fortra/impacket)
-- [HackTricks: SMB enumeration (139, 445)](https://book.hacktricks.xyz/network-services-pentesting/pentesting-smb)

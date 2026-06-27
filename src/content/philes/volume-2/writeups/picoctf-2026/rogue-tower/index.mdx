@@ -1,7 +1,7 @@
 ---
 title: "Rogue Tower — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-rogue-tower"
 order: 29
 writeupKind: "challenge"
@@ -616,12 +616,3 @@ if __name__ == '__main__':
 - **GSMTAP** (UDP port 4729) is the encapsulation used to carry GSM radio frames into a PCAP; Wireshark/tshark dissect it natively.
 - Once encryption is disabled, exfiltrated data (often in SMS PDUs) becomes plaintext — search SMS bodies, then fall back to hex/base64-decoding and cross-packet reassembly.
 - Tooling: Wireshark display filters (`gsmtap`, `gsm_sms`, `gsm_a.dtap`), `tshark` for scripted field extraction, and `pyshark`/`scapy` for programmatic parsing.
-
----
-
-## References
-
-- [GSMTAP — Osmocom wiki](https://osmocom.org/projects/baseband/wiki/GSMTAP)
-- [Wireshark Display Filter Reference](https://www.wireshark.org/docs/dfref/)
-- [tshark manual](https://www.wireshark.org/docs/man-pages/tshark.html)
-- [pyshark documentation](https://github.com/KimiNewt/pyshark)

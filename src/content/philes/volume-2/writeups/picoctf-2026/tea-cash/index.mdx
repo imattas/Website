@@ -1,7 +1,7 @@
 ---
 title: "tea-cash — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-tea-cash"
 order: 9
 writeupKind: "challenge"
@@ -418,11 +418,3 @@ if __name__ == '__main__':
 - `free()` does not wipe chunk contents, so a flag stored then freed still lives in memory inside its tcache bin.
 - The classic recovery is tcache reuse: allocate a chunk of the same size class and the LIFO bin hands back the exact memory that held the flag — then read it without overwriting.
 - Practical menu-driven heap recon: enumerate allocate/free/read/view options, try a "traverse free list" feature, or exploit a use-after-free; inspect tcache bins in GDB and trace with ltrace/strace.
-
----
-
-## References
-
-- [how2heap — tcache examples (shellphish)](https://github.com/shellphish/how2heap)
-- [glibc malloc internals / tcache overview (sourceware wiki)](https://sourceware.org/glibc/wiki/MallocInternals)
-- [pwntools documentation](https://docs.pwntools.com/)

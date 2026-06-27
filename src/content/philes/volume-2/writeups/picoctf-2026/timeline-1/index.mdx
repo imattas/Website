@@ -1,7 +1,7 @@
 ---
 title: "Timeline 1 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-timeline-1"
 order: 30
 writeupKind: "challenge"
@@ -602,11 +602,3 @@ if __name__ == '__main__':
 - A flag may be fragmented across files whose correct reassembly order is given by their MAC timestamps in the `mactime` output.
 - Watch for anomalous timestamp clusters (many files with identical or rapid-succession times), which indicate programmatic flag planting.
 - `blkls | strings` and `strings -a` are useful fallbacks for content in unallocated or slack space.
-
----
-
-## References
-
-- [The Sleuth Kit](https://www.sleuthkit.org/sleuthkit/) — `fls`, `mactime`, `icat`, `mmls`, `fsstat`, `blkls`
-- [The Sleuth Kit Wiki — Timeline Analysis](https://wiki.sleuthkit.org/index.php?title=Timeline)
-- [SANS — Filesystem Timeline Analysis](https://www.sans.org/blog/digital-forensics-sifting-cheating-timelines-with-log2timeline/)

@@ -1,7 +1,7 @@
 ---
 title: "Printer Shares 3 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-printer-shares-3"
 order: 36
 writeupKind: "challenge"
@@ -349,11 +349,3 @@ if __name__ == "__main__":
 - `recurse ON` in smbclient is essential to find files hidden in subdirectories, not just the share root.
 - Reading every script and unusual file (`.sh`, `.py`, `.bat`, `.txt`) on the share -- not just `flag.txt` -- is what distinguishes this from the earlier Printer Shares challenges.
 - A Python `smbprotocol`/`smbclient` library lets you recurse and grep programmatically, with the system `smbclient` CLI as a reliable fallback.
-
----
-
-## References
-
-- [smbclient manual page](https://www.samba.org/samba/docs/current/man-html/smbclient.1.html)
-- [smbprotocol (Python library)](https://github.com/jborean93/smbprotocol)
-- [HackTricks: SMB enumeration (139, 445)](https://book.hacktricks.xyz/network-services-pentesting/pentesting-smb)

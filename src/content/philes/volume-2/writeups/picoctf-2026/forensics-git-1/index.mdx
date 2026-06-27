@@ -1,7 +1,7 @@
 ---
 title: "Forensics Git 1 — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-forensics-git-1"
 order: 28
 writeupKind: "challenge"
@@ -517,12 +517,3 @@ if __name__ == "__main__":
 - `git log --all -p | grep "picoCTF{"` is the single highest-value command: it walks every diff across every ref.
 - When loop-mounting fails, The Sleuth Kit's `tsk_recover` / `fls` can recover the filesystem (and the `.git` directory) from the raw image.
 - Handle compressed images up front (`gunzip`), and always try multiple partition offsets (`start_sector * 512`).
-
----
-
-## References
-
-- [Pro Git — Git Internals](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain)
-- [git fsck documentation](https://git-scm.com/docs/git-fsck)
-- [git reflog documentation](https://git-scm.com/docs/git-reflog)
-- [The Sleuth Kit](https://www.sleuthkit.org/)

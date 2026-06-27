@@ -1,7 +1,7 @@
 ---
 title: "Shared Secrets — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-shared-secrets"
 order: 24
 writeupKind: "challenge"
@@ -597,10 +597,3 @@ if __name__ == '__main__':
 - The shared secret is rarely used directly; common derivations are SHA-256 of its string or byte form, truncated to AES key sizes.
 - When the cipher/key-derivation isn't specified, brute-force the combinations (AES-CBC/ECB/CTR/XOR × multiple key derivations) and grep for the flag format.
 - pycryptodome provides `pow`, `long_to_bytes`, and the AES modes needed for the full solve.
-
----
-
-## References
-
-- [Wikipedia: Diffie–Hellman key exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
-- [pycryptodome documentation](https://pycryptodome.readthedocs.io/)

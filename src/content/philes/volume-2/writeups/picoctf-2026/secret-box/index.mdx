@@ -1,7 +1,7 @@
 ---
 title: "Secret Box — picoCTF 2026"
 date: 2026-06-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "picoctf-2026-secret-box"
 order: 68
 writeupKind: "challenge"
@@ -402,12 +402,3 @@ if __name__ == "__main__":
 - The exploit is simply enumerating the reference — low IDs (0 or 1) often belong to the admin/first user and hold the flag.
 - Always inspect requests with browser DevTools (Network tab) to locate the object reference, and check for the reference hiding inside base64/JWT cookies.
 - The reference can live in URL paths, query strings, cookies, or POST bodies — test all of them.
-
----
-
-## References
-
-- [OWASP — Insecure Direct Object Reference Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html)
-- [OWASP API Security Top 10 — Broken Object Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/)
-- [PortSwigger Web Security Academy — Access control / IDOR](https://portswigger.net/web-security/access-control/idor)
-- [jwt.io](https://jwt.io/)

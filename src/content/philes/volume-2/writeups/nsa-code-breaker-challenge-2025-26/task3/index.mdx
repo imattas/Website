@@ -1,7 +1,7 @@
 ---
 title: "Task 3: Digging Deeper — NSA Codebreaker Challenge 2025-26"
 date: 2025-09-26
-author: "Ian Mattas"
+author: "Imattas aka Zemi"
 slug: "nsa-code-breaker-challenge-2025-26-task3"
 order: 76
 writeupKind: "challenge"
@@ -306,13 +306,3 @@ print(plaintext.decode('ascii', errors='ignore'))
 - **Replicate the decoder, don't just run the malware.** Understanding the encoding scheme (custom base64 → XOR with rolling key) means you can verify the output and adapt if the implementation changes. Running the binary in isolation works too, but reversing gives you deeper understanding of the malware's internals.
 - **Process names lie.** A process named "4" is designed to look like a kernel thread in a quick `ps` listing. Always check the full command line and parent process chain.
 - **The scope of the attack is massive.** This wasn't just targeting Ubuntu – every major distro plus PyPI was being redirected. Any machine on LAN 3 trying to install packages was getting served malicious content from the C2 infrastructure.
-
----
-
-## References
-
-- [Volatility 3](https://github.com/volatilityfoundation/volatility3) — Linux memory forensics framework
-- [dwarf2json](https://github.com/volatilityfoundation/dwarf2json) — building a custom Volatility symbol table from `vmlinux` + `System.map`
-- [Ghidra](https://ghidra-sre.org/) — disassembly/decompilation of the dumped code region
-- [`memfd_create(2)`](https://man7.org/linux/man-pages/man2/memfd_create.2.html) — the anonymous in-memory file mechanism behind fileless execution
-- [OpenWrt](https://openwrt.org/) — the router platform (procd/ujail/netifd, UCI dnsmasq config)

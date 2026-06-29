@@ -27,6 +27,15 @@ C++.
     infrastructure  : CTF hosting, Cloudflare Workers, service automation
     developer tools : MCP servers, Codex installers, debugging utilities
 
+--[ dev profile ]------------------------------------------------------------
+
+    favorite distro : Arch Linux
+    daily shell     : zsh
+    core languages  : C, C++, Rust, Python, TypeScript
+    low-level stack : x86_64, assembly, kernels, bootloaders, debuggers
+    security tools  : Binary Ninja, Ghidra, IDA Pro, GDB, x64dbg, Frida
+    web stack       : Astro, TypeScript, Cloudflare Workers, Docker
+
 --[ contact ]----------------------------------------------------------------
 
     GitHub   : https://github.com/imattas

@@ -3,15 +3,15 @@ type BootstrapOptions = {
   particlesEnabled: boolean;
 };
 
-const idleDelayMs = 1200;
-const idleTimeoutMs = 1600;
+const idleDelayMs = 2200;
+const idleTimeoutMs = 2400;
 
 export function installTextmodeBootstrap(options = readOptions()): void {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   installMobileFit(options.mobileFitBreakpoint);
 
-  if (options.particlesEnabled && !reducedMotion) {
+  if (options.particlesEnabled && !reducedMotion && !prefersReducedData()) {
     window.addEventListener(
       "load",
       () => {
@@ -72,4 +72,9 @@ function readPositiveInteger(input: string | undefined, fallback: number): numbe
 
   const value = Number.parseInt(input, 10);
   return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function prefersReducedData(): boolean {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  return connection?.saveData === true;
 }

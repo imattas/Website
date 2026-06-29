@@ -75,13 +75,7 @@ export const siteConfig: SiteConfig = {
           prefix: "~ call"
         },
         {
-          label: "web@plt",
-          href: "https://ianmattas.com",
-          external: true,
-          prefix: "~ call"
-        },
-        {
-          label: "links@local",
+          label: "about@local",
           href: "/volume/0/about/",
           prefix: "~ call"
         }

@@ -49,20 +49,20 @@ export const effectsConfig: EffectsConfig = {
     speed: [0.03, 0.085],
     contexts: {
       home: {
-        desktopCount: 86,
-        mobileCount: 38,
-        opacity: [0.3, 0.62],
+        desktopCount: 44,
+        mobileCount: 16,
+        opacity: [0.22, 0.48],
         pointerScale: 1
       },
       volume: {
-        desktopCount: 38,
-        mobileCount: 18,
+        desktopCount: 24,
+        mobileCount: 10,
         opacity: [0.2, 0.44],
         pointerScale: 0.72
       },
       article: {
-        desktopCount: 22,
-        mobileCount: 14,
+        desktopCount: 14,
+        mobileCount: 8,
         opacity: [0.12, 0.28],
         pointerScale: 0.45
       }

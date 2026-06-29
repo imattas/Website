@@ -16,6 +16,12 @@ body {
   -moz-osx-font-smoothing: auto;
 }
 
+@supports (min-height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+}
+
 .screen {
   position: relative;
   z-index: 1;
@@ -55,4 +61,5 @@ a:focus-visible {
   text-align: left;
   max-width: 100vw;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

@@ -28,6 +28,31 @@ const asciiFontUrl = siteHref(appearanceConfig.fonts.asciiUrl);
 const cjkBodyAtlas = siteHref("/assets/cjk/wqy-cjk-body.png");
 const cjkLinkAtlas = siteHref("/assets/cjk/wqy-cjk-link.png");
 const analyticsEnabled = import.meta.env.VERCEL === "1";
+const seoKeywords = [
+  "Ian Mattas",
+  "imattas",
+  "red team",
+  "cybersecurity",
+  "CTF",
+  "pwn",
+  "security tooling",
+  "portfolio"
+];
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Ian Mattas",
+  alternateName: "imattas",
+  url: new URL(siteHref("/"), Astro.site ?? Astro.url).toString(),
+  sameAs: [
+    "https://github.com/imattas",
+    "https://linkedin.com/in/ian-mattas",
+    "https://github.com/redsecc",
+    "https://idktheflag.sh"
+  ],
+  jobTitle: "Aspiring red teamer",
+  description
+});
 ---
 
 <!doctype html>
@@ -36,7 +61,11 @@ const analyticsEnabled = import.meta.env.VERCEL === "1";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="author" content="Ian Mattas" />
+    <meta name="keywords" content={seoKeywords.join(", ")} />
     <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#05070a" />
+    <meta name="color-scheme" content="dark" />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} RSS`} href={rssUrl} />
     <meta property="og:site_name" content={siteConfig.name} />
@@ -44,7 +73,9 @@ const analyticsEnabled = import.meta.env.VERCEL === "1";
     <meta property="og:description" content={description} />
     <meta property="og:type" content={pageType} />
     <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@imattas" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     {
@@ -53,6 +84,7 @@ const analyticsEnabled = import.meta.env.VERCEL === "1";
       )
     }
     <link rel="stylesheet" href={stylesheetUrl} />
+    <script is:inline type="application/ld+json" set:html={jsonLd}></script>
     <style set:html={appearanceCss}></style>
     <link
       rel="preload"

@@ -93,3 +93,42 @@
     --mobile-scale: 0.47;
   }
 }
+
+@media (max-width: 760px) {
+  .volume-wrap,
+  .phile-wrap,
+  .phile-header {
+    width: min(calc(var(--text-cell) * 85), 100vw);
+  }
+
+  .phile-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phile-code-pre,
+  .phile-image {
+    max-width: calc(100vw - var(--text-cell) * 6);
+  }
+}
+
+@media (max-width: 540px) {
+  body {
+    padding: 4px 0;
+  }
+
+  .home-shell {
+    transform: translateY(-3vh);
+  }
+
+  .phile-header-side {
+    display: none;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  a,
+  button {
+    touch-action: manipulation;
+  }
+}

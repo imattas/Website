@@ -14,9 +14,21 @@ Commands
     pnpm check
     pnpm build
 
+Quality checks
+--------------
+
+Run the full verification stack before publishing changes:
+
+    pnpm format
+    pnpm lint
+    pnpm check
+    pnpm build
+
 Main editing points:
 
     src/config/site.ts              home page text and links
+    src/layouts/base/BaseLayout.astro SEO metadata and JSON-LD
+    src/styles/modules/responsive.css mobile and small-screen behavior
     src/config/volumes.ts           volume titles and sorting
     src/content/philes/             portfolio notes
     astro.config.mjs                canonical site URL

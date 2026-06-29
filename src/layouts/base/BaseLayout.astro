@@ -15,11 +15,12 @@ type Props = {
 };
 
 const pageTitle = Astro.props.title ? `${Astro.props.title} :: ${siteConfig.name}` : siteConfig.name;
-const tabTitle = Astro.props.tabTitle ?? siteConfig.name;
+const tabTitle = Astro.props.tabTitle ?? pageTitle;
 const description = Astro.props.description ?? siteConfig.description;
 const preloadCjk = Astro.props.preloadCjk ?? false;
 const pageType = Astro.props.pageType ?? "website";
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
+const siteUrl = new URL(siteHref("/"), Astro.site ?? Astro.url).toString();
 const rssUrl = new URL(siteHref("/rss.xml"), Astro.site ?? Astro.url).toString();
 const appearanceCss = appearanceCssVariables(appearanceConfig);
 const mobileFitBreakpoint = textmodeConfig.mobileFitBreakpoint;
@@ -38,21 +39,33 @@ const seoKeywords = [
   "security tooling",
   "portfolio"
 ];
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Ian Mattas",
-  alternateName: "imattas",
-  url: new URL(siteHref("/"), Astro.site ?? Astro.url).toString(),
-  sameAs: [
-    "https://github.com/imattas",
-    "https://linkedin.com/in/ian-mattas",
-    "https://github.com/redsecc",
-    "https://idktheflag.sh"
-  ],
-  jobTitle: "Aspiring red teamer",
-  description
-});
+const jsonLd = JSON.stringify([
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Ian Mattas",
+    alternateName: "imattas",
+    url: siteUrl,
+    sameAs: [
+      "https://github.com/imattas",
+      "https://linkedin.com/in/ian-mattas",
+      "https://github.com/redsecc",
+      "https://idktheflag.sh"
+    ],
+    jobTitle: "Aspiring red teamer",
+    knowsAbout: ["red teaming", "binary exploitation", "CTF", "security tooling", "systems programming"],
+    description
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteConfig.name,
+    url: siteUrl,
+    author: { "@type": "Person", name: "Ian Mattas" },
+    inLanguage: "en-US",
+    description
+  }
+]);
 ---
 
 <!doctype html>
@@ -63,10 +76,13 @@ const jsonLd = JSON.stringify({
     <meta name="description" content={description} />
     <meta name="author" content="Ian Mattas" />
     <meta name="keywords" content={seoKeywords.join(", ")} />
-    <meta name="robots" content="index,follow" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="theme-color" content="#05070a" />
     <meta name="color-scheme" content="dark" />
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="home" href={siteUrl} />
     <link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} RSS`} href={rssUrl} />
     <meta property="og:site_name" content={siteConfig.name} />
     <meta property="og:title" content={pageTitle} />
@@ -74,6 +90,8 @@ const jsonLd = JSON.stringify({
     <meta property="og:type" content={pageType} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:locale" content="en_US" />
+    <meta property="og:profile:first_name" content="Ian" />
+    <meta property="og:profile:last_name" content="Mattas" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:creator" content="@imattas" />
     <meta name="twitter:title" content={pageTitle} />

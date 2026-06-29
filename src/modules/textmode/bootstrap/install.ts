@@ -3,8 +3,8 @@ type BootstrapOptions = {
   particlesEnabled: boolean;
 };
 
-const idleDelayMs = 2200;
-const idleTimeoutMs = 2400;
+const idleDelayMs = 3600;
+const idleTimeoutMs = 1800;
 
 export function installTextmodeBootstrap(options = readOptions()): void {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

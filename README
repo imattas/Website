@@ -26,11 +26,12 @@ Run the full verification stack before publishing changes:
 
 Main editing points:
 
-    src/config/site.ts              home page text and links
-    src/layouts/base/BaseLayout.astro SEO metadata and JSON-LD
-    src/styles/modules/responsive.css mobile and small-screen behavior
+    src/config/site.ts              home page text and external contact links
+    src/layouts/base/BaseLayout.astro SEO metadata, Open Graph, and JSON-LD
+    src/styles/modules/responsive.css mobile and small-screen no-side-scroll behavior
+    src/config/effects.ts           particle counts and visual effect budgets
     src/config/volumes.ts           volume titles and sorting
-    src/content/philes/             portfolio notes
+    src/content/philes/             portfolio notes, including the about profile
     astro.config.mjs                canonical site URL
 
 Writeups

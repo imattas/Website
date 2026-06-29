@@ -31,9 +31,12 @@ C++.
 --[ personal ]---------------------------------------------------------------
 
     favorite language : Rust for systems work, Python for quick tooling
+    favorite distro   : Arch Linux when I want control; Debian/Ubuntu when I want boring reliability
     daily distro      : Linux workstation with terminal-first workflows
+    shell habitat     : tmux, fast prompts, small scripts, and reproducible notes
     editor style      : keyboard-driven, fast feedback, simple tools
     interests         : CTFs, operating systems, security research, automation
+    learning mode     : reverse it, rebuild it, write down what mattered
     working style     : build small, test often, document the useful parts
 
 --[ contact ]----------------------------------------------------------------

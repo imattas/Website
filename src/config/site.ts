@@ -55,7 +55,7 @@ export const siteConfig: SiteConfig = {
           href: "https://github.com/redsecc",
           external: true
         },
-        { label: "About", href: "/volume/0/about/" }
+        { label: "Profile", href: "/volume/0/about/" }
       ]
     },
     {
@@ -75,8 +75,8 @@ export const siteConfig: SiteConfig = {
           prefix: "~ call"
         },
         {
-          label: "about@local",
-          href: "/volume/0/about/",
+          label: "email@plt",
+          href: "mailto:ian@mattas.net",
           prefix: "~ call"
         }
       ]

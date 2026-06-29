@@ -4,6 +4,7 @@ import type { Volume } from "../volumes/model";
 
 export type SitemapEntry = {
   href: string;
+  lastmod?: Date;
 };
 
 export function absoluteUrl(site: URL, href: string): string {
@@ -61,7 +62,8 @@ export function sitemapEntries(volumes: Volume[], philes: Phile[]): SitemapEntry
       href: volume.href
     })),
     ...philes.map((phile) => ({
-      href: phile.route.href
+      href: phile.route.href,
+      lastmod: phile.data.date
     }))
   ];
 }
@@ -98,8 +100,13 @@ function plainText(input: string): string {
 }
 
 function renderSitemapEntry(site: URL, entry: SitemapEntry): string {
+  const lastmod = entry.lastmod
+    ? `
+    <lastmod>${entry.lastmod.toISOString()}</lastmod>`
+    : "";
+
   return `  <url>
-    <loc>${escapeXml(absoluteUrl(site, entry.href))}</loc>
+    <loc>${escapeXml(absoluteUrl(site, entry.href))}</loc>${lastmod}
   </url>`;
 }
 

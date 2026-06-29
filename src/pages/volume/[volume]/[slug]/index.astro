@@ -42,6 +42,8 @@ const hasCjk = phile.data.lang === "zh" || /[\p{Script=Han}]/u.test(`${phile.dat
   preloadCjk={hasCjk}
   pageType="article"
   publishedTime={phile.data.date}
+  author={phile.data.author}
+  keywords={[phile.data.title, `Volume ${volumeNumber}`, phile.data.writeupKind ?? "phile"]}
 >
   <PhileShell phile={phile} childPhiles={childPhiles} />
 </TextmodeLayout>

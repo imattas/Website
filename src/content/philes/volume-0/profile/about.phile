@@ -29,10 +29,10 @@ C++.
 
 --[ dev profile ]------------------------------------------------------------
 
-    favorite distro : Arch Linux
+    favorite distro : Gentoo Linux
     daily shell     : zsh
     core languages  : C, C++, Rust, Python, TypeScript
-    low-level stack : x86_64, assembly, kernels, bootloaders, debuggers
+    ide             : VSCodium
     security tools  : Binary Ninja, Ghidra, IDA Pro, GDB, x64dbg, Frida
     web stack       : Astro, TypeScript, Cloudflare Workers, Docker
 

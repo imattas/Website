@@ -21,6 +21,11 @@ if (!volume) {
 const hasCjk = volume.philes.some((phile) => phile.data.lang === "zh" || /[\p{Script=Han}]/u.test(phile.data.title));
 ---
 
-<TextmodeLayout title={volumeTitle(volume)} description={volumeListLabel(volume)} preloadCjk={hasCjk}>
+<TextmodeLayout
+  title={volumeTitle(volume)}
+  description={volumeListLabel(volume)}
+  preloadCjk={hasCjk}
+  keywords={[volumeTitle(volume), `Volume ${volume.number}`, volumeListLabel(volume)]}
+>
   <VolumeScreen volume={volume} />
 </TextmodeLayout>

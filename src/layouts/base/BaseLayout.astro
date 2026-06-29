@@ -2,6 +2,7 @@
 import Analytics from "@vercel/analytics/astro";
 import stylesheetUrl from "../../styles/global.css?url";
 import { appearanceConfig, effectsConfig, siteConfig, textmodeConfig } from "../../config";
+import { seoJsonLd, seoKeywords } from "../../modules/seo/meta";
 import { appearanceCssVariables } from "../../modules/textmode/core/css-vars";
 import { siteHref } from "../../modules/textmode/core/html";
 
@@ -12,14 +13,26 @@ type Props = {
   preloadCjk?: boolean;
   pageType?: "website" | "article";
   publishedTime?: Date;
+  author?: string;
+  keywords?: string[];
 };
 
 const pageTitle = Astro.props.title ? `${Astro.props.title} :: ${siteConfig.name}` : siteConfig.name;
-const tabTitle = Astro.props.tabTitle ?? siteConfig.name;
+const tabTitle = Astro.props.tabTitle ?? pageTitle;
 const description = Astro.props.description ?? siteConfig.description;
 const preloadCjk = Astro.props.preloadCjk ?? false;
 const pageType = Astro.props.pageType ?? "website";
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
+const keywords = seoKeywords(Astro.props.keywords);
+const author = Astro.props.author ?? siteConfig.author.name;
+const jsonLd = seoJsonLd({
+  title: pageTitle,
+  description,
+  canonicalUrl,
+  pageType,
+  publishedTime: Astro.props.publishedTime,
+  author
+});
 const rssUrl = new URL(siteHref("/rss.xml"), Astro.site ?? Astro.url).toString();
 const appearanceCss = appearanceCssVariables(appearanceConfig);
 const mobileFitBreakpoint = textmodeConfig.mobileFitBreakpoint;
@@ -36,20 +49,35 @@ const analyticsEnabled = import.meta.env.VERCEL === "1";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="robots" content="index,follow" />
+    <meta name="keywords" content={keywords} />
+    <meta name="author" content={author} />
+    <meta name="creator" content={siteConfig.author.name} />
+    <meta name="application-name" content={siteConfig.name} />
+    <meta name="generator" content="Astro" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta name="theme-color" content={siteConfig.themeColor} />
+    <meta name="color-scheme" content="dark light" />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} RSS`} href={rssUrl} />
     <meta property="og:site_name" content={siteConfig.name} />
+    <meta property="og:locale" content={siteConfig.locale} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={pageType} />
     <meta property="og:url" content={canonicalUrl} />
     <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content={`@${siteConfig.author.handle}`} />
+    <meta name="twitter:creator" content={`@${siteConfig.author.handle}`} />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     {
       Astro.props.publishedTime && (
-        <meta property="article:published_time" content={Astro.props.publishedTime.toISOString()} />
+        <>
+          <meta property="article:published_time" content={Astro.props.publishedTime.toISOString()} />
+          <meta property="article:modified_time" content={Astro.props.publishedTime.toISOString()} />
+          <meta property="article:author" content={author} />
+        </>
       )
     }
     <link rel="stylesheet" href={stylesheetUrl} />
@@ -63,6 +91,7 @@ const analyticsEnabled = import.meta.env.VERCEL === "1";
     />
     {preloadCjk && <link rel="preload" href={cjkBodyAtlas} as="image" />}
     {preloadCjk && <link rel="preload" href={cjkLinkAtlas} as="image" />}
+    <script type="application/ld+json" is:inline set:html={jsonLd}></script>
     <title>{tabTitle}</title>
   </head>
   <body data-mobile-fit-breakpoint={mobileFitBreakpoint} data-particles-enabled={particlesEnabled}>

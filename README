@@ -16,10 +16,20 @@ Commands
 
 Main editing points:
 
-    src/config/site.ts              home page text and links
+    src/config/site.ts              home page text, links, and shared SEO metadata
     src/config/volumes.ts           volume titles and sorting
     src/content/philes/             portfolio notes
+    src/layouts/base/BaseLayout.astro shared page-level SEO tags and JSON-LD
+    src/modules/seo/                sitemap, RSS, excerpts, and structured-data helpers
     astro.config.mjs                canonical site URL
+
+SEO
+---
+
+Base pages emit canonical URLs, crawl directives, author/keyword metadata,
+Open Graph, Twitter Card tags, RSS discovery, theme metadata, and Schema.org
+JSON-LD. Phile detail pages pass article titles, excerpts, authors, dates, and
+page-specific keywords into the shared layout.
 
 Writeups
 --------

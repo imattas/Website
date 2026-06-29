@@ -8,6 +8,8 @@ type Props = {
   preloadCjk?: boolean;
   pageType?: "website" | "article";
   publishedTime?: Date;
+  author?: string;
+  keywords?: string[];
 };
 ---
 
@@ -18,6 +20,8 @@ type Props = {
   preloadCjk={Astro.props.preloadCjk}
   pageType={Astro.props.pageType}
   publishedTime={Astro.props.publishedTime}
+  author={Astro.props.author}
+  keywords={Astro.props.keywords}
 >
   <main class="screen">
     <slot />
